@@ -1,0 +1,20 @@
+{
+  "name": "omni-skill-workspace",
+  "version": "5.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "bun run --filter \"*\" build",
+    "test": "bun test && python3 packages/core/test_engine.py",
+    "lint": "bun run --filter \"*\" lint",
+    "cli": "bun run packages/cli/src/index.ts",
+    "validate:all": "python3 packages/core/portability_validator.py skills/omni-skill --targets agent-skills,chatgpt,codex,claude-code"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.5.4"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "omni-skill",
+  "interface": {
+    "displayName": "OmniSkill Engine"
+  },
+  "plugins": [
+    {
+      "name": "omni-skill",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/imMamdouhaboammar/omni-skill.git",
+        "ref": "main"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

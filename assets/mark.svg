@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="OmniSkill Mark">
+  <defs>
+    <linearGradient id="markGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06B6D4"/>
+      <stop offset="100%" stop-color="#8B5CF6"/>
+    </linearGradient>
+  </defs>
+  <circle cx="256" cy="256" r="230" fill="#0F172A"/>
+  <circle cx="256" cy="256" r="180" fill="none" stroke="url(#markGrad)" stroke-width="16" stroke-dasharray="32 16"/>
+  <polygon points="256,136 360,316 152,316" fill="none" stroke="#F8FAFC" stroke-width="16" stroke-linejoin="round"/>
+  <circle cx="256" cy="136" r="20" fill="#06B6D4"/>
+  <circle cx="360" cy="316" r="20" fill="#3B82F6"/>
+  <circle cx="152" cy="316" r="20" fill="#8B5CF6"/>
+  <circle cx="256" cy="256" r="24" fill="#F8FAFC"/>
+</svg>

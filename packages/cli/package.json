@@ -1,0 +1,26 @@
+{
+  "name": "@omni-skill/cli",
+  "version": "5.0.0",
+  "description": "OmniSkill CLI - Universal Cross-Host Agent Skill Engine & Compiler",
+  "bin": {
+    "omni-skill": "./src/index.ts"
+  },
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "type": "module",
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --target node",
+    "test": "bun test",
+    "lint": "bunx tsc --noEmit"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "picocolors": "^1.0.1",
+    "yaml": "^2.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "bun-types": "latest",
+    "typescript": "^5.5.4"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "omni-skill",
+  "version": "5.0.0",
+  "description": "Universal Cross-Host Agent Skill Engine & Compiler",
+  "skills": "./skills/"
+}

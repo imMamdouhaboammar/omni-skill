@@ -1,0 +1,20 @@
+{
+  "name": "omni-skill",
+  "version": "5.0.0",
+  "description": "Universal agent skill engineering engine with Claude Code support, AST portability validator, and multi-agent compilers.",
+  "author": {
+    "name": "Mamdouh Aboammar",
+    "url": "https://github.com/imMamdouhaboammar"
+  },
+  "homepage": "https://github.com/imMamdouhaboammar/omni-skill",
+  "repository": "https://github.com/imMamdouhaboammar/omni-skill",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "agent-skills",
+    "skill-authoring",
+    "evals",
+    "portability",
+    "omni-skill"
+  ]
+}

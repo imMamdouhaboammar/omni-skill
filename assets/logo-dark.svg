@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="OmniSkill">
+  <defs>
+    <linearGradient id="omniGradDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06B6D4"/>
+      <stop offset="50%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#8B5CF6"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="56" fill="#0F172A"/>
+  <circle cx="128" cy="128" r="88" fill="none" stroke="url(#omniGradDark)" stroke-width="8" stroke-dasharray="16 8"/>
+  <circle cx="128" cy="128" r="54" fill="none" stroke="#38BDF8" stroke-width="6"/>
+  <polygon points="128,68 180,158 76,158" fill="none" stroke="#F8FAFC" stroke-width="8" stroke-linejoin="round"/>
+  <circle cx="128" cy="68" r="10" fill="#06B6D4"/>
+  <circle cx="180" cy="158" r="10" fill="#3B82F6"/>
+  <circle cx="76" cy="158" r="10" fill="#8B5CF6"/>
+  <circle cx="128" cy="128" r="12" fill="#F8FAFC"/>
+</svg>

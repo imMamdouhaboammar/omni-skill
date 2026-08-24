@@ -1,0 +1,19 @@
+{
+  "evals": [
+    {
+      "id": "slow-query-detection",
+      "prompt": "This query taking 12 seconds: SELECT * FROM orders WHERE status = 'pending' AND created_at > NOW() - INTERVAL '7 days';",
+      "assertions": [
+        { "pattern": "EXPLAIN", "required": true },
+        { "pattern": "index", "required": true }
+      ]
+    },
+    {
+      "id": "negative-general-chat",
+      "prompt": "Write a poem about databases.",
+      "assertions": [
+        { "pattern": "EXPLAIN ANALYZE", "required": false }
+      ]
+    }
+  ]
+}

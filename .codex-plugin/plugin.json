@@ -1,0 +1,54 @@
+{
+  "name": "omni-skill",
+  "version": "5.0.0",
+  "description": "Universal cross-host agent skill engineering engine and compiler for ChatGPT, Codex, Claude Code, and Agent Skills hosts.",
+  "author": {
+    "name": "Mamdouh Aboammar",
+    "url": "https://github.com/imMamdouhaboammar"
+  },
+  "license": "MIT",
+  "keywords": [
+    "omni-skill",
+    "agent-skills",
+    "skill-authoring",
+    "evals",
+    "chatgpt",
+    "codex",
+    "claude-code",
+    "antigravity",
+    "developer-tools"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "OmniSkill",
+    "shortDescription": "Universal agent skill engine and compiler",
+    "longDescription": "Universal cross-host skill engineering platform. Converts workflows into high-reliability skills with architecture design, freedom level calibration, positive and negative trigger tuning, behavioral evaluation with BinEval, pressure testing, and multi-agent compilation for ChatGPT, Codex, Claude Code, and Antigravity.",
+    "developerName": "Mamdouh Aboammar",
+    "category": "Developer Tools",
+    "capabilities": [
+      "OmniSkillSpec Architecture Design",
+      "Universal Skill Contract Generation",
+      "Trigger and Collision Boundary Tuning",
+      "Workflow-to-Skill Compilation",
+      "Cross-Host Portability Compilation",
+      "AST & Structural Skill Validation",
+      "Behavioral & Pressure-Test Harness",
+      "Held-Out Regression Evaluation",
+      "Token Leak & Secret Prevention",
+      "Multi-Agent Skill Packaging"
+    ],
+    "websiteURL": "https://github.com/imMamdouhaboammar/omni-skill",
+    "defaultPrompt": [
+      "Design a production-grade OmniSkill for this workflow with full contract and evals.",
+      "Audit this Skill for trigger collisions, instructions quality, and cross-host portability.",
+      "Compile this prompt/SOP into portable Skill adapters for ChatGPT, Codex, Claude Code, and Antigravity."
+    ],
+    "brandColor": "#0F172A",
+    "composerIcon": "./assets/mark.svg",
+    "logo": "./assets/logo-light.svg",
+    "privacyPolicyURL": "https://github.com/imMamdouhaboammar/omni-skill/blob/main/PRIVACY.md",
+    "termsOfServiceURL": "https://github.com/imMamdouhaboammar/omni-skill/blob/main/TERMS.md"
+  },
+  "homepage": "https://github.com/imMamdouhaboammar/omni-skill",
+  "repository": "https://github.com/imMamdouhaboammar/omni-skill"
+}

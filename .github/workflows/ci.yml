@@ -1,0 +1,57 @@
+name: OmniSkill CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Validate Plugin JSON Manifests
+        run: |
+          python3 -m json.tool .codex-plugin/plugin.json >/dev/null
+          python3 -m json.tool .agents/plugins/marketplace.json >/dev/null
+          python3 -m json.tool .claude-plugin/plugin.json >/dev/null
+          python3 -m json.tool .claude-plugin/marketplace.json >/dev/null
+
+      - name: Run TypeScript Tests & Typechecks
+        run: |
+          bun test
+          bun run --filter "@omni-skill/cli" build
+
+      - name: Run Python Deterministic Engine Tests
+        run: |
+          python3 packages/core/test_engine.py
+
+      - name: Run Portability Validation
+        run: |
+          python3 packages/core/portability_validator.py skills/omni-skill --targets agent-skills,chatgpt,codex,claude-code
+
+      - name: Validate Vector SVG Brand Assets
+        run: |
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          assets = ["assets/logo-light.svg", "assets/logo-dark.svg", "assets/mark.svg", "assets/icon.svg"]
+          for path in assets:
+              root = ET.parse(path).getroot()
+              assert "viewBox" in root.attrib, f"Missing viewBox in {path}"
+          print("SVG Asset Integrity: PASS")
+          PY
