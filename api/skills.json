@@ -1,0 +1,47 @@
+{
+  "$schema": "https://skills.sh/schema/v1.json",
+  "name": "omni-skill",
+  "version": "5.0.0",
+  "author": "Mamdouh Aboammar",
+  "homepage": "https://github.com/imMamdouhaboammar/omni-skill",
+  "repository": "https://github.com/imMamdouhaboammar/omni-skill",
+  "description": "Universal Cross-Host Agent Skill Engineering Engine & Compiler for ChatGPT, Codex, Claude Code, and Antigravity",
+  "skills": [
+    {
+      "name": "omni-skill",
+      "description": "Master orchestrator and lifecycle router for designing, evaluating, improving, and porting agent skills across all hosts.",
+      "path": "skills/omni-skill/SKILL.md",
+      "tags": ["orchestrator", "lifecycle", "evals", "portability"]
+    },
+    {
+      "name": "skill-architect",
+      "description": "Architecture-first skill designer and SOP/workflow-to-Skill compiler with freedom calibration.",
+      "path": "skills/skill-architect/SKILL.md",
+      "tags": ["architecture", "sop-compiler", "design"]
+    },
+    {
+      "name": "skill-evaluator",
+      "description": "Behavioral evaluation harness with BinEval assertions, pressure testing, and held-out regression gates.",
+      "path": "skills/skill-evaluator/SKILL.md",
+      "tags": ["evaluator", "bineval", "pressure-testing", "regression"]
+    },
+    {
+      "name": "skill-portability-compiler",
+      "description": "Cross-host adapter compiler generating target manifests and compatibility gap reports.",
+      "path": "skills/skill-portability-compiler/SKILL.md",
+      "tags": ["compiler", "portability", "adapters"]
+    },
+    {
+      "name": "host-workspace-operator",
+      "description": "Safe, read-first workspace operations mapped to host-native capabilities.",
+      "path": "skills/host-workspace-operator/SKILL.md",
+      "tags": ["workspace", "safety", "fs-operator"]
+    },
+    {
+      "name": "sandbox-python-executor",
+      "description": "Deterministic Python helper for parsing, hash verification, archive inspection, and verification.",
+      "path": "skills/sandbox-python-executor/SKILL.md",
+      "tags": ["python", "sandbox", "deterministic"]
+    }
+  ]
+}

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniSkill — Universal Agent Skill Registry & Compiler</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/mark.svg">
+  <style>
+    :root {
+      --bg: #0F172A;
+      --card-bg: #1E293B;
+      --text: #F8FAFC;
+      --text-muted: #94A3B8;
+      --cyan: #06B6D4;
+      --violet: #8B5CF6;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+    .container { max-width: 960px; margin: 0 auto; }
+    header { text-align: center; margin-bottom: 50px; }
+    .logo { width: 96px; height: 96px; margin-bottom: 20px; }
+    h1 { font-size: 2.75rem; margin-bottom: 12px; background: linear-gradient(135deg, var(--cyan), var(--violet)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    p.subtitle { font-size: 1.25rem; color: var(--text-muted); max-width: 600px; margin: 0 auto 30px; }
+    .badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 30px; }
+    .badge { background: var(--card-bg); border: 1px solid var(--border); padding: 6px 14px; border-radius: 9999px; font-size: 0.875rem; font-weight: 500; }
+    
+    .install-box {
+      background: #020617;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 50px;
+      position: relative;
+    }
+    .install-title { font-size: 0.875rem; text-transform: uppercase; color: var(--cyan); font-weight: bold; margin-bottom: 10px; }
+    pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace; color: #38BDF8; overflow-x: auto; font-size: 1rem; }
+
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
+    }
+    .skill-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .skill-card:hover { transform: translateY(-4px); border-color: var(--cyan); }
+    .skill-card h3 { font-size: 1.25rem; margin-bottom: 8px; color: var(--text); }
+    .skill-card p { font-size: 0.925rem; color: var(--text-muted); margin-bottom: 16px; }
+    .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tag { background: #0F172A; border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; color: var(--cyan); }
+
+    footer { text-align: center; margin-top: 60px; color: var(--text-muted); font-size: 0.875rem; }
+    a { color: var(--cyan); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <img src="assets/mark.svg" alt="OmniSkill" class="logo">
+      <h1>OmniSkill</h1>
+      <p class="subtitle">Universal Cross-Host Agent Skill Engineering Engine & Compiler</p>
+      <div class="badges">
+        <span class="badge">v5.0.0</span>
+        <span class="badge">Bun + TypeScript</span>
+        <span class="badge">ChatGPT / Codex</span>
+        <span class="badge">Claude Code</span>
+        <span class="badge">Antigravity</span>
+        <span class="badge">skills.sh Registry</span>
+      </div>
+    </header>
+
+    <div class="install-box">
+      <div class="install-title">1-Click Skills.sh Install</div>
+      <pre><code>npx skills add imMamdouhaboammar/omni-skill</code></pre>
+    </div>
+
+    <div class="install-box">
+      <div class="install-title">Homebrew Install (macOS / Linux)</div>
+      <pre><code>brew tap imMamdouhaboammar/omni-skill https://github.com/imMamdouhaboammar/omni-skill
+brew install omni-skill</code></pre>
+    </div>
+
+    <div class="install-box">
+      <div class="install-title">Universal Curl Installer</div>
+      <pre><code>curl -fsSL https://raw.githubusercontent.com/imMamdouhaboammar/omni-skill/main/install.sh | bash</code></pre>
+    </div>
+
+    <h2 style="margin-top: 40px;">Certified Modular Skills</h2>
+    <div class="skills-grid" id="skillsGrid">
+      <!-- Injected dynamically -->
+    </div>
+
+    <footer>
+      <p>Built with precision by <a href="https://github.com/imMamdouhaboammar">Mamdouh Aboammar</a> • MIT License • <a href="https://github.com/imMamdouhaboammar/omni-skill">GitHub Repository</a></p>
+    </footer>
+  </div>
+
+  <script>
+    fetch('/api/skills.json')
+      .then(res => res.json())
+      .then(data => {
+        const grid = document.getElementById('skillsGrid');
+        data.skills.forEach(skill => {
+          const card = document.createElement('div');
+          card.className = 'skill-card';
+          card.innerHTML = `
+            <h3>${skill.name}</h3>
+            <p>${skill.description}</p>
+            <div class="tags">
+              ${skill.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      })
+      .catch(console.error);
+  </script>
+</body>
+</html>

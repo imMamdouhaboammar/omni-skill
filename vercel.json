@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "name": "omni-skill",
+  "cleanUrls": true,
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
+      ]
+    }
+  ],
+  "routes": [
+    { "src": "/api/skills", "dest": "/api/skills.json" },
+    { "src": "/skills.json", "dest": "/api/skills.json" },
+    { "src": "/install.sh", "dest": "/install.sh" },
+    { "src": "/(.*)", "dest": "/public/$1" }
+  ]
+}

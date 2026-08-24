@@ -9,19 +9,20 @@
 </p>
 
 <p align="center">
+  <a href="#installation">Installation</a> •
+  <a href="#all-agents-support">All Agents Support</a> •
   <a href="#features">Features</a> •
   <a href="#architecture">Architecture</a> •
-  <a href="#quickstart">Quickstart</a> •
   <a href="#cli-usage">CLI Usage</a> •
   <a href="#skills-suite">Skills Suite</a> •
-  <a href="#specification">Specification</a> •
   <a href="#license">License</a>
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/version-5.0.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/homebrew-supported-gold.svg" alt="Homebrew">
+  <img src="https://img.shields.io/badge/skills.sh-vercel%20registry-purple.svg" alt="Skills.sh">
   <img src="https://img.shields.io/badge/engine-Bun%20%2B%20Python-black.svg" alt="Runtime">
-  <img src="https://img.shields.io/badge/platforms-ChatGPT%20|%20Codex%20|%20Claude%20|%20Antigravity-orange.svg" alt="Platforms">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
 </p>
 
@@ -29,92 +30,97 @@
 
 ## Overview
 
-**OmniSkill** is the universal standard and engineering toolkit for designing, testing, compiling, and packaging high-reliability AI Agent Skills across any runtime or IDE.
+**OmniSkill** is the universal cross-host standard and compiler for AI Agent Skills. It enables developers to design, test, verify, compile, and package high-reliability skills across every AI coding agent and LLM platform with zero lock-in.
 
-Whether you are targeting **OpenAI ChatGPT & Codex Plugins**, **Claude Code Skills**, **Google Antigravity & Gemini CLI**, or **standard Agent Skills**, OmniSkill decouples your core behavioral contract from vendor-specific syntax and provides verifiable execution gates before release.
-
-$$\text{Intent} \longrightarrow \text{OmniSkillSpec} \longrightarrow \text{Architecture} \longrightarrow \text{BinEval Harness} \longrightarrow \text{Host Compiler} \longrightarrow \text{Certified Release}$$
+$$\text{Intent} \longrightarrow \text{OmniSkillSpec} \longrightarrow \text{BinEval Harness} \longrightarrow \text{Cross-Host Compiler} \longrightarrow \text{Release (All Agents)}$$
 
 ---
 
-## Key Features
+## Installation
 
-- **Multi-Host Compatibility**: Generate certified adapters for ChatGPT (`.codex-plugin`), Codex, Claude Code (`.claude-plugin`), Antigravity, OpenCode, and Cursor.
-- **Dual-Engine Architecture**:
-  - **Ultra-Fast Bun TypeScript CLI**: Scaffold, validate, compile, and package skills in milliseconds.
-  - **Deterministic Python Core**: Zero-dependency AST validator, BinEval scoring engine, and security scanner.
-- **Universal 10 Invariant Contracts**: Guarantees unambiguous identity, activation coverage, layered knowledge, freedom calibration, and strict evidence requirements.
-- **BinEval & Pressure Testing**: Binary behavioral assertions with 70/30 held-out regression splits and secret leak detection.
-- **Zero-Guessing Evidence Rule**: Never claims unexecuted tests passed; distinguishes structural validity from runtime proof.
+### 1. 1-Click Skills.sh (Vercel Registry)
+```bash
+npx skills add imMamdouhaboammar/omni-skill
+```
+
+### 2. Homebrew (macOS & Linux)
+```bash
+brew tap imMamdouhaboammar/omni-skill https://github.com/imMamdouhaboammar/omni-skill
+brew install omni-skill
+```
+
+### 3. Universal 1-Line Curl Installer
+```bash
+curl -fsSL https://raw.githubusercontent.com/imMamdouhaboammar/omni-skill/main/install.sh | bash
+```
+
+### 4. Bun / npm / npx
+```bash
+# Ad-hoc execution via Bunx
+bunx @omni-skill/cli --help
+
+# Install globally via Bun
+bun add -g @omni-skill/cli
+```
+
+*For precompiled standalone binaries (macOS, Linux, Windows), see [INSTALLATION.md](INSTALLATION.md).*
+
+---
+
+## All Agents Support
+
+OmniSkill compiles and validates native plugin manifests and behavioral directives for:
+
+| AI Agent / IDE | Integration Surface | CLI Target Flag |
+|---|---|---|
+| **ChatGPT & OpenAI Codex** | `.codex-plugin/plugin.json` | `--target chatgpt` / `codex` |
+| **Claude Code** | `.claude-plugin/plugin.json` + `marketplace.json` | `--target claude` / `claude-code` |
+| **Google Antigravity & Gemini CLI** | `.gemini/plugin.json` + auto-injected hooks | `--target antigravity` / `gemini` |
+| **Cursor IDE** | `.cursorrules` + `.cursor/rules/` | `--target cursor` |
+| **Codeium Windsurf** | `.windsurfrules` | `--target windsurf` |
+| **Cline & Roo Code** | `.clinerules` | `--target cline` / `roo` |
+| **GitHub Copilot** | `.github/copilot-instructions.md` | `--target copilot` |
+| **OpenCode & DeepSeek** | `.opencode/skill.json` | `--target opencode` |
+| **Agent Skills Standard** | `.agents/plugins/marketplace.json` | `--target agent-skills` |
+
+*See [ADAPTERS.md](ADAPTERS.md) for detailed adapter guides.*
 
 ---
 
 ## Skills Suite
 
-OmniSkill ships with six focused, specialized sub-skills:
+OmniSkill includes six modular, certified sub-skills:
 
-| Skill | Path | Primary Role |
+| Skill | Directory | Job |
 |---|---|---|
-| **`omni-skill`** | [`skills/omni-skill`](skills/omni-skill) | Master lifecycle orchestrator and mode router (`CREATE`, `IMPROVE`, `VALIDATE`, `REVIEW`, `OPTIMIZE`, `PORT`, `PACKAGE`). |
+| **`omni-skill`** | [`skills/omni-skill`](skills/omni-skill) | Master orchestrator and lifecycle router (`CREATE`, `IMPROVE`, `VALIDATE`, `REVIEW`, `OPTIMIZE`, `PORT`, `PACKAGE`). |
 | **`skill-architect`** | [`skills/skill-architect`](skills/skill-architect) | Architecture-first design, workflow/SOP compilation, and freedom calibration. |
-| **`skill-evaluator`** | [`skills/skill-evaluator`](skills/skill-evaluator) | Activation trigger banks, BinEval assertions, held-out splits, and pressure testing. |
-| **`skill-portability-compiler`** | [`skills/skill-portability-compiler`](skills/skill-portability-compiler) | Host-neutral adapter compiler with automated capability gap reporting. |
+| **`skill-evaluator`** | [`skills/skill-evaluator`](skills/skill-evaluator) | Activation trigger banks, BinEval assertions, held-out splits (70/30), and pressure testing. |
+| **`skill-portability-compiler`** | [`skills/skill-portability-compiler`](skills/skill-portability-compiler) | Cross-host adapter compiler generating target manifests and capability gap reports. |
 | **`host-workspace-operator`** | [`skills/host-workspace-operator`](skills/host-workspace-operator) | Safe, read-first workspace operations mapped to host-native capabilities. |
-| **`sandbox-python-executor`** | [`skills/sandbox-python-executor`](skills/sandbox-python-executor) | Deterministic Python helper for parsing, hash checks, archive inspection, and verification. |
+| **`sandbox-python-executor`** | [`skills/sandbox-python-executor`](skills/sandbox-python-executor) | Deterministic Python helper for parsing, hash verification, archive inspection, and verification. |
 
 ---
 
 ## CLI Usage
 
-Install dependencies and run commands using **Bun**:
-
 ```bash
-# Initialize a new production-ready skill
-bun run cli init my-awesome-skill -d "High-performance data analyst skill"
+# Initialize a new skill package
+omni-skill init my-awesome-skill -d "High-performance data analyst skill"
 
 # Validate skill structure, frontmatter, security, and portability
-bun run cli validate skills/omni-skill
+omni-skill validate skills/omni-skill
 
 # Run BinEval test harness
-bun run cli eval skills/omni-skill
+omni-skill eval skills/omni-skill
 
-# Compile an OmniSkillSpec into target host packages
-bun run cli compile spec.json --out ./dist
-
-# Port a skill to ChatGPT, Codex, or Claude
-bun run cli port skills/omni-skill --target chatgpt
+# Port a skill to any AI agent (ChatGPT, Codex, Claude, Cursor, Windsurf, Antigravity)
+omni-skill port examples/sql-optimizer --target cursor
+omni-skill port examples/sql-optimizer --target chatgpt
+omni-skill port examples/sql-optimizer --target claude
 
 # Package a release-ready artifact
-bun run cli package skills/omni-skill
-```
-
----
-
-## Architecture Diagram
-
-```
-+-----------------------------------------------------------------------+
-|                              OmniSkill v5                             |
-+-----------------------------------------------------------------------+
-                                   |
-         +-------------------------+-------------------------+
-         |                                                   |
-         v                                                   v
-+------------------+                               +--------------------+
-|  TypeScript CLI  |                               | Python Core Engine |
-|  (@omni-skill)   |                               |  (AST & BinEval)   |
-+------------------+                               +--------------------+
-         |                                                   |
-         +-------------------------+-------------------------+
-                                   |
-                                   v
-+-----------------------------------------------------------------------+
-|                           Host Adapters                               |
-|   +-------------------+  +-------------------+  +-----------------+   |
-|   |  ChatGPT / Codex  |  |    Claude Code    |  |   Antigravity   |   |
-|   |  (.codex-plugin)  |  |  (.claude-plugin) |  |   & Gemini CLI  |   |
-|   +-------------------+  +-------------------+  +-----------------+   |
-+-----------------------------------------------------------------------+
+omni-skill package skills/omni-skill
 ```
 
 ---
@@ -124,7 +130,7 @@ bun run cli package skills/omni-skill
 Run the comprehensive test suite across all engines:
 
 ```bash
-# Run Bun unit tests
+# Run Bun unit tests (CLI, parsers, validators, adapters)
 bun test
 
 # Run Python engine tests
@@ -133,12 +139,6 @@ python3 packages/core/test_engine.py
 # Validate all skills against multi-host profiles
 bun run validate:all
 ```
-
----
-
-## Specification
-
-Read the formal [SPECIFICATION.md](SPECIFICATION.md) for details on the 10 Invariant Contracts, directory conventions, and evaluation standards.
 
 ---
 

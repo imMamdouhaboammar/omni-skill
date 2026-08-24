@@ -1,29 +1,23 @@
 import pc from "picocolors";
 import { resolve } from "node:path";
 import { loadSkillDirectory } from "../core/parser";
+import { generateAdapter } from "../core/adapters";
 
-export function portSkillCommand(skillPathArg: string, options: { target: string }) {
+export function portSkillCommand(skillPathArg: string, options: { target: string; out?: string }) {
   const skillPath = resolve(process.cwd(), skillPathArg);
+  const outDir = options.out ? resolve(process.cwd(), options.out) : process.cwd();
   const manifest = loadSkillDirectory(skillPath);
-  const target = options.target.toLowerCase();
 
-  console.log(pc.cyan(`\n📦 Porting ${pc.bold(manifest.name)} to target host: ${pc.bold(target)}\n`));
+  console.log(pc.cyan(`\n📦 Porting ${pc.bold(manifest.name)} to target host: ${pc.bold(options.target)}\n`));
 
-  switch (target) {
-    case "chatgpt":
-    case "codex":
-      console.log(pc.green(`✔ ChatGPT/Codex Plugin adapter generated: .codex-plugin/plugin.json mapping`));
-      break;
-    case "claude":
-    case "claude-code":
-      console.log(pc.green(`✔ Claude Code plugin manifest generated: .claude-plugin/plugin.json mapping`));
-      break;
-    case "antigravity":
-    case "gemini":
-      console.log(pc.green(`✔ Google Antigravity & Gemini CLI plugin mapped.`));
-      break;
-    default:
-      console.log(pc.yellow(`ℹ Generic Agent Skills export generated.`));
-      break;
+  const result = generateAdapter(manifest, options.target, outDir);
+
+  for (const file of result.filesGenerated) {
+    console.log(pc.green(`  ✔ Generated: `) + pc.bold(file));
   }
+  for (const note of result.notes) {
+    console.log(pc.cyan(`  ℹ ${note}`));
+  }
+
+  console.log(pc.green(`\n✔ Porting to ${options.target} completed successfully!`));
 }
