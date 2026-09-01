@@ -45,11 +45,12 @@ Read only what the mode needs:
 | REVIEW | assess a third-party skill | pass/fail risks before installation |
 | OPTIMIZE | trigger wording is the main problem | held-out description candidate |
 | PORT | adapt a skill to another agent/host | target-host variant + gap report |
-| PACKAGE | distribute the result | standalone skill or host plugin package |
+| PACKAGE | bundle a standalone artifact | .skill archive or host plugin package |
+| DISTRIBUTE | craft high-presence repo & distribute | manifests (package.json, marketplace.json, .skills.json, install.sh) + GitHub repo & CI |
 
 If several modes are requested, run them in this order:
 
-**CREATE/IMPROVE -> PORT -> VALIDATE -> PACKAGE**
+**CREATE/IMPROVE -> PORT -> VALIDATE -> PACKAGE -> DISTRIBUTE**
 
 ## Internal skill routing
 
@@ -57,6 +58,8 @@ If several modes are requested, run them in this order:
 
 | Helper skill | Activate when | Return control when |
 | --- | --- | --- |
+| `skill-conductor` | full-lifecycle BinEval scoring, trigger optimization loops, or .skill packaging is needed | evaluation, optimization, or packaging is complete |
+| `repo-craft-and-distribute` | scaffolding multi-agent distribution manifests, crafting high-presence GitHub repo, or fixing Mermaid diagrams | distribution manifests, CI, and repo setup are verified |
 | `host-workspace-operator` | the workflow must inspect, search, patch, write, or verify repository/workspace files | the required workspace evidence or mutation is complete |
 | `sandbox-python-executor` | compilation, parsing, archive inspection, hashing, or validation benefits from deterministic Python | execution evidence is captured |
 

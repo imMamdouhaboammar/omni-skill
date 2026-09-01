@@ -89,11 +89,13 @@ OmniSkill compiles and validates native plugin manifests and behavioral directiv
 
 ## Skills Suite
 
-OmniSkill includes six modular, certified sub-skills:
+OmniSkill includes eight modular, certified sub-skills:
 
 | Skill | Directory | Job |
 |---|---|---|
-| **`omni-skill`** | [`skills/omni-skill`](skills/omni-skill) | Master orchestrator and lifecycle router (`CREATE`, `IMPROVE`, `VALIDATE`, `REVIEW`, `OPTIMIZE`, `PORT`, `PACKAGE`). |
+| **`omni-skill`** | [`skills/omni-skill`](skills/omni-skill) | Master orchestrator and lifecycle router (`CREATE`, `IMPROVE`, `VALIDATE`, `REVIEW`, `OPTIMIZE`, `PORT`, `PACKAGE`, `DISTRIBUTE`). |
+| **`skill-conductor`** | [`skills/skill-conductor`](skills/skill-conductor) | Full lifecycle conductor: BinEval scoring, trigger optimization loops, and automated packaging. |
+| **`repo-craft-and-distribute`** | [`skills/repo-craft-and-distribute`](skills/repo-craft-and-distribute) | High-presence GitHub repo crafter, Mermaid guard, and universal multi-agent manifest distributor (Claude, Skills.sh, npm, Cursor, Codex). |
 | **`skill-architect`** | [`skills/skill-architect`](skills/skill-architect) | Architecture-first design, workflow/SOP compilation, and freedom calibration. |
 | **`skill-evaluator`** | [`skills/skill-evaluator`](skills/skill-evaluator) | Activation trigger banks, BinEval assertions, held-out splits (70/30), and pressure testing. |
 | **`skill-portability-compiler`** | [`skills/skill-portability-compiler`](skills/skill-portability-compiler) | Cross-host adapter compiler generating target manifests and capability gap reports. |
