@@ -5,14 +5,14 @@
 <h1 align="center">OmniSkill</h1>
 
 <p align="center">
-  <strong>Universal Cross-Host Agent Skill Engineering Engine & Compiler</strong>
+  <strong>Think /skill-creator, but Omni: create once, engineer deeply, ship to every agent.</strong>
 </p>
 
 <p align="center">
   <a href="#installation">Installation</a> •
   <a href="#all-agents-support">All Agents Support</a> •
-  <a href="#features">Features</a> •
-  <a href="#architecture">Architecture</a> •
+  <a href="#why-omniskill">Why OmniSkill vs /skill-creator</a> •
+  <a href="#dynamic-agentic-router">Agentic Router</a> •
   <a href="#cli-usage">CLI Usage</a> •
   <a href="#skills-suite">Skills Suite</a> •
   <a href="#license">License</a>
@@ -30,9 +30,24 @@
 
 ## Overview
 
-**OmniSkill** is the universal cross-host standard and compiler for AI Agent Skills. It enables developers to design, test, verify, compile, and package high-reliability skills across every AI coding agent and LLM platform with zero lock-in.
+**OmniSkill** is the industrial-grade, cross-host evolution of Anthropic's official [`skill-creator`](https://github.com/anthropics/skills/tree/main/skills/skill-creator).
 
-$$\text{Intent} \longrightarrow \text{OmniSkillSpec} \longrightarrow \text{BinEval Harness} \longrightarrow \text{Cross-Host Compiler} \longrightarrow \text{Release (All Agents)}$$
+While Anthropic's baseline `skill-creator` provides basic prompt scaffolding for Claude alone, **OmniSkill** elevates skill creation into an autonomous, multi-agent engineering discipline:
+
+$$\text{Intent (Any Lang)} \longrightarrow \text{Dynamic DAG} \longrightarrow \text{BinEval Harness} \longrightarrow \text{Cross-Host Compiler} \longrightarrow \text{Release (All Agents)}$$
+
+---
+
+## ⚡ Why OmniSkill vs Official `/skill-creator`?
+
+| Capability | Anthropic Official [`skill-creator`](https://github.com/anthropics/skills/tree/main/skills/skill-creator) | ⚡ **OmniSkill Engine** |
+|---|:---:|:---:|
+| **Target AI Hosts** | Claude Code only (Vendor Lock-in) | **Every AI Agent** (Claude Code, ChatGPT, Codex, Cursor, Windsurf, Cline, Antigravity) |
+| **Workflow & Routing** | Static single prompt | **Dynamic Agentic Router** (Intelligent DAG generation & intent classifier) |
+| **Behavioral Testing** | Manual inspection | **BinEval Assertion Harness** (70/30 train/held-out evals & pressure gates) |
+| **Validation Gate** | Basic checks | **10/10 Score Verification** with structural, frontmatter & secret security linting |
+| **Cross-Host Compilation** | None (manual conversion) | **Automated Portability Compiler** (`.cursorrules`, `.claude-plugin`, `.codex-plugin`) |
+| **Universal Distribution** | Manual file copying | **1-Click Manifest Generator** (`marketplace.json`, `.skills.json`, `install.sh`, `npx` CLI) |
 
 ---
 

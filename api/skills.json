@@ -5,7 +5,7 @@
   "author": "Mamdouh Aboammar",
   "homepage": "https://github.com/imMamdouhaboammar/omni-skill",
   "repository": "https://github.com/imMamdouhaboammar/omni-skill",
-  "description": "Universal Cross-Host Agent Skill Engineering Engine & Compiler for ChatGPT, Codex, Claude Code, and Antigravity",
+  "description": "Think /skill-creator, but Omni: create once, engineer deeply, ship to every agent.",
   "skills": [
     {
       "name": "omni-skill",

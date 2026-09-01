@@ -1,7 +1,7 @@
 {
   "name": "@omni-skill/cli",
   "version": "5.0.0",
-  "description": "OmniSkill CLI - Universal Cross-Host Agent Skill Engine & Compiler",
+  "description": "Think /skill-creator, but Omni: create once, engineer deeply, ship to every agent.",
   "bin": {
     "omni-skill": "./src/index.ts"
   },
