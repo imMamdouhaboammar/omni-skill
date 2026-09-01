@@ -104,24 +104,55 @@ OmniSkill includes eight modular, certified sub-skills:
 
 ---
 
+## ⚡ Dynamic Agentic Router
+
+OmniSkill includes an intelligent, autonomous intent router that dynamically translates user requests in any natural language into optimal multi-step skill execution DAGs:
+
+```mermaid
+flowchart TD
+    A["User Prompt (Any Language)"] --> B["OmniSkill Agentic Router"]
+    B --> C["Host Capability Negotiation"]
+    B --> D["Intent Classifier & Skill Selector"]
+    C --> E["Dynamic Execution DAG"]
+    D --> E
+    
+    subgraph ExecutionPipeline ["Autonomous Skill Pipeline"]
+        F["1. Architecture Design (skill-architect)"]
+        G["2. Workspace Mutation (host-workspace-operator)"]
+        H["3. Behavioral Evals (skill-evaluator)"]
+        I["4. Conductor Verification (skill-conductor)"]
+        J["5. Cross-Host Ports (skill-portability-compiler)"]
+        K["6. Multi-Agent Distribution (repo-craft-and-distribute)"]
+    end
+    
+    E --> ExecutionPipeline
+    ExecutionPipeline --> L["Release-Ready Skill Artifact"]
+```
+
+---
+
 ## CLI Usage
 
 ```bash
-# Initialize a new skill package
+# 1. Dynamic Agentic Router: Plan execution DAG from natural language
+omni-skill route "Build a PDF parser skill and publish to GitHub and Skills.sh" --explain
+omni-skill route "Port my existing skill to Cursor and Claude Code" --json
+
+# 2. Initialize a new skill package
 omni-skill init my-awesome-skill -d "High-performance data analyst skill"
 
-# Validate skill structure, frontmatter, security, and portability
+# 3. Validate skill structure, frontmatter, security, and portability
 omni-skill validate skills/omni-skill
 
-# Run BinEval test harness
+# 4. Run BinEval test harness
 omni-skill eval skills/omni-skill
 
-# Port a skill to any AI agent (ChatGPT, Codex, Claude, Cursor, Windsurf, Antigravity)
+# 5. Port a skill to any AI agent (ChatGPT, Codex, Claude, Cursor, Windsurf, Antigravity)
 omni-skill port examples/sql-optimizer --target cursor
 omni-skill port examples/sql-optimizer --target chatgpt
 omni-skill port examples/sql-optimizer --target claude
 
-# Package a release-ready artifact
+# 6. Package a release-ready artifact
 omni-skill package skills/omni-skill
 ```
 

@@ -6,6 +6,7 @@ import { compileSkillCommand } from "./commands/compile";
 import { portSkillCommand } from "./commands/port";
 import { evalSkillCommand } from "./commands/eval";
 import { packageSkillCommand } from "./commands/package";
+import { routeCommand } from "./commands/route";
 
 const program = new Command();
 
@@ -13,6 +14,16 @@ program
   .name("omni-skill")
   .description("Universal Cross-Host Agent Skill Engine & Compiler")
   .version("5.0.0");
+
+program
+  .command("route <prompt>")
+  .description("Dynamic and smart agentic router: analyze prompt and generate optimal execution DAG")
+  .option("-h, --host <host>", "Target host agent (claude, antigravity, cursor, codex, windsurf)")
+  .option("-j, --json", "Output JSON execution graph")
+  .option("-e, --explain", "Explain router decision and rationale")
+  .action((prompt, options) => {
+    routeCommand(prompt, options);
+  });
 
 program
   .command("init <name>")

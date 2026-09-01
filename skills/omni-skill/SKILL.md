@@ -1,18 +1,35 @@
 ---
 name: omni-skill
 description: >
-  Design, architect, evaluate, port, and package high-reliability agent skills across ChatGPT, Codex, Claude Code, Google Antigravity, and Agent Skills hosts. Use when a user wants a new reusable skill, wants an existing skill made more reliable, needs trigger or behavior evals, wants a skill adapted to another agent host, or needs a distributable skill/plugin package.
+  Dynamic agentic router and master compiler for high-reliability agent skills across
+  ChatGPT, Codex, Claude Code, Google Antigravity, and Cursor. Use when a user asks
+  to route, design, architect, evaluate, improve, port, package, or distribute agent skills —
+  even if they don't explicitly say "omni-skill" (e.g. "teach Claude X", "port to Cursor",
+  "publish skill to github", "run evals"). Do NOT use for general non-agent coding tasks.
 ---
 
-# OmniSkill
+# OmniSkill: Dynamic Agentic Router & Skill Engine
 
-Build skills as tested behavioral artifacts, not polished prompt files.
+Build and distribute skills as tested behavioral artifacts with zero vendor lock-in.
 
-The invariant is:
+The dynamic execution invariant is:
 
-**failure evidence -> SkillSpec -> host contract -> implementation -> evals -> gate -> package**
+$$\text{Intent (Any Lang)} \xrightarrow{\text{Dynamic Router}} \text{Execution DAG} \xrightarrow{\text{Host Contract}} \text{Skill Engine} \xrightarrow{\text{BinEval Gate}} \text{Release (All Agents)}$$
 
-Do not claim a skill is portable or production-ready until the target host was identified and the applicable gates were actually run.
+---
+
+## ⚡ Dynamic Agentic Routing
+
+For any prompt in natural language (English, Arabic, etc.), the router classifies intent, extracts target hosts, and constructs an optimal multi-step Directed Acyclic Graph (DAG):
+
+```bash
+# Analyze prompt and generate dynamic execution DAG
+omni-skill route "<user request>" [--host claude|antigravity|cursor|codex] [--explain]
+```
+
+- Deep router architecture, DAG generation rules & recovery loops → **`references/agentic-router.md`**
+
+---
 
 ## Start here
 
@@ -20,13 +37,14 @@ For every request, establish these four facts before editing:
 
 1. **Job**: the repeatable task the skill must improve
 2. **Failure**: what the target agent does wrong without the skill
-3. **Host**: where the skill must run
+3. **Host**: where the skill must run (Claude, Antigravity, Cursor, Codex, Windsurf, Universal)
 4. **Evidence**: how success and non-trigger behavior will be checked
 
 If the host is unspecified, target the Agent Skills baseline and mark host-specific behavior as unresolved rather than inventing it.
 
 Read only what the mode needs:
 
+- `references/agentic-router.md` for dynamic intent routing and DAG execution
 - `references/skill-spec.md` for CREATE, IMPROVE, or PORT
 - `references/host-profiles.md` when selecting or adapting a host
 - `references/sop-practices.md` before authoring or reviewing skill instructions
