@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json.schemastore.org/claude-plugin-manifest.json",
+  "name": "repo-craft-and-distribute",
+  "displayName": "Repo Craft & Universal Distribution",
+  "version": "1.0.0",
+  "description": "Craft high-presence open-source repositories and configure universal multi-agent distribution manifests (Claude, Skills.sh, npm, Cursor, Codex, Gemini CLI).",
+  "author": {
+    "name": "Mamdouh Aboammar",
+    "url": "https://github.com/imMamdouhaboammar"
+  },
+  "homepage": "https://skills.sh/repo-craft-and-distribute",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/imMamdouhaboammar/omni-skill.git"
+  },
+  "license": "MIT",
+  "categories": [
+    "automation",
+    "developer-tools",
+    "distribution",
+    "agent-tools"
+  ],
+  "compatibility": {
+    "claudeCode": ">=1.0.0",
+    "claudeDesktop": ">=1.0.0",
+    "cursor": ">=0.40.0",
+    "codex": ">=0.1.0",
+    "opencode": ">=1.0.0",
+    "antigravity": ">=1.0.0"
+  },
+  "entrypoint": "SKILL.md",
+  "bin": {
+    "repo-craft": "./bin/repo-craft.js"
+  }
+}

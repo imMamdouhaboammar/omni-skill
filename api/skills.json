@@ -38,6 +38,18 @@
       "tags": ["workspace", "safety", "fs-operator"]
     },
     {
+      "name": "repo-craft-and-distribute",
+      "description": "High-presence GitHub repository crafter, Mermaid formatting guard, and universal multi-agent manifest distributor.",
+      "path": "skills/repo-craft-and-distribute/SKILL.md",
+      "tags": ["distribution", "repo-crafter", "github", "manifests", "skills.sh"]
+    },
+    {
+      "name": "skill-conductor",
+      "description": "Full lifecycle agent skill conductor for BinEval scoring, trigger optimization loops, and automated packaging.",
+      "path": "skills/skill-conductor/SKILL.md",
+      "tags": ["conductor", "evals", "bineval", "optimizer", "packager"]
+    },
+    {
       "name": "sandbox-python-executor",
       "description": "Deterministic Python helper for parsing, hash verification, archive inspection, and verification.",
       "path": "skills/sandbox-python-executor/SKILL.md",

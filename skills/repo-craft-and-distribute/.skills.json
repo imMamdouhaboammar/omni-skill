@@ -1,0 +1,18 @@
+{
+  "$schema": "https://skills.sh/schema.json",
+  "name": "repo-craft-and-distribute",
+  "version": "1.0.0",
+  "description": "High-presence GitHub repository crafter, Mermaid formatting guard, and universal multi-agent manifest distributor.",
+  "repository": "https://github.com/imMamdouhaboammar/omni-skill",
+  "author": "Mamdouh Aboammar",
+  "license": "MIT",
+  "skill": "SKILL.md",
+  "tags": [
+    "distribution",
+    "repo-crafter",
+    "github",
+    "manifests",
+    "skills.sh",
+    "mermaid"
+  ]
+}

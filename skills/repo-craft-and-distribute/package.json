@@ -1,0 +1,38 @@
+{
+  "name": "@omni-skill/repo-craft-and-distribute",
+  "version": "1.0.0",
+  "description": "Universal agent skill for high-presence GitHub repository crafting, Mermaid guard, and multi-agent distribution across Claude, Skills.sh, npm, and Cursor.",
+  "type": "module",
+  "main": "bin/repo-craft.js",
+  "bin": {
+    "repo-craft": "./bin/repo-craft.js"
+  },
+  "files": [
+    "bin",
+    "scripts",
+    "references",
+    "SKILL.md",
+    "marketplace.json",
+    "install.sh"
+  ],
+  "scripts": {
+    "start": "bun bin/repo-craft.js",
+    "scaffold": "bun scripts/scaffold-repo.ts"
+  },
+  "keywords": [
+    "agent-skill",
+    "skills.sh",
+    "repo-crafter",
+    "distribution",
+    "github",
+    "mermaid",
+    "claude-code",
+    "omni-skill"
+  ],
+  "author": "Mamdouh Aboammar <https://github.com/imMamdouhaboammar>",
+  "license": "MIT",
+  "engines": {
+    "bun": ">=1.0.0",
+    "node": ">=18.0.0"
+  }
+}
