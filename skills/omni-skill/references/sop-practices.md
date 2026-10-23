@@ -212,7 +212,7 @@ SKILL.md **must not contain** keys, passwords, tokens, env values, or hardcoded 
 | Bad (in SKILL.md) | Good |
 |---|---|
 | `export API_KEY=sk-abc123` | a reference to env: "needs `API_KEY` in the environment, see references/runtime-setup.md" |
-| `UV_BIN=/home/alice/.local/bin/uv` | `command -v uv` or `~/.local/bin/uv` in a reference |
+| `UV_BIN=/home/<user>/.local/bin/uv` | `command -v uv` or `~/.local/bin/uv` in a reference |
 | inline pre-flight bash block | `→ references/runtime-setup.md` |
 
 `eval_skill.py` scans SKILL.md for these patterns and flags them.

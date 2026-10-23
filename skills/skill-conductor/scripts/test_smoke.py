@@ -14,6 +14,8 @@ This is not a full unit test suite — it's a fast safety net so we don't ship
 broken scripts. Real behavior is verified by Mode 3 VALIDATE on real skills.
 """
 
+from __future__ import annotations
+
 import json
 import os
 import shutil
@@ -138,7 +140,7 @@ def test_eval_skill_detects_secret_leak():
             "---\n\n"
             "# Leaky Skill\n\n"
             "## Setup\n\n"
-            "export API_KEY=sk-abcdef0123456789ABCDEF\n"
+            "export API_KEY=" + "sk-abcdef0123456789ABCDEF\n"
         )
         result = subprocess.run(
             [UV_BIN, "run", str(SCRIPTS_DIR / "eval_skill.py"), str(skill)],

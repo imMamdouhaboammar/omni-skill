@@ -10,11 +10,17 @@ description: >
 
 # OmniSkill: Dynamic Agentic Router & Skill Engine
 
-Build and distribute skills as tested behavioral artifacts with zero vendor lock-in.
+> Build and distribute skills as tested behavioral artifacts with zero vendor lock-in.
 
 The dynamic execution invariant is:
 
 $$\text{Intent (Any Lang)} \xrightarrow{\text{Dynamic Router}} \text{Execution DAG} \xrightarrow{\text{Host Contract}} \text{Skill Engine} \xrightarrow{\text{BinEval Gate}} \text{Release (All Agents)}$$
+
+## Why This Skill Is Needed & Target State
+
+**Why this skill is needed:** Existing skill ecosystems are fragmented and siloed by vendor (e.g. Claude Code plugins, Cursor rules, Codex manifests). Without OmniSkill, engineers must manually hand-roll ad-hoc instructions for every different agent runtime, lack automated intent routing, have no multi-agent behavioral assertions, and suffer from architectural drift and prompt slop.
+
+**Target state:** A single unified skill source definition that dynamically compiles, evaluates, and distributes across all major AI agent hosts (Claude Code, ChatGPT, Codex, Google Antigravity, Cursor, Windsurf, Cline) with verified 10/10 test pass rates and zero vendor lock-in.
 
 ---
 

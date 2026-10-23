@@ -7,7 +7,11 @@ export type SkillMode =
   | "PORT"
   | "PACKAGE"
   | "DISTRIBUTE"
-  | "COMPOSE";
+  | "COMPOSE"
+  | "MEASURE"
+  | "INTEGRATE"
+  | "PRINCIPLES"
+  | "AUTHOR";
 
 export type AgentHost =
   | "claude-code"
@@ -91,9 +95,18 @@ export function classifyIntent(prompt: string): { intent: SkillMode; confidence:
   if (p.includes("copilot")) targetHosts.push("copilot");
   if (targetHosts.length === 0) targetHosts.push("universal");
 
-  // Extract skill name if named
-  const nameMatch = prompt.match(/(?:skill|package|repo|for|named)\s+["'`]?([a-zA-Z0-9_-]+)["'`]?/i);
-  const skillName = nameMatch ? nameMatch[1] : undefined;
+  // Extract skill name if named, skipping common prepositions/stopwords
+  const STOPWORDS = new Set(["for", "to", "a", "an", "the", "of", "in", "on", "with", "from", "by", "new", "this"]);
+  let skillName: string | undefined;
+  const explicitMatch = prompt.match(/(?:named|called)\s+["'`]?([a-zA-Z0-9_-]+)["'`]?/i);
+  if (explicitMatch && !STOPWORDS.has(explicitMatch[1].toLowerCase())) {
+    skillName = explicitMatch[1];
+  } else {
+    const genericMatch = prompt.match(/(?:skill|package|repo)\s+(?:for\s+)?["'`]?([a-zA-Z0-9_-]+)["'`]?/i);
+    if (genericMatch && !STOPWORDS.has(genericMatch[1].toLowerCase())) {
+      skillName = genericMatch[1];
+    }
+  }
 
   // 1. Distribution & Repo Crafting
   if (
@@ -152,11 +165,10 @@ export function classifyIntent(prompt: string): { intent: SkillMode; confidence:
     return { intent: "OPTIMIZE", confidence: 0.9, targetHosts, skillName };
   }
 
-  // 5. Evaluation & Testing
+  // 5. Evaluation & Testing (BinEval)
   if (
     p.includes("eval") ||
     p.includes("bineval") ||
-    p.includes("benchmark") ||
     p.includes("test skill") ||
     p.includes("assertion") ||
     p.includes("اختبار") ||
@@ -165,7 +177,62 @@ export function classifyIntent(prompt: string): { intent: SkillMode; confidence:
     return { intent: "EVAL", confidence: 0.9, targetHosts, skillName };
   }
 
-  // 6. Validation & Quality Check
+  // 6. Measure & Empirical Hypotheses
+  if (
+    p.includes("measure") ||
+    p.includes("benchmark") ||
+    p.includes("latency") ||
+    p.includes("throughput") ||
+    p.includes("hypothesis") ||
+    p.includes("explain the number") ||
+    p.includes("قياس") ||
+    p.includes("احسب") ||
+    p.includes("سرعة")
+  ) {
+    return { intent: "MEASURE", confidence: 0.93, targetHosts, skillName };
+  }
+
+  // 7. Integrate & Migration Protocol
+  if (
+    p.includes("integrate") ||
+    p.includes("migrate") ||
+    p.includes("deprecate") ||
+    p.includes("delete legacy") ||
+    p.includes("adopt") ||
+    p.includes("no-restricted-imports") ||
+    p.includes("دمج") ||
+    p.includes("ترحيل") ||
+    p.includes("تبني")
+  ) {
+    return { intent: "INTEGRATE", confidence: 0.92, targetHosts, skillName };
+  }
+
+  // 8. Poteto Engineering Principles & Anti-Slop
+  if (
+    p.includes("poteto") ||
+    p.includes("principle") ||
+    p.includes("anti-slop") ||
+    p.includes("first principle") ||
+    p.includes("subtract before you add") ||
+    p.includes("boundary discipline") ||
+    p.includes("مبادئ") ||
+    p.includes("مبدأ")
+  ) {
+    return { intent: "PRINCIPLES", confidence: 0.94, targetHosts, skillName };
+  }
+
+  // 9. Skill Authoring
+  if (
+    p.includes("author skill") ||
+    p.includes("authoring") ||
+    p.includes("skill-authoring") ||
+    p.includes("تأليف مهارة") ||
+    p.includes("كتابة مهارة")
+  ) {
+    return { intent: "AUTHOR", confidence: 0.92, targetHosts, skillName };
+  }
+
+  // 10. Validation & Quality Check
   if (
     p.includes("validate") ||
     p.includes("lint") ||
@@ -177,7 +244,7 @@ export function classifyIntent(prompt: string): { intent: SkillMode; confidence:
     return { intent: "VALIDATE", confidence: 0.88, targetHosts, skillName };
   }
 
-  // 7. Improvement & Bug Fix
+  // 11. Improvement & Bug Fix
   if (
     p.includes("improve") ||
     p.includes("fix") ||
@@ -191,7 +258,7 @@ export function classifyIntent(prompt: string): { intent: SkillMode; confidence:
     return { intent: "IMPROVE", confidence: 0.85, targetHosts, skillName };
   }
 
-  // 8. Creation / New Skill (Default if generative intent)
+  // 12. Creation / New Skill (Default if generative intent)
   return { intent: "CREATE", confidence: 0.8, targetHosts, skillName };
 }
 
@@ -204,6 +271,149 @@ export function buildExecutionDag(
   targetHosts: AgentHost[] = ["universal"]
 ): RouteStep[] {
   switch (intent) {
+    case "MEASURE":
+      return [
+        {
+          id: "step-1-hypothesis",
+          skill: "measure-dont-guess",
+          mode: "MEASURE",
+          purpose: "Formulate falsifiable hypothesis, define numeric thresholds, and prepare measurement probe",
+          requiredReferences: ["references/benchmark-patterns.md"],
+          freedomLevel: "low"
+        },
+        {
+          id: "step-2-execute-benchmark",
+          skill: "host-workspace-operator",
+          mode: "MEASURE",
+          purpose: "Execute benchmark under production-equivalent conditions and record raw numbers",
+          dependsOn: ["step-1-hypothesis"],
+          requiredReferences: ["references/runtime-setup.md"],
+          recommendedCommand: "bun test",
+          freedomLevel: "low"
+        },
+        {
+          id: "step-3-explain-bound",
+          skill: "poteto-principles",
+          mode: "MEASURE",
+          purpose: "Analyze bounding resource per explain-the-number and verify measured improvement",
+          dependsOn: ["step-2-execute-benchmark"],
+          requiredReferences: ["references/explain-the-number.md"],
+          freedomLevel: "medium"
+        }
+      ];
+
+    case "INTEGRATE":
+      return [
+        {
+          id: "step-1-check-existing",
+          skill: "dont-it-yourself",
+          mode: "INTEGRATE",
+          purpose: "Audit existing runtime primitives and repository dependencies before introducing new tool",
+          requiredReferences: ["references/canonical-libraries.md"],
+          freedomLevel: "low"
+        },
+        {
+          id: "step-2-adopt-and-migrate",
+          skill: "integrate",
+          mode: "INTEGRATE",
+          purpose: "Install canonical package, standardize single usage pattern, and migrate all call sites in one wave",
+          dependsOn: ["step-1-check-existing"],
+          requiredReferences: ["references/mechanical-enforcement.md"],
+          freedomLevel: "medium"
+        },
+        {
+          id: "step-3-structural-lockout",
+          skill: "poteto-principles",
+          mode: "INTEGRATE",
+          purpose: "Lock out legacy calls via mechanical linters/types and delete obsolete code per subtract-before-you-add",
+          dependsOn: ["step-2-adopt-and-migrate"],
+          requiredReferences: ["references/encode-lessons-in-structure.md", "references/subtract-before-you-add.md"],
+          freedomLevel: "low"
+        },
+        {
+          id: "step-4-verify-integrity",
+          skill: "skill-evaluator",
+          mode: "EVAL",
+          purpose: "Verify zero regression across all test suites",
+          dependsOn: ["step-3-structural-lockout"],
+          requiredReferences: ["references/bineval-method.md"],
+          recommendedCommand: "bun test",
+          freedomLevel: "low"
+        }
+      ];
+
+    case "PRINCIPLES":
+      return [
+        {
+          id: "step-1-poteto-audit",
+          skill: "poteto-principles",
+          mode: "PRINCIPLES",
+          purpose: "Audit architecture, boundaries, state, and types against 24 battle-tested engineering principles",
+          requiredReferences: ["references/boundary-discipline.md", "references/type-system-discipline.md"],
+          freedomLevel: "medium"
+        },
+        {
+          id: "step-2-writing-anti-slop",
+          skill: "writing",
+          mode: "PRINCIPLES",
+          purpose: "Enforce direct payload invariant, purpose-before-means, and zero developer notes in user surfaces",
+          dependsOn: ["step-1-poteto-audit"],
+          requiredReferences: ["references/purpose-before-means.md", "references/no-perishable-information.md"],
+          freedomLevel: "low"
+        },
+        {
+          id: "step-3-validate-compliance",
+          skill: "skill-conductor",
+          mode: "VALIDATE",
+          purpose: "Run static verification to confirm all 7 gates are green",
+          dependsOn: ["step-2-writing-anti-slop"],
+          requiredReferences: ["references/runtime-setup.md"],
+          recommendedCommand: `omni-skill validate ${skillName}`,
+          freedomLevel: "low"
+        }
+      ];
+
+    case "AUTHOR":
+      return [
+        {
+          id: "step-1-authoring-standard",
+          skill: "skill-authoring",
+          mode: "AUTHOR",
+          purpose: "Define Why Needed & Target State, invariant rules, and tripartite directory layout",
+          requiredReferences: ["references/agentskills-spec.md"],
+          freedomLevel: "low"
+        },
+        {
+          id: "step-2-architect-gates",
+          skill: "skill-architect",
+          mode: "CREATE",
+          purpose: "Formulate trigger boundaries, positive/negative prompts, and freedom levels",
+          dependsOn: ["step-1-authoring-standard"],
+          requiredReferences: ["references/skill-spec.md"],
+          freedomLevel: "medium"
+        },
+        {
+          id: "step-3-scaffold",
+          skill: "host-workspace-operator",
+          mode: "CREATE",
+          purpose: "Scaffold tripartite package (SKILL.md, usecases/, references/, evals/)",
+          dependsOn: ["step-2-architect-gates"],
+          requiredReferences: ["references/runtime-setup.md"],
+          recommendedCommand: `omni-skill init ${skillName}`,
+          freedomLevel: "low"
+        },
+        {
+          id: "step-4-validate",
+          skill: "skill-conductor",
+          mode: "VALIDATE",
+          purpose: "Run 7-pass static validator and verify 0 errors",
+          dependsOn: ["step-3-scaffold"],
+          requiredReferences: ["references/runtime-setup.md"],
+          recommendedCommand: `omni-skill validate ${skillName}`,
+          freedomLevel: "low"
+        }
+      ];
+
     case "CREATE":
       return [
         {

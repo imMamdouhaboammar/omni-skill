@@ -6,7 +6,13 @@ description: >
 
 # Skill Evaluator
 
-Judge Skills from evidence, not visual neatness or confidence
+> Judge Skills from evidence, not visual neatness or confidence.
+
+## Why This Skill Is Needed & Target State
+
+**Why this skill is needed:** Developers often evaluate skills by reading them and assuming they will work, or by running a single ad-hoc prompt and declaring victory. Without systematic, multi-dimensional evaluation with held-out splits, regression risks and edge-case failures remain undetected until deployment.
+
+**Target state:** Skills are verified through falsifiable binary assertions across activation, compliance, pressure resistance, and portability with independent before-and-after scoring.
 
 ## Evidence states
 

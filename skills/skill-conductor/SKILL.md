@@ -13,9 +13,13 @@ description: >
 
 # Skill Conductor
 
-Full lifecycle management for agent skills: **draft → test → review → improve → repeat**.
+> Full lifecycle management for agent skills: draft -> test -> review -> improve -> repeat.
 
-One skill to rule them all — from architecture to packaging. The core loop is always the same: write something, test it, see what fails, fix it, test again.
+## Why This Skill Is Needed & Target State
+
+**Why this skill is needed:** Authoring skills in a vacuum leads to untestable prompts with unknown failure rates. Without an automated lifecycle conductor, authors deploy uncalibrated triggers and unverified instructions that break in production.
+
+**Target state:** Skills are treated as rigorous software artifacts with automated lifecycle loops, continuous BinEval assertions, trigger optimization, and release gating.
 
 ## Runtime requirements (pre-flight)
 
@@ -23,12 +27,7 @@ Before any mode that touches scripts (CREATE, IMPROVE, VALIDATE, OPTIMIZE, PACKA
 
 ## How to communicate
 
-Read context cues. If the user is a skill author iterating on their own work, be direct and technical. If they're new to skills, explain the _why_ behind each step — not just what to do, but why it matters. Default to conversational, not robotic.
-
-- Explain trade-offs when there's a real choice to make
-- Use concrete examples over abstract rules
-- When something fails, explain the root cause, not just the fix
-- Imperative voice in instructions: "Extract the data", not "You should extract"
+Direct, imperative voice ("Extract the data"), concrete examples over abstract rules, and root-cause explanations on failures.
 
 ## Modes
 

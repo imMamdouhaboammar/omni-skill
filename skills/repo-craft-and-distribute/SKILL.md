@@ -12,7 +12,13 @@ description: >
 
 # Repo Craft & Universal Distribution
 
-Architectural standard and automation toolchain for crafting high-presence open-source repositories and distributing AI agent skills across the entire ecosystem.
+> Architectural standard and automation toolchain for crafting high-presence open-source repositories and distributing AI agent skills across the entire ecosystem.
+
+## Why This Skill Is Needed & Target State
+
+**Why this skill is needed:** Developers authoring skills and agent tools often struggle to distribute them cleanly across diverging registry standards (Vercel Skills CLI, Claude Code marketplace, npm, GitHub Actions). Manual manifest creation results in broken URLs, missing license headers, syntax errors in plugin descriptors, and poor repository discoverability.
+
+**Target state:** Every project repository is packaged with automated, cross-host manifests (`package.json`, `marketplace.json`, `.skills.json`, `install.sh`) and CI pipelines with zero manual scaffolding errors.
 
 ## Runtime Requirements (Pre-flight)
 

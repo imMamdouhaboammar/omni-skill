@@ -6,7 +6,13 @@ description: >
 
 # Host Workspace Operator
 
-Use capabilities supplied by the current host. Route by capability rather than a hard-coded vendor tool name.
+> Route file and shell operations by capability rather than vendor-specific tool names.
+
+## Why This Skill Is Needed & Target State
+
+**Why this skill is needed:** Agents often assume hardcoded tool names (e.g. `str_replace_editor`, `Bash`, `readFile`) that do not exist across different host platforms. This causes runtime execution crashes and unsafe mutations.
+
+**Target state:** Workspace operations route through normalized capability tiers (read, search, patch, shell) respecting read-only boundaries and evidence collection across any host runtime.
 
 ## Capability Order
 

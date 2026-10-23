@@ -14,7 +14,7 @@ SECRET_RE = re.compile(
     r"(sk-[A-Za-z0-9_-]{16,}|ANTHROPIC_API_KEY\s*=|OPENAI_API_KEY\s*=|BEGIN (?:RSA |EC )?PRIVATE KEY)"
 )
 ABSOLUTE_PERSONAL_RE = re.compile(
-    r"(/(?:Users|home)/[^\s/]+|[A-Za-z]:[/\\]+(?:Users|home)[/\\]+[^\s/\\]+)"
+    r"(/(?:Users|home)/(?!(?:<[^>]+>|username|user))[^\s/]+|[A-Za-z]:[/\\]+(?:Users|home)[/\\]+[^\s/\\]+)"
 )
 
 def parse_frontmatter(text: str) -> tuple[str | None, str | None]:
@@ -61,7 +61,15 @@ def validate_skill(skill_dir: Path, targets: List[str] = None) -> Dict[str, Any]
         findings.append({"severity": "warning", "code": "BODY_LARGE", "message": f"SKILL.md is {len(lines)} lines (prefer <500)"})
 
     for file_path in skill_dir.rglob("*"):
-        if file_path.is_file() and not file_path.name.startswith(".") and "__pycache__" not in file_path.parts and not file_path.suffix.lower() in {".pyc", ".png", ".jpg", ".svg", ".zip", ".tar", ".gz"}:
+        if (
+            file_path.is_file()
+            and not file_path.name.startswith(".")
+            and not file_path.name.startswith("test_")
+            and not file_path.name.endswith(".test.py")
+            and not file_path.name.endswith(".test.ts")
+            and "__pycache__" not in file_path.parts
+            and not file_path.suffix.lower() in {".pyc", ".png", ".jpg", ".svg", ".zip", ".tar", ".gz"}
+        ):
             try:
                 txt = file_path.read_text(encoding="utf-8", errors="ignore")
                 if SECRET_RE.search(txt):

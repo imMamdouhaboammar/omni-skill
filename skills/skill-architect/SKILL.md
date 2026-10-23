@@ -6,7 +6,13 @@ description: >
 
 # Skill Architect
 
-Turn repeated agent work into a behaviorally specified Skill before writing host syntax
+> Turn repeated agent work into a behaviorally specified Skill before writing host syntax.
+
+## Why This Skill Is Needed & Target State
+
+**Why this skill is needed:** Developers often jump directly to writing ad-hoc prompt strings or host-specific configurations without defining a clear behavioral boundary. This results in poorly triggering skills, overlapping responsibilities, uncalibrated freedom levels, and lack of falsifiable success criteria.
+
+**Target state:** Every authored skill begins with an explicit contract defining its singular job, trigger boundaries, invariants, freedom calibrations, and evaluation criteria before any code is generated.
 
 ## Required inputs
 

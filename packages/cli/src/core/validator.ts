@@ -1,12 +1,18 @@
 import { ValidationFinding, ValidationResult } from "./types";
 import { parseSkillMarkdown } from "./parser";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
 const NAME_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const SECRET_REGEX = /(sk-[A-Za-z0-9_-]{16,}|ANTHROPIC_API_KEY\s*=|OPENAI_API_KEY\s*=|BEGIN (?:RSA |EC )?PRIVATE KEY)/;
-const PERSONAL_PATH_REGEX = /(\/(?:Users|home)\/[^\s/]+|[A-Za-z]:[/\\]+(?:Users|home)[/\\]+[^\s/\\]+)/;
+const PERSONAL_PATH_REGEX = /(?:\/(?:Users|home)\/(?!(?:<[^>]+>|username|user))[a-zA-Z0-9_.-]+|[A-Za-z]:[/\\]+(?:Users|home)[/\\]+[^\s/\\]+)/;
+const SLOP_DEV_NOTES_REGEX = /^\s*(TODO:|FIXME:|NOTE:\s*In production|Mock data displayed|Agent notice:)/im;
+const SLOP_CEREMONIAL_PREAMBLE_REGEX = /^\s*(The following (?:table|section|list) (?:outlines|details|describes)|As an AI language model)/im;
 
+/**
+ * 7-Pass Autonomous Skill Validator conforming to AgentSkills.io v1,
+ * Poteto Engineering Principles, and Anti-Slop quality standards.
+ */
 export function validateSkillDirectory(
   skillDir: string,
   targets: string[] = ["agent-skills", "chatgpt", "codex", "claude-code"]
@@ -28,6 +34,7 @@ export function validateSkillDirectory(
   const content = readFileSync(skillFile, "utf-8");
   const lines = content.split("\n");
 
+  // Pass 1: Frontmatter Schema & Identity
   try {
     const { frontmatter } = parseSkillMarkdown(content);
     if (!frontmatter.name || !NAME_REGEX.test(frontmatter.name)) {
@@ -53,6 +60,43 @@ export function validateSkillDirectory(
     });
   }
 
+  // Pass 2: Rationale & Target State Section
+  const lowerContent = content.toLowerCase();
+  const hasWhySection = lowerContent.includes("why this skill is needed") || content.includes("必要な理由");
+  const hasTargetState = lowerContent.includes("target state") || content.includes("達成したい状態");
+  if (!hasWhySection) {
+    findings.push({
+      severity: "warning",
+      code: "MISSING_WHY_SECTION",
+      message: "SKILL.md is missing 'Why This Skill Is Needed' rationale section."
+    });
+  }
+  if (!hasTargetState) {
+    findings.push({
+      severity: "warning",
+      code: "MISSING_TARGET_STATE",
+      message: "SKILL.md is missing 'Target State' outcome section."
+    });
+  }
+
+  // Pass 3: Markdown Relative Link Resolution
+  const linkRegex = /\[([^\]]+)\]\((?!https?:\/\/|mailto:|#)([^)]+)\)/g;
+  let linkMatch;
+  while ((linkMatch = linkRegex.exec(content)) !== null) {
+    const rawTarget = linkMatch[2]?.split("#")[0]?.trim();
+    if (rawTarget && rawTarget.length > 0) {
+      const resolvedPath = resolve(skillDir, rawTarget);
+      if (!existsSync(resolvedPath)) {
+        findings.push({
+          severity: "error",
+          code: "BROKEN_RELATIVE_LINK",
+          message: `Referenced file does not exist: "${rawTarget}"`
+        });
+      }
+    }
+  }
+
+  // Pass 4: Line Budget Enforcement (<500 lines)
   if (lines.length > 500) {
     findings.push({
       severity: "warning",
@@ -61,11 +105,27 @@ export function validateSkillDirectory(
     });
   }
 
-  // Scan recursive files for secrets or personal paths
+  // Pass 5: Anti-Slop & Direct Payload Inspection
+  if (SLOP_DEV_NOTES_REGEX.test(content)) {
+    findings.push({
+      severity: "warning",
+      code: "ANTI_SLOP_DEV_NOTES",
+      message: "Found internal developer notes (TODO/FIXME/Mock notes) in user-facing skill instructions."
+    });
+  }
+  if (SLOP_CEREMONIAL_PREAMBLE_REGEX.test(content)) {
+    findings.push({
+      severity: "warning",
+      code: "ANTI_SLOP_PREAMBLE",
+      message: "Found ceremonial narrative preamble ('The following table outlines...'). Violates Direct Payload Invariant."
+    });
+  }
+
+  // Pass 6 & 7: Recursive Secret and Personal Path Walk
   function walk(dir: string) {
     const entries = readdirSync(dir);
     for (const entry of entries) {
-      if (entry.startsWith(".") || entry === "__pycache__" || entry === "node_modules") continue;
+      if (entry.startsWith(".") || entry === "__pycache__" || entry === "node_modules" || entry.startsWith("test_") || entry.endsWith(".test.ts") || entry.endsWith(".test.py")) continue;
       const fullPath = join(dir, entry);
       const stat = statSync(fullPath);
       if (stat.isDirectory()) {

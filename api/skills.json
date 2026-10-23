@@ -1,17 +1,59 @@
 {
   "$schema": "https://skills.sh/schema/v1.json",
   "name": "omni-skill",
-  "version": "5.0.0",
+  "version": "6.0.0",
   "author": "Mamdouh Aboammar",
   "homepage": "https://github.com/imMamdouhaboammar/omni-skill",
   "repository": "https://github.com/imMamdouhaboammar/omni-skill",
-  "description": "Think /skill-creator, but Omni: create once, engineer deeply, ship to every agent.",
+  "description": "Universal Agent Skill Engineering System & Poteto Mode: Create once, engineer deeply, ship to every agent.",
   "skills": [
     {
       "name": "omni-skill",
-      "description": "Master orchestrator and lifecycle router for designing, evaluating, improving, and porting agent skills across all hosts.",
+      "description": "Dynamic agentic router and master compiler for high-reliability agent skills across all hosts.",
       "path": "skills/omni-skill/SKILL.md",
-      "tags": ["orchestrator", "lifecycle", "evals", "portability"]
+      "tags": ["router", "orchestrator", "compiler", "portability"]
+    },
+    {
+      "name": "poteto-principles",
+      "description": "The 24 battle-tested engineering principles for architecture design, refactoring, implementation, and verification.",
+      "path": "skills/poteto-principles/SKILL.md",
+      "tags": ["principles", "poteto-mode", "architecture", "discipline"]
+    },
+    {
+      "name": "skill-authoring",
+      "description": "Canonical AgentSkills.io v1 authoring standard with mandatory rationale, target state, and tripartite layout.",
+      "path": "skills/skill-authoring/SKILL.md",
+      "tags": ["authoring", "specification", "agentskills", "standards"]
+    },
+    {
+      "name": "measure-dont-guess",
+      "description": "Empirical hypothesis formulating, production-equivalent benchmarking, and resource bounds analysis.",
+      "path": "skills/measure-dont-guess/SKILL.md",
+      "tags": ["measure", "benchmarking", "profiling", "evidence"]
+    },
+    {
+      "name": "dont-it-yourself",
+      "description": "Runtime primitive and ecosystem reuse discipline; banning thin passthrough wrappers and home-rolled helpers.",
+      "path": "skills/dont-it-yourself/SKILL.md",
+      "tags": ["reuse", "libraries", "anti-slop"]
+    },
+    {
+      "name": "integrate",
+      "description": "Protocol for adopting new tools, migrating all call sites in one wave, and mechanically locking out legacy code.",
+      "path": "skills/integrate/SKILL.md",
+      "tags": ["migration", "integrate", "lockout", "deprecation"]
+    },
+    {
+      "name": "humanity-and-humanness",
+      "description": "Human cognitive model grounding: inferential reading, strawman drafting, and intent formulation.",
+      "path": "skills/humanity-and-humanness/SKILL.md",
+      "tags": ["humanity", "cognitive-load", "communication"]
+    },
+    {
+      "name": "writing",
+      "description": "High-density technical writing: direct payload invariant, purpose before means, and zero narrative fluff.",
+      "path": "skills/writing/SKILL.md",
+      "tags": ["writing", "anti-slop", "technical-prose"]
     },
     {
       "name": "skill-architect",

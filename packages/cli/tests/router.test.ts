@@ -35,6 +35,18 @@ describe("OmniSkill Dynamic Agentic Router", () => {
     
     // Distribution
     expect(classifyIntent("Craft repo and distribute to GitHub and skills.sh").intent).toBe("DISTRIBUTE");
+
+    // Measure / Empirical Hypothesis
+    expect(classifyIntent("Measure latency and benchmark throughput before optimization").intent).toBe("MEASURE");
+
+    // Integrate / Migration Protocol
+    expect(classifyIntent("Integrate drizzle orm and migrate legacy queries").intent).toBe("INTEGRATE");
+
+    // Poteto Engineering Principles
+    expect(classifyIntent("Audit code against poteto principles and boundary discipline").intent).toBe("PRINCIPLES");
+
+    // Skill Authoring
+    expect(classifyIntent("Author skill for data pipeline orchestration").intent).toBe("AUTHOR");
   });
 
   it("should classify Arabic natural language intents", () => {
@@ -42,6 +54,10 @@ describe("OmniSkill Dynamic Agentic Router", () => {
     expect(classifyIntent("صلح المشكلة دي في المهارة").intent).toBe("IMPROVE");
     expect(classifyIntent("اختبر المهارة واعمل evals").intent).toBe("EVAL");
     expect(classifyIntent("حول المهارة دي ل cursor").intent).toBe("PORT");
+    expect(classifyIntent("احسب السرعة وقيس latency").intent).toBe("MEASURE");
+    expect(classifyIntent("دمج المكتبة الجديدة وترحيل الكود القديم").intent).toBe("INTEGRATE");
+    expect(classifyIntent("راجع المبادئ الهندسية").intent).toBe("PRINCIPLES");
+    expect(classifyIntent("تأليف مهارة جديدة").intent).toBe("AUTHOR");
   });
 
   it("should extract target hosts from prompt", () => {

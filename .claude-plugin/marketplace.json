@@ -1,6 +1,6 @@
 {
   "name": "omni-skill",
-  "version": "5.0.0",
-  "description": "Universal Cross-Host Agent Skill Engine & Compiler",
+  "version": "6.0.0",
+  "description": "Universal Cross-Host Agent Skill Engine & Poteto Mode",
   "skills": "./skills/"
 }
