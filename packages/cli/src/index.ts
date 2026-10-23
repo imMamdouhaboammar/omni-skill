@@ -13,7 +13,7 @@ const program = new Command();
 program
   .name("omni-skill")
   .description("Universal Cross-Host Agent Skill Engine & Compiler")
-  .version("5.0.0");
+  .version("6.0.0");
 
 program
   .command("route <prompt>")
@@ -34,10 +34,10 @@ program
   });
 
 program
-  .command("validate <path>")
+  .command("validate [paths...]")
   .description("Validate skill frontmatter, security, secrets, and portability")
-  .action((path) => {
-    validateSkillCommand(path);
+  .action((paths) => {
+    validateSkillCommand(paths);
   });
 
 program

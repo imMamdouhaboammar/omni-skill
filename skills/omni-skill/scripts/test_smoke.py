@@ -14,6 +14,8 @@ This is not a full unit test suite — it's a fast safety net so we don't ship
 broken scripts. Real behavior is verified by Mode 3 VALIDATE on real skills.
 """
 
+from __future__ import annotations
+
 import json
 import os
 import shutil

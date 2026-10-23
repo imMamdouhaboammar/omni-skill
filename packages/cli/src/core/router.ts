@@ -95,9 +95,18 @@ export function classifyIntent(prompt: string): { intent: SkillMode; confidence:
   if (p.includes("copilot")) targetHosts.push("copilot");
   if (targetHosts.length === 0) targetHosts.push("universal");
 
-  // Extract skill name if named
-  const nameMatch = prompt.match(/(?:skill|package|repo|for|named)\s+["'`]?([a-zA-Z0-9_-]+)["'`]?/i);
-  const skillName = nameMatch ? nameMatch[1] : undefined;
+  // Extract skill name if named, skipping common prepositions/stopwords
+  const STOPWORDS = new Set(["for", "to", "a", "an", "the", "of", "in", "on", "with", "from", "by", "new", "this"]);
+  let skillName: string | undefined;
+  const explicitMatch = prompt.match(/(?:named|called)\s+["'`]?([a-zA-Z0-9_-]+)["'`]?/i);
+  if (explicitMatch && !STOPWORDS.has(explicitMatch[1].toLowerCase())) {
+    skillName = explicitMatch[1];
+  } else {
+    const genericMatch = prompt.match(/(?:skill|package|repo)\s+(?:for\s+)?["'`]?([a-zA-Z0-9_-]+)["'`]?/i);
+    if (genericMatch && !STOPWORDS.has(genericMatch[1].toLowerCase())) {
+      skillName = genericMatch[1];
+    }
+  }
 
   // 1. Distribution & Repo Crafting
   if (
