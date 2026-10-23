@@ -42,4 +42,41 @@ description: Some desc.
     expect(report.pass).toBe(false);
     expect(report.errors).toBeGreaterThan(0);
   });
+
+  it("should fail when relative markdown links are broken", () => {
+    const dir = mkdtempSync(join(tmpdir(), "omni-test-link-"));
+    writeFileSync(
+      join(dir, "SKILL.md"),
+      `---
+name: broken-links-skill
+description: Tests broken links.
+---
+# Broken Links Skill
+See [non-existent](references/does-not-exist.md) for details.
+`,
+      "utf-8"
+    );
+
+    const report = validateSkillDirectory(dir);
+    expect(report.pass).toBe(false);
+    expect(report.findings.some(f => f.code === "BROKEN_RELATIVE_LINK")).toBe(true);
+  });
+
+  it("should warn on anti-slop developer notes", () => {
+    const dir = mkdtempSync(join(tmpdir(), "omni-test-slop-"));
+    writeFileSync(
+      join(dir, "SKILL.md"),
+      `---
+name: slop-skill
+description: Tests anti-slop guard.
+---
+# Slop Skill
+TODO: Implement the real logic later.
+`,
+      "utf-8"
+    );
+
+    const report = validateSkillDirectory(dir);
+    expect(report.findings.some(f => f.code === "ANTI_SLOP_DEV_NOTES")).toBe(true);
+  });
 });

@@ -1,7 +1,7 @@
 {
   "name": "@omni-skill/cli",
-  "version": "5.0.0",
-  "description": "Think /skill-creator, but Omni: create once, engineer deeply, ship to every agent.",
+  "version": "6.0.0",
+  "description": "Universal Agent Skill Engineering System & Poteto Mode: create once, engineer deeply, ship to every agent.",
   "bin": {
     "omni-skill": "./src/index.ts"
   },

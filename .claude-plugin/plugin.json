@@ -1,7 +1,7 @@
 {
   "name": "omni-skill",
-  "version": "5.0.0",
-  "description": "Universal agent skill engineering engine with Claude Code support, AST portability validator, and multi-agent compilers.",
+  "version": "6.0.0",
+  "description": "Universal Agent Skill Engineering System & Poteto Mode with Claude Code marketplace support, AST portability validator, and multi-agent compilers.",
   "author": {
     "name": "Mamdouh Aboammar",
     "url": "https://github.com/imMamdouhaboammar"
@@ -12,6 +12,7 @@
   "keywords": [
     "claude-code",
     "agent-skills",
+    "poteto-principles",
     "skill-authoring",
     "evals",
     "portability",

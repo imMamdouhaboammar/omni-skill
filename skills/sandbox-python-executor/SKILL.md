@@ -5,9 +5,15 @@ description: Use when a Skill Conductor workflow needs deterministic computation
 
 # Sandbox Python Executor
 
-Use the host's Python capability to produce evidence instead of simulating execution.
+> Use the host's Python capability to produce evidence instead of simulating execution.
 
-Use Python for:
+## Why This Skill Is Needed & Target State
+
+**Why this skill is needed:** Language models frequently hallucinate deterministic math, cryptographic hashes, package member inventories, and JSON parsing instead of executing them. This introduces phantom passes and subtle runtime defects.
+
+**Target state:** All cryptographic digests, file generation, and structural evaluations are executed deterministically using Python scripts with verbatim output capture.
+
+## Use Python for:
 
 - parsing JSON or manifests
 - generating deterministic skill scaffolds

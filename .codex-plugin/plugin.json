@@ -1,7 +1,7 @@
 {
   "name": "omni-skill",
-  "version": "5.0.0",
-  "description": "Universal cross-host agent skill engineering engine and compiler for ChatGPT, Codex, Claude Code, and Agent Skills hosts.",
+  "version": "6.0.0",
+  "description": "Universal Cross-Host Agent Skill Engineering Engine & Poteto Mode for ChatGPT, Codex, Claude Code, and Agent Skills hosts.",
   "author": {
     "name": "Mamdouh Aboammar",
     "url": "https://github.com/imMamdouhaboammar"
