@@ -1,7 +1,7 @@
 class OmniSkill < Formula
   desc "Universal Cross-Host Agent Skill Engineering Engine & Compiler"
   homepage "https://github.com/imMamdouhaboammar/omni-skill"
-  url "https://github.com/imMamdouhaboammar/omni-skill/archive/refs/tags/v5.0.0.tar.gz"
+  url "https://github.com/imMamdouhaboammar/omni-skill/archive/refs/tags/v6.0.0.tar.gz"
   sha256 "5a503a82b71cc3169612c3cf2537e0a82776a384b02a04dd3af83096bc7a6a7c" # placeholder, updated on release
   license "MIT"
   head "https://github.com/imMamdouhaboammar/omni-skill.git", branch: "main"
