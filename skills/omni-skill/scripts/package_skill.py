@@ -23,6 +23,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from quick_validate import validate_skill
+from scan_skill_security import scan_skill_directory, Severity
 
 # Patterns to exclude when packaging skills.
 EXCLUDE_DIRS = {"__pycache__", "node_modules"}
@@ -81,6 +82,18 @@ def package_skill(skill_path, output_dir=None):
         print("   Please fix the validation errors before packaging.")
         return None
     print(f"[OK] {message}\n")
+
+    # Run security pre-flight scan before packaging
+    print("Running security pre-flight check...")
+    sec_report = scan_skill_directory(skill_path)
+    if not sec_report.passed:
+        print(f"[ERROR] Security pre-flight failed: {sec_report.recommendation} (Score: {sec_report.risk_score}/100, Band: {sec_report.severity})")
+        for f in sec_report.findings:
+            if f.severity in (Severity.CRITICAL, Severity.HIGH):
+                print(f"  - [{f.severity.value}] {f.rule_id}: {f.message} ({f.file}:{f.line})")
+        print("   Packaging aborted fail-closed. Remediate security findings before packaging.")
+        return None
+    print(f"[OK] Security pre-flight passed: {sec_report.recommendation} (Score: {sec_report.risk_score}/100)\n")
 
     # Determine output location
     skill_name = skill_path.name
