@@ -64,11 +64,18 @@ def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
 
 if __name__ == "__main__":
     import sys
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 2 or sys.argv[1] in ("-h", "--help"):
         print("Usage: compile_spec.py <spec.json> [output_dir]")
-        sys.exit(1)
+        sys.exit(0 if len(sys.argv) >= 2 and sys.argv[1] in ("-h", "--help") else 1)
     spec_file = Path(sys.argv[1])
+    if not spec_file.exists():
+        print(f"Error: Specification file not found: {spec_file}", file=sys.stderr)
+        sys.exit(1)
     out = Path(sys.argv[2]) if len(sys.argv) > 2 else Path(".")
-    data = json.loads(spec_file.read_text(encoding="utf-8"))
+    try:
+        data = json.loads(spec_file.read_text(encoding="utf-8"))
+    except Exception as exc:
+        print(f"Error: Failed to parse JSON specification: {exc}", file=sys.stderr)
+        sys.exit(1)
     res = compile_spec(data, out)
     print(f"Compiled skill to: {res}")

@@ -59,4 +59,20 @@ describe("generateAdapter", () => {
     const res = generateAdapter(dummyManifest, "copilot", dir);
     expect(existsSync(join(dir, ".github", "copilot-instructions.md"))).toBe(true);
   });
+
+  it("should generate OpenCode configuration with v6 engine", () => {
+    const dir = mkdtempSync(join(tmpdir(), "adapter-test-"));
+    const res = generateAdapter(dummyManifest, "opencode", dir);
+    const confPath = join(dir, ".opencode", "skill.json");
+    expect(existsSync(confPath)).toBe(true);
+    expect(res.notes).toContain("Generated OpenCode / DeepSeek Harness adapter configuration");
+  });
+
+  it("should generate generic Agent Skills marketplace descriptor for unknown hosts", () => {
+    const dir = mkdtempSync(join(tmpdir(), "adapter-test-"));
+    const res = generateAdapter(dummyManifest, "unknown-agent", dir);
+    const marketPath = join(dir, ".agents", "plugins", "marketplace.json");
+    expect(existsSync(marketPath)).toBe(true);
+    expect(res.notes).toContain("Generated generic Agent Skills marketplace descriptor");
+  });
 });

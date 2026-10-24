@@ -1,10 +1,11 @@
 import { mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import pc from "picocolors";
 
-export function initSkillCommand(name: string, options: { description?: string }) {
+export function initSkillCommand(name: string, options: { description?: string; out?: string }) {
   const kebabName = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-  const targetDir = join(process.cwd(), kebabName);
+  const baseDir = options.out ? resolve(process.cwd(), options.out) : process.cwd();
+  const targetDir = join(baseDir, kebabName);
   mkdirSync(targetDir, { recursive: true });
   mkdirSync(join(targetDir, "usecases"), { recursive: true });
   mkdirSync(join(targetDir, "references"), { recursive: true });

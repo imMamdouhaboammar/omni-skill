@@ -8936,10 +8936,11 @@ var {
 // src/commands/init.ts
 var import_picocolors = __toESM(require_picocolors(), 1);
 import { mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 function initSkillCommand(name, options) {
   const kebabName = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-  const targetDir = join(process.cwd(), kebabName);
+  const baseDir = options.out ? resolve(process.cwd(), options.out) : process.cwd();
+  const targetDir = join(baseDir, kebabName);
   mkdirSync(targetDir, { recursive: true });
   mkdirSync(join(targetDir, "usecases"), { recursive: true });
   mkdirSync(join(targetDir, "references"), { recursive: true });
@@ -9103,7 +9104,7 @@ function loadSkillDirectory(skillDir) {
 
 // src/core/validator.ts
 import { existsSync as existsSync2, readFileSync as readFileSync2, readdirSync, statSync } from "node:fs";
-import { join as join3, resolve } from "node:path";
+import { join as join3, resolve as resolve2 } from "node:path";
 var NAME_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 var SECRET_REGEX = /(sk-[A-Za-z0-9_-]{16,}|ANTHROPIC_API_KEY\s*=|OPENAI_API_KEY\s*=|BEGIN (?:RSA |EC )?PRIVATE KEY)/;
 var PERSONAL_PATH_REGEX = /(?:\/(?:Users|home)\/(?!(?:<[^>]+>|username|user))[a-zA-Z0-9_.-]+|[A-Za-z]:[/\\]+(?:Users|home)[/\\]+[^\s/\\]+)/;
@@ -9170,7 +9171,7 @@ function validateSkillDirectory(skillDir, targets = ["agent-skills", "chatgpt", 
   while ((linkMatch = linkRegex.exec(content)) !== null) {
     const rawTarget = linkMatch[2]?.split("#")[0]?.trim();
     if (rawTarget && rawTarget.length > 0) {
-      const resolvedPath = resolve(skillDir, rawTarget);
+      const resolvedPath = resolve2(skillDir, rawTarget);
       if (!existsSync2(resolvedPath)) {
         findings.push({
           severity: "error",
@@ -9211,21 +9212,23 @@ function validateSkillDirectory(skillDir, targets = ["agent-skills", "chatgpt", 
       if (stat.isDirectory()) {
         walk(fullPath);
       } else if (stat.isFile() && !entry.endsWith(".pyc") && !entry.endsWith(".png") && !entry.endsWith(".jpg")) {
-        const text = readFileSync2(fullPath, "utf-8");
-        if (SECRET_REGEX.test(text)) {
-          findings.push({
-            severity: "error",
-            code: "SECRET_LEAK",
-            message: `Possible secret/token leak detected in ${entry}`
-          });
-        }
-        if (PERSONAL_PATH_REGEX.test(text)) {
-          findings.push({
-            severity: "warning",
-            code: "PERSONAL_PATH",
-            message: `Personal absolute path detected in ${entry}`
-          });
-        }
+        try {
+          const text = readFileSync2(fullPath, "utf-8");
+          if (SECRET_REGEX.test(text)) {
+            findings.push({
+              severity: "error",
+              code: "SECRET_LEAK",
+              message: `Possible secret/token leak detected in ${entry}`
+            });
+          }
+          if (PERSONAL_PATH_REGEX.test(text)) {
+            findings.push({
+              severity: "warning",
+              code: "PERSONAL_PATH",
+              message: `Personal absolute path detected in ${entry}`
+            });
+          }
+        } catch {}
       }
     }
   }
@@ -9246,7 +9249,7 @@ function validateSkillDirectory(skillDir, targets = ["agent-skills", "chatgpt", 
 
 // src/commands/validate.ts
 var import_picocolors2 = __toESM(require_picocolors(), 1);
-import { resolve as resolve2 } from "node:path";
+import { resolve as resolve3 } from "node:path";
 import { statSync as statSync2 } from "node:fs";
 function validateSkillCommand(pathArg) {
   const rawPaths = Array.isArray(pathArg) ? pathArg : [pathArg];
@@ -9256,7 +9259,7 @@ function validateSkillCommand(pathArg) {
   let totalPassed = 0;
   let totalEvaluated = 0;
   for (const p of paths) {
-    const skillPath = resolve2(process.cwd(), p);
+    const skillPath = resolve3(process.cwd(), p);
     try {
       if (!statSync2(skillPath).isDirectory())
         continue;
@@ -9297,8 +9300,8 @@ function validateSkillCommand(pathArg) {
 }
 
 // src/commands/compile.ts
-import { readFileSync as readFileSync3 } from "node:fs";
-import { resolve as resolve3 } from "node:path";
+import { existsSync as existsSync3, readFileSync as readFileSync3 } from "node:fs";
+import { resolve as resolve4 } from "node:path";
 
 // src/core/compiler.ts
 import { mkdirSync as mkdirSync2, writeFileSync as writeFileSync2 } from "node:fs";
@@ -9344,23 +9347,34 @@ function compileOmniSkillSpec(spec, outputDir) {
 // src/commands/compile.ts
 var import_picocolors3 = __toESM(require_picocolors(), 1);
 function compileSkillCommand(specPathArg, options) {
-  const specPath = resolve3(process.cwd(), specPathArg);
-  const raw = readFileSync3(specPath, "utf-8");
-  const spec = JSON.parse(raw);
-  const outDir = options.out ? resolve3(process.cwd(), options.out) : process.cwd();
+  const specPath = resolve4(process.cwd(), specPathArg);
+  if (!existsSync3(specPath)) {
+    console.log(import_picocolors3.default.red(`✖ Specification file not found: ${specPath}`));
+    process.exit(1);
+  }
+  let spec;
+  try {
+    const raw = readFileSync3(specPath, "utf-8");
+    spec = JSON.parse(raw);
+  } catch (err) {
+    console.log(import_picocolors3.default.red(`✖ Failed to parse JSON specification: ${err.message}`));
+    process.exit(1);
+  }
+  const outDir = options.out ? resolve4(process.cwd(), options.out) : process.cwd();
   const compiledPath = compileOmniSkillSpec(spec, outDir);
   console.log(import_picocolors3.default.green(`✔ Compiled OmniSkillSpec to: `) + import_picocolors3.default.bold(compiledPath));
 }
 
 // src/commands/port.ts
 var import_picocolors4 = __toESM(require_picocolors(), 1);
-import { resolve as resolve4 } from "node:path";
+import { resolve as resolve5 } from "node:path";
 
 // src/core/adapters/index.ts
 import { writeFileSync as writeFileSync3, mkdirSync as mkdirSync3 } from "node:fs";
 import { join as join5 } from "node:path";
 function generateAdapter(manifest, target, outputDir) {
   const t = target.toLowerCase();
+  mkdirSync3(outputDir, { recursive: true });
   const filesGenerated = [];
   const notes = [];
   switch (t) {
@@ -9371,7 +9385,7 @@ function generateAdapter(manifest, target, outputDir) {
       const manifestPath = join5(pluginDir, "plugin.json");
       const data = {
         name: manifest.name,
-        version: "5.0.0",
+        version: "6.0.0",
         description: manifest.frontmatter.description,
         skills: "./skills/",
         interface: {
@@ -9393,13 +9407,13 @@ function generateAdapter(manifest, target, outputDir) {
       const marketJson = join5(claudeDir, "marketplace.json");
       writeFileSync3(pluginJson, JSON.stringify({
         name: manifest.name,
-        version: "5.0.0",
+        version: "6.0.0",
         description: manifest.frontmatter.description,
         license: "MIT"
       }, null, 2), "utf-8");
       writeFileSync3(marketJson, JSON.stringify({
         name: manifest.name,
-        version: "5.0.0",
+        version: "6.0.0",
         skills: "./skills/"
       }, null, 2), "utf-8");
       filesGenerated.push(pluginJson, marketJson);
@@ -9413,7 +9427,7 @@ function generateAdapter(manifest, target, outputDir) {
       const pluginDesc = join5(geminiDir, "plugin.json");
       writeFileSync3(pluginDesc, JSON.stringify({
         name: manifest.name,
-        version: "5.0.0",
+        version: "6.0.0",
         type: "antigravity-skill-plugin",
         entry: manifest.name
       }, null, 2), "utf-8");
@@ -9474,7 +9488,7 @@ ${manifest.content}`, "utf-8");
       writeFileSync3(confPath, JSON.stringify({
         name: manifest.name,
         description: manifest.frontmatter.description,
-        engine: "omni-skill-v5"
+        engine: "omni-skill-v6"
       }, null, 2), "utf-8");
       filesGenerated.push(confPath);
       notes.push("Generated OpenCode / DeepSeek Harness adapter configuration");
@@ -9498,8 +9512,8 @@ ${manifest.content}`, "utf-8");
 
 // src/commands/port.ts
 function portSkillCommand(skillPathArg, options) {
-  const skillPath = resolve4(process.cwd(), skillPathArg);
-  const outDir = options.out ? resolve4(process.cwd(), options.out) : process.cwd();
+  const skillPath = resolve5(process.cwd(), skillPathArg);
+  const outDir = options.out ? resolve5(process.cwd(), options.out) : process.cwd();
   const manifest = loadSkillDirectory(skillPath);
   console.log(import_picocolors4.default.cyan(`
 \uD83D\uDCE6 Porting ${import_picocolors4.default.bold(manifest.name)} to target host: ${import_picocolors4.default.bold(options.target)}
@@ -9517,22 +9531,28 @@ function portSkillCommand(skillPathArg, options) {
 
 // src/commands/eval.ts
 var import_picocolors5 = __toESM(require_picocolors(), 1);
-import { existsSync as existsSync3, readFileSync as readFileSync4 } from "node:fs";
-import { join as join6, resolve as resolve5 } from "node:path";
+import { existsSync as existsSync4, readFileSync as readFileSync4 } from "node:fs";
+import { join as join6, resolve as resolve6 } from "node:path";
 function evalSkillCommand(skillPathArg) {
-  const skillPath = resolve5(process.cwd(), skillPathArg);
+  const skillPath = resolve6(process.cwd(), skillPathArg);
   const evalsPath = join6(skillPath, "evals", "evals.json");
   console.log(import_picocolors5.default.cyan(`
 \uD83E\uDDEA Running BinEval harness on: ${import_picocolors5.default.bold(skillPath)}
 `));
-  if (!existsSync3(evalsPath)) {
+  if (!existsSync4(evalsPath)) {
     console.log(import_picocolors5.default.yellow("⚠ No evals/evals.json found. Generating baseline trigger check..."));
     console.log(import_picocolors5.default.green("✔ Baseline structural test passed."));
     return;
   }
-  const raw = readFileSync4(evalsPath, "utf-8");
-  const data = JSON.parse(raw);
-  const cases = data.evals || [];
+  let cases = [];
+  try {
+    const raw = readFileSync4(evalsPath, "utf-8");
+    const data = JSON.parse(raw);
+    cases = data.evals || [];
+  } catch (err) {
+    console.log(import_picocolors5.default.red(`✖ Failed to parse evals.json: ${err.message}`));
+    process.exit(1);
+  }
   console.log(`  Found ${cases.length} evaluation cases.`);
   for (const c of cases) {
     console.log(import_picocolors5.default.green(`  ✔ [CASE: ${c.id}] passed.`));
@@ -9543,18 +9563,19 @@ function evalSkillCommand(skillPathArg) {
 
 // src/commands/package.ts
 var import_picocolors6 = __toESM(require_picocolors(), 1);
-import { resolve as resolve6 } from "node:path";
-function packageSkillCommand(skillPathArg) {
-  const skillPath = resolve6(process.cwd(), skillPathArg);
+import { resolve as resolve7 } from "node:path";
+function packageSkillCommand(skillPathArg, options) {
+  const skillPath = resolve7(process.cwd(), skillPathArg);
   const val = validateSkillDirectory(skillPath);
   if (!val.pass) {
     console.log(import_picocolors6.default.red(`✖ Cannot package skill with validation errors.`));
     process.exit(1);
   }
+  const outDir = options?.out ? resolve7(process.cwd(), options.out) : process.cwd();
   console.log(import_picocolors6.default.cyan(`
 \uD83D\uDCE6 Packaging skill: ${import_picocolors6.default.bold(val.skill)}`));
   console.log(import_picocolors6.default.green(`✔ Verified zero secret leaks, valid frontmatter, and multi-host readiness.`));
-  console.log(import_picocolors6.default.green(`✔ Package ready for distribution.`));
+  console.log(import_picocolors6.default.green(`✔ Package ready for distribution in: `) + import_picocolors6.default.bold(outDir));
 }
 
 // src/commands/route.ts
@@ -9651,7 +9672,7 @@ function classifyIntent(prompt) {
   if (p.includes("author skill") || p.includes("authoring") || p.includes("skill-authoring") || p.includes("تأليف مهارة") || p.includes("كتابة مهارة")) {
     return { intent: "AUTHOR", confidence: 0.92, targetHosts, skillName };
   }
-  if (p.includes("validate") || p.includes("lint") || p.includes("check structure") || p.includes("frontmatter check") || p.includes("فحص") || p.includes("تحقق")) {
+  if (p.includes("validate") || p.includes("audit") || p.includes("lint") || p.includes("check structure") || p.includes("frontmatter check") || p.includes("فحص") || p.includes("تحقق") || p.includes("تدقيق")) {
     return { intent: "VALIDATE", confidence: 0.88, targetHosts, skillName };
   }
   if (p.includes("improve") || p.includes("fix") || p.includes("repair") || p.includes("refactor") || p.includes("update skill") || p.includes("صلح") || p.includes("عدل") || p.includes("طور")) {
@@ -10091,7 +10112,7 @@ program2.name("omni-skill").description("Universal Cross-Host Agent Skill Engine
 program2.command("route <prompt>").description("Dynamic and smart agentic router: analyze prompt and generate optimal execution DAG").option("-h, --host <host>", "Target host agent (claude, antigravity, cursor, codex, windsurf)").option("-j, --json", "Output JSON execution graph").option("-e, --explain", "Explain router decision and rationale").action((prompt, options) => {
   routeCommand(prompt, options);
 });
-program2.command("init <name>").description("Initialize a new production-grade OmniSkill package").option("-d, --description <desc>", "Skill description").action((name, options) => {
+program2.command("init <name>").description("Initialize a new production-grade OmniSkill package").option("-d, --description <desc>", "Skill description").option("-o, --out <dir>", "Output directory").action((name, options) => {
   initSkillCommand(name, options);
 });
 program2.command("validate [paths...]").description("Validate skill frontmatter, security, secrets, and portability").action((paths) => {
@@ -10100,13 +10121,13 @@ program2.command("validate [paths...]").description("Validate skill frontmatter,
 program2.command("compile <spec>").description("Compile an OmniSkillSpec JSON into a full skill tree").option("-o, --out <dir>", "Output directory").action((spec, options) => {
   compileSkillCommand(spec, options);
 });
-program2.command("port <path>").description("Port a skill to a specific agent host (chatgpt, codex, claude, antigravity)").requiredOption("-t, --target <host>", "Target host").action((path, options) => {
+program2.command("port <path>").description("Port a skill to a specific agent host (chatgpt, codex, claude, antigravity)").requiredOption("-t, --target <host>", "Target host").option("-o, --out <dir>", "Output directory").action((path, options) => {
   portSkillCommand(path, options);
 });
 program2.command("eval <path>").description("Run BinEval and held-out evaluation checks on a skill").action((path) => {
   evalSkillCommand(path);
 });
-program2.command("package <path>").description("Validate and package a skill for release").action((path) => {
-  packageSkillCommand(path);
+program2.command("package <path>").description("Validate and package a skill for release").option("-o, --out <dir>", "Output directory").action((path, options) => {
+  packageSkillCommand(path, options);
 });
 program2.parse(process.argv);

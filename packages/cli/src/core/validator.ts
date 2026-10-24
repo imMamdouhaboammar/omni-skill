@@ -131,20 +131,24 @@ export function validateSkillDirectory(
       if (stat.isDirectory()) {
         walk(fullPath);
       } else if (stat.isFile() && !entry.endsWith(".pyc") && !entry.endsWith(".png") && !entry.endsWith(".jpg")) {
-        const text = readFileSync(fullPath, "utf-8");
-        if (SECRET_REGEX.test(text)) {
-          findings.push({
-            severity: "error",
-            code: "SECRET_LEAK",
-            message: `Possible secret/token leak detected in ${entry}`
-          });
-        }
-        if (PERSONAL_PATH_REGEX.test(text)) {
-          findings.push({
-            severity: "warning",
-            code: "PERSONAL_PATH",
-            message: `Personal absolute path detected in ${entry}`
-          });
+        try {
+          const text = readFileSync(fullPath, "utf-8");
+          if (SECRET_REGEX.test(text)) {
+            findings.push({
+              severity: "error",
+              code: "SECRET_LEAK",
+              message: `Possible secret/token leak detected in ${entry}`
+            });
+          }
+          if (PERSONAL_PATH_REGEX.test(text)) {
+            findings.push({
+              severity: "warning",
+              code: "PERSONAL_PATH",
+              message: `Personal absolute path detected in ${entry}`
+            });
+          }
+        } catch {
+          // Ignore unreadable binary or permission issues
         }
       }
     }
