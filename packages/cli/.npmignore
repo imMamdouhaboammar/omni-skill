@@ -1,5 +1,13 @@
 src/
 tests/
+evals/
 tsconfig*.json
 *.log
+*.tmp
 .DS_Store
+dist/*.zip
+dist/*.tar.gz
+dist/*.tgz
+**/*.pyc
+**/*.pyo
+**/__pycache__
