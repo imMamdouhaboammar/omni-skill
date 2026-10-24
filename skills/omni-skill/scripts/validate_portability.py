@@ -89,13 +89,18 @@ def check_skill(skill_dir: Path) -> list[dict]:
     try:
         from scan_skill_security import scan_skill_directory, Severity
         sec_report = scan_skill_directory(skill_dir)
+        if not sec_report.passed:
+            findings.append({
+                "severity": "error", "code": "SECURITY_CLEARANCE_FAILED",
+                "message": f"security clearance failed: {sec_report.recommendation} ({sec_report.risk_score}/100)",
+            })
         for f in sec_report.findings:
             if f.severity in (Severity.CRITICAL, Severity.HIGH):
                 findings.append({"severity": "error", "code": f"SECURITY_{f.rule_id}", "message": f"[{f.rule_id}] {f.message} in {f.file}:{f.line}"})
             else:
                 findings.append({"severity": "warning", "code": f"SECURITY_{f.rule_id}", "message": f"[{f.rule_id}] {f.message} in {f.file}:{f.line}"})
     except Exception as exc:
-        findings.append({"severity": "warning", "code": "SECURITY_SCAN_ERROR", "message": f"security scanner error: {exc}"})
+        findings.append({"severity": "error", "code": "SECURITY_SCAN_ERROR", "message": f"security scanner error: {exc}"})
 
     return findings
 

@@ -14,7 +14,6 @@ Example:
     python scripts/package_skill.py skills/my-skill ./dist
 """
 
-import fnmatch
 import sys
 import zipfile
 from pathlib import Path
@@ -23,29 +22,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from quick_validate import validate_skill
-from scan_skill_security import scan_skill_directory, Severity
-
-# Patterns to exclude when packaging skills.
-EXCLUDE_DIRS = {"__pycache__", "node_modules"}
-EXCLUDE_GLOBS = {"*.pyc"}
-EXCLUDE_FILES = {".DS_Store"}
-# Directories excluded only at the skill root (not when nested deeper).
-ROOT_EXCLUDE_DIRS = {"evals"}
+from scan_skill_security import scan_skill_directory, Severity, should_exclude_skill_file
 
 
 def should_exclude(rel_path: Path) -> bool:
     """Check if a path should be excluded from packaging."""
-    parts = rel_path.parts
-    if any(part in EXCLUDE_DIRS for part in parts):
-        return True
-    # rel_path is relative to skill_path.parent, so parts[0] is the skill
-    # folder name and parts[1] (if present) is the first subdir.
-    if len(parts) > 1 and parts[1] in ROOT_EXCLUDE_DIRS:
-        return True
-    name = rel_path.name
-    if name in EXCLUDE_FILES:
-        return True
-    return any(fnmatch.fnmatch(name, pat) for pat in EXCLUDE_GLOBS)
+    # Archive paths are prefixed by the skill folder, unlike scanner paths.
+    return should_exclude_skill_file(Path(*rel_path.parts[1:]))
 
 
 def package_skill(skill_path, output_dir=None):
@@ -109,11 +92,13 @@ def package_skill(skill_path, output_dir=None):
     try:
         with zipfile.ZipFile(skill_filename, "w", zipfile.ZIP_DEFLATED) as zipf:
             for file_path in skill_path.rglob("*"):
-                if not file_path.is_file():
-                    continue
                 arcname = file_path.relative_to(skill_path.parent)
                 if should_exclude(arcname):
                     print(f"  Skipped: {arcname}")
+                    continue
+                if file_path.is_symlink():
+                    raise ValueError(f"Refusing symlink inside skill archive: {arcname}")
+                if not file_path.is_file():
                     continue
                 zipf.write(file_path, arcname)
                 print(f"  Added: {arcname}")

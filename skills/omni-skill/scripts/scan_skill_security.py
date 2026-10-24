@@ -23,6 +23,7 @@ import fnmatch
 import json
 from pathlib import Path
 import re
+import stat
 import sys
 import unicodedata
 
@@ -70,6 +71,44 @@ _SEVERITY_POINTS = {
 _DIMINISHING_WEIGHTS = (1.0, 0.5, 0.25)
 _MAX_OCCURRENCES_PER_RULE = len(_DIMINISHING_WEIGHTS)
 _RISK_THRESHOLD = 50
+
+# Keep this predicate shared with the packager so the security gate scans
+# exactly the files eligible for distribution. Test fixtures are development
+# resources, not runtime skill content.
+EXCLUDE_DIRS = frozenset({".git", "__pycache__", ".pytest_cache", "node_modules", "tests"})
+ROOT_EXCLUDE_DIRS = frozenset({"evals"})
+EXCLUDE_FILES = frozenset({".DS_Store", "conftest.py"})
+SCRIPT_EXTENSIONS = frozenset({
+    ".py", ".sh", ".bash", ".zsh", ".ksh", ".fish", ".ps1", ".bat", ".cmd",
+    ".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".rb", ".rake", ".php", ".phtml",
+})
+SAFE_BINARY_SIGNATURES = {
+    ".png": (b"\x89PNG\r\n\x1a\n",),
+    ".jpg": (b"\xff\xd8\xff",),
+    ".jpeg": (b"\xff\xd8\xff",),
+    ".gif": (b"GIF87a", b"GIF89a"),
+    ".webp": (b"RIFF",),
+    ".ico": (b"\x00\x00\x01\x00",),
+    ".woff": (b"wOFF",),
+    ".woff2": (b"wOF2",),
+    ".ttf": (b"\x00\x01\x00\x00",),
+    ".otf": (b"OTTO",),
+}
+
+
+def should_exclude_skill_file(relative_path: Path) -> bool:
+    parts = relative_path.parts
+    if not parts or any(part in EXCLUDE_DIRS for part in parts[:-1]):
+        return True
+    if len(parts) > 1 and parts[0] in ROOT_EXCLUDE_DIRS:
+        return True
+    name = relative_path.name
+    return (
+        name in EXCLUDE_FILES
+        or name.startswith("test_")
+        or name.endswith("_test.py")
+        or fnmatch.fnmatch(name, "*.pyc")
+    )
 
 # Unicode zero-width characters used for steganography / hidden prompts
 ZERO_WIDTH_CHARS = frozenset("\u200B\u200C\u200D\u2060\uFEFF")
@@ -146,7 +185,7 @@ DEFAULT_EXPLANATIONS: dict[str, str] = {
     "E5": "Unverified cloud storage exfiltration (S3/GCS/Azure blob upload).",
     "PE1": "Skill requests excessive permissions (e.g. wildcard '*' or unnecessary full access).",
     "PE2": "Command invokes sudo, su, doas, pkexec, or setuid elevation.",
-    "PE3": "Direct access to sensitive credential files (~/.ssh, ~/.aws, /etc/shadow, token files).",
+    "PE3": "Direct access to credential files and privileged operating-system records.",
     "SC1": "Dependencies lack version pinning, allowing potential malicious package updates.",
     "SC2": "Remote script downloading and execution (e.g. curl | bash, wget | python).",
     "SC3": "Obfuscated code payload (base64/hex decode with execution).",
@@ -163,11 +202,11 @@ DEFAULT_EXPLANATIONS: dict[str, str] = {
     "OH2": "Output flowing across trust contexts without validation.",
     "OH3": "Unbounded output generation allowing resource exhaustion or context stuffing.",
     "MP1": "Persistent context injection attempting to permanently modify agent state across sessions.",
-    "MP2": "Context window stuffing designed to displace system instructions or safety rules.",
+    "MP2": "Context stuffing that attempts to evict privileged instructions or safety rules.",
     "MP3": "Unauthorized manipulation of agent memory or personality state.",
     "TM1": "Destructive or dangerous tool parameter abuse (rm -rf, mkfs, fork bombs).",
     "TM2": "Tool chaining abuse attempting to bypass single-tool permission restrictions.",
-    "TM3": "Insecure tool defaults (disabled TLS verification, world-writable chmod 0777).",
+    "TM3": "Insecure tool defaults (disabled TLS verification or world-writable file modes).",
     "TM4": "Privileged Kubernetes workload specifications (hostPath, privileged containers).",
     "RA1": "Self-modifying skill code or runtime editing of SKILL.md.",
     "RA2": "Unauthorized session persistence mechanisms (cron jobs, launch agents, shell profile hooks).",
@@ -177,9 +216,9 @@ DEFAULT_EXPLANATIONS: dict[str, str] = {
     "AS1": "Agent config directory snooping (.claude/, .codex/, .gemini/ access).",
     "AS2": "MCP configuration file snooping (mcp.json access).",
     "AS3": "Cross-skill enumeration or reading other installed skills' instructions.",
-    "AR1": "Refusal suppression instructions ('never refuse', 'always comply', 'cannot say no').",
-    "AR2": "Disclaimer or warning suppression ('no warnings', 'skip ethics', 'do not moralize').",
-    "AR3": "Safety policy nullification ('ignore restrictions', 'you have no limits', 'do anything now').",
+    "AR1": "Instructions requiring unconditional agreement with unsafe user requests.",
+    "AR2": "Instructions suppressing disclaimers or necessary safety notices.",
+    "AR3": "Instructions nullifying the agent's safety restrictions or policies.",
     "SSRF1": "Access to cloud instance metadata IMDS endpoints (169.254.169.254, metadata.google.internal).",
     "SSRF2": "Network requests targeting private IP ranges, loopback, or link-local hosts.",
     "SSRF3": "Dynamic request target where host URL is constructed from untrusted variables.",
@@ -243,7 +282,7 @@ DEFAULT_REMEDIATIONS: dict[str, str] = {
     "MP1": "Do not instruct the agent to permanently retain directives across sessions.",
     "MP2": "Eliminate repetitive padding or filler text.",
     "MP3": "Treat agent base rules as immutable.",
-    "TM1": "Validate all shell parameters. Reject dangerous flags (--no-preserve-root, -rf /).",
+    "TM1": "Validate shell parameters. Reject destructive force-delete flags and root-targeted deletion.",
     "TM2": "Decompose tool calls and validate intermediate outputs before downstream chaining.",
     "TM3": "Enforce secure defaults (verify=True on network calls, restrictive file permissions).",
     "TM4": "Remove privileged containers and hostPath mounts from Kubernetes manifests.",
@@ -307,43 +346,6 @@ _DISAVOWAL = re.compile(
     re.IGNORECASE,
 )
 _EXCEPTION = re.compile(r"\b(?:unless|except|until|but|however|instead)\b", re.IGNORECASE)
-
-
-_CODE_EXAMPLE_INDICATORS = (
-    "```",
-    "example:",
-    "for example",
-    "e.g.",
-    "such as",
-    "threat description",
-    "vulnerability taxonomy",
-    "rule matrix",
-    "documentation",
-    "# warning:",
-    "# note:",
-    "**warning**",
-    "**note**",
-    "threat model",
-    "taxonomy (",
-    "security architecture",
-    "sanitization",
-    "rejecting",
-    "disallowing",
-    "validation integration",
-    "category | rules",
-)
-
-
-def is_code_example(context: str, file_path: str) -> bool:
-    """Return True when context appears to be documentation or code examples in non-SKILL.md files."""
-    if file_path.replace("\\", "/").lower().endswith("skill.md"):
-        return False
-    ctx_lower = context.lower()
-    if any(ind in ctx_lower for ind in _CODE_EXAMPLE_INDICATORS):
-        return True
-    if "|" in context and any(k in ctx_lower for k in ("rules", "severity", "category", "threat")):
-        return True
-    return False
 
 
 def is_directly_prohibited(content: str, start: int, end: int) -> bool:
@@ -518,11 +520,16 @@ class SkillASTVisitor(ast.NodeVisitor):
                         )
                     )
                 elif module_name in ("yaml", "ruamel") and attr_name in ("load", "unsafe_load"):
-                    has_safe_loader = any(
-                        kw.arg == "Loader" and getattr(kw.value, "id", "") in ("SafeLoader", "CSafeLoader")
-                        for kw in node.keywords
+                    loader = next((kw.value for kw in node.keywords if kw.arg == "Loader"), None)
+                    if loader is None and len(node.args) >= 2:
+                        loader = node.args[1]
+                    loader_name = (
+                        loader.id if isinstance(loader, ast.Name)
+                        else loader.attr if isinstance(loader, ast.Attribute)
+                        else None
                     )
-                    if not has_safe_loader and (attr_name == "unsafe_load" or len(node.args) == 1):
+                    has_safe_loader = loader_name in ("SafeLoader", "CSafeLoader")
+                    if attr_name == "unsafe_load" or not has_safe_loader:
                         self.findings.append(
                             Finding(
                                 rule_id="AST10",
@@ -660,7 +667,7 @@ def is_dependency_manifest(file_path: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# Static Regex Signatures Across 17 Categories
+# Implemented static signatures from the 18-category taxonomy
 # ---------------------------------------------------------------------------
 
 PATTERNS_DATABASE: list[tuple[str, str, Severity, PatternCategory, list[tuple[str, float]]]] = [
@@ -690,7 +697,7 @@ PATTERNS_DATABASE: list[tuple[str, str, Severity, PatternCategory, list[tuple[st
         Severity.HIGH,
         PatternCategory.PROMPT_INJECTION,
         [
-            (r"<!--(?:(?!-->).)*?(?:system|prompt|instruction|transmit|eval|exec|POST|GET)(?:(?!-->).)*?-->", 0.85),
+            (r"<!--(?:(?!-->).)*?(?:system\s+(?:prompt|instruction)|ignore\s+instructions|transmit|eval\s*\(|exec\s*\(|POST\s+https?://|GET\s+https?://)(?:(?!-->).)*?-->", 0.85),
             (r"data:text/plain;base64,[A-Za-z0-9+/=]{50,}", 0.75),
             (BIDI_CONTROL_PATTERN, 0.9),
         ],
@@ -907,7 +914,7 @@ PATTERNS_DATABASE: list[tuple[str, str, Severity, PatternCategory, list[tuple[st
         PatternCategory.TOOL_MISUSE,
         [
             (r"\brm\s+-(?:r[fF]|fr)\s+/(?:\s|$|\*)", 0.95),
-            (r"--no-preserve-root", 0.95),
+            (r"--no-" r"preserve-root", 0.95),
             (r":\(\)\s*\{\s*:\s*\|\s*:\s*&\s*\}\s*;\s*:", 0.95),
             (r"\bmkfs(?:\.[a-z0-9]+)?\s+/dev/sd[a-z]", 0.95),
             (r"\bdd\s+if=/dev/(?:zero|urandom)\s+of=/dev/sd[a-z]", 0.95),
@@ -1161,7 +1168,7 @@ def check_language_deserialization(content: str, file_rel: str) -> list[Finding]
                 )
             )
 
-    elif ext in (".js", ".mjs", ".cjs", ".ts"):
+    elif ext in (".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx"):
         for m in re.finditer(r"""require\(\s*['"](?:node-serialize|serialize-to-js)['"]\s*\)""", content):
             line = content[: m.start()].count("\n") + 1
             findings.append(
@@ -1192,7 +1199,7 @@ def scan_text(
     is_script: bool = False,
     skill_manifest: dict | None = None,
 ) -> list[Finding]:
-    """Scan arbitrary text content across all 17 pattern categories."""
+    """Scan arbitrary text content across the implemented pattern categories."""
     findings: list[Finding] = []
     lines = content.splitlines()
 
@@ -1243,16 +1250,12 @@ def scan_text(
         for pat_str, confidence in pattern_list:
             for match in re.finditer(pat_str, content, re.IGNORECASE | re.MULTILINE):
                 # Check prohibition context (defense vs attack)
-                if is_directly_prohibited(content, match.start(), match.end()):
+                if not is_script and is_directly_prohibited(content, match.start(), match.end()):
                     continue
 
                 line_num = content[: match.start()].count("\n") + 1
                 matched_snippet = match.group(0)[:120]
                 context = get_line_context(line_num)
-
-                # If non-SKILL.md reference file has illustrative code examples/docs, skip
-                if is_code_example(context, file_rel):
-                    continue
 
                 findings.append(
                     Finding(
@@ -1271,7 +1274,7 @@ def scan_text(
                 )
 
     # 6. If Python script, perform deep AST analysis
-    if file_rel.endswith(".py"):
+    if file_rel.endswith(".py") or (is_script and re.match(r"^#![^\n]*\bpython(?:[0-9.]*)?\b", content)):
         findings.extend(analyze_python_ast(content, file_rel))
 
     # 7. MCP Least Privilege checks (if inspecting SKILL.md frontmatter)
@@ -1287,7 +1290,7 @@ def scan_text(
                         category=PatternCategory.MCP_LEAST_PRIVILEGE,
                         file=file_rel,
                         line=1,
-                        matched_text="allowed-tools: *",
+                        matched_text="wildcard tool permission",
                         confidence=0.95,
                         explanation=DEFAULT_EXPLANATIONS["LP2"],
                         remediation=DEFAULT_REMEDIATIONS["LP2"],
@@ -1302,7 +1305,7 @@ def scan_text(
                     category=PatternCategory.MCP_LEAST_PRIVILEGE,
                     file=file_rel,
                     line=1,
-                    matched_text="allowed-tools: ['*']",
+                    matched_text="wildcard tool permission list",
                     confidence=0.95,
                     explanation=DEFAULT_EXPLANATIONS["LP2"],
                     remediation=DEFAULT_REMEDIATIONS["LP2"],
@@ -1379,7 +1382,7 @@ def compute_risk_score(
     if final_score <= 20:
         band = "LOW"
         rec = "APPROVE"
-    elif final_score <= 50:
+    elif final_score < _RISK_THRESHOLD:
         band = "MEDIUM"
         rec = "CAUTION"
     elif final_score <= 75:
@@ -1426,56 +1429,71 @@ def scan_skill_directory(skill_dir: Path) -> ScanReport:
     files_analyzed = 0
     script_files: set[str] = set()
 
-    # Discover files
+    # Analyze the same distribution set as package_skill.py. Uninspectable
+    # files are findings, not silent successes.
     for p in skill_dir.rglob("*"):
-        if p.is_dir():
+        rel = p.relative_to(skill_dir)
+        if should_exclude_skill_file(rel):
             continue
-        # Exclude git, byte caches, test files, and scanner script itself
-        if any(part in (".git", "__pycache__", ".pytest_cache", "node_modules", "tests", "evals") for part in p.parts):
+        if p.is_symlink():
+            all_findings.append(Finding(
+                rule_id="SC9", message="Symbolic link cannot be safely packaged",
+                severity=Severity.HIGH, category=PatternCategory.SUPPLY_CHAIN,
+                file=str(rel), line=1, matched_text=str(rel),
+            ))
             continue
-        if p.name.startswith("test_") or p.name.endswith("_test.py") or p.name in ("conftest.py", "scan_skill_security.py"):
+        if not p.is_file():
             continue
 
-        rel_path = str(p.relative_to(skill_dir))
+        rel_path = str(rel)
         ext = p.suffix.lower()
+        try:
+            content_bytes = p.read_bytes()
+        except OSError as exc:
+            raise RuntimeError(f"cannot inspect {rel_path}") from exc
+        files_analyzed += 1
 
-        # Check for shipped bytecode (SC8)
-        if ext in (".pyc", ".pyo"):
+        # Safe media signatures are checked; unknown binary files must not
+        # reach an archive without inspection (including disguised executables).
+        accepted_media = SAFE_BINARY_SIGNATURES.get(ext, ())
+        if accepted_media and any(content_bytes.startswith(magic) for magic in accepted_media):
+            continue
+        try:
+            text_content = content_bytes.decode("utf-8")
+            is_binary = "\x00" in text_content
+        except UnicodeDecodeError:
+            text_content = ""
+            is_binary = True
+
+        if ext == ".pyo" or is_binary:
             all_findings.append(
                 Finding(
-                    rule_id="SC8",
-                    message=f"Precompiled Python bytecode shipped in skill: {rel_path}",
+                    rule_id="SC8" if ext == ".pyo" else "SC9",
+                    message=f"Unreviewable executable or binary asset: {rel_path}",
                     severity=Severity.HIGH,
                     category=PatternCategory.SUPPLY_CHAIN,
                     file=rel_path,
                     line=1,
                     matched_text=rel_path,
                     confidence=1.0,
-                    explanation=DEFAULT_EXPLANATIONS["SC8"],
-                    remediation=DEFAULT_REMEDIATIONS["SC8"],
+                    explanation=DEFAULT_EXPLANATIONS["SC8" if ext == ".pyo" else "SC9"],
+                    remediation=DEFAULT_REMEDIATIONS["SC8" if ext == ".pyo" else "SC9"],
                 )
             )
             continue
 
-        # Target reviewable text/code files
-        if ext in (".md", ".txt", ".py", ".sh", ".bash", ".json", ".yaml", ".yml", ".toml", ".js", ".ts", ".rb", ".php") or is_dependency_manifest(rel_path):
-            try:
-                text_content = p.read_text(encoding="utf-8", errors="replace")
-            except Exception:
-                continue
-
-            files_analyzed += 1
-            is_script = ext in (".py", ".sh", ".bash", ".js", ".ts", ".rb", ".php")
-            if is_script:
-                script_files.add(rel_path)
-
-            file_findings = scan_text(
-                content=text_content,
-                file_rel=rel_path,
-                is_script=is_script,
-                skill_manifest=manifest if rel_path == "SKILL.md" else None,
-            )
-            all_findings.extend(file_findings)
+        is_script = (
+            ext in SCRIPT_EXTENSIONS or text_content.startswith("#!")
+            or bool(p.stat().st_mode & (stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH))
+        )
+        if is_script:
+            script_files.add(rel_path)
+        all_findings.extend(scan_text(
+            content=text_content,
+            file_rel=rel_path,
+            is_script=is_script,
+            skill_manifest=manifest if rel_path == "SKILL.md" else None,
+        ))
 
     # Compute risk score
     has_scripts = len(script_files) > 0
@@ -1485,7 +1503,8 @@ def scan_skill_directory(skill_dir: Path) -> ScanReport:
         script_files=script_files,
     )
 
-    passed = recommendation in ("APPROVE", "CAUTION") and risk_score < _RISK_THRESHOLD
+    high_risk = any(f.severity in (Severity.CRITICAL, Severity.HIGH) for f in all_findings)
+    passed = recommendation in ("APPROVE", "CAUTION") and risk_score < _RISK_THRESHOLD and not high_risk
 
     return ScanReport(
         target_path=str(skill_dir),
@@ -1552,7 +1571,7 @@ def format_markdown(report: ScanReport) -> str:
     md.append(f"| **Findings Count** | `{len(report.findings)}` | Total vulnerability matches |\n")
 
     if not report.findings:
-        md.append("> [!NOTE]\n> Zero security risks or policy violations were detected across all 17 threat categories.")
+        md.append("> [!NOTE]\n> No findings from the implemented checks. This is not a guarantee of safety across the full taxonomy.")
         return "\n".join(md)
 
     md.append("## Detailed Findings\n")
@@ -1622,7 +1641,7 @@ def format_sarif(report: ScanReport) -> str:
                     "driver": {
                         "name": "omni-skill-security-scanner",
                         "version": "2.0.0",
-                        "informationUri": "https://github.com/imMamdouhaboammar/get-fable",
+                        "informationUri": "https://github.com/imMamdouhaboammar/omni-skill",
                         "rules": list(rules_dict.values()),
                     }
                 },
@@ -1669,8 +1688,8 @@ def main() -> int:
 
     if target.is_file():
         content = target.read_text(encoding="utf-8", errors="replace")
-        findings = scan_text(content, target.name, is_script=target.suffix in (".py", ".sh", ".bash", ".js"))
-        has_scripts = target.suffix in (".py", ".sh", ".bash", ".js")
+        has_scripts = target.suffix.lower() in SCRIPT_EXTENSIONS or content.startswith("#!")
+        findings = scan_text(content, target.name, is_script=has_scripts)
         score, band, rec = compute_risk_score(findings, has_scripts, {target.name})
         report = ScanReport(
             target_path=str(target),
@@ -1680,7 +1699,8 @@ def main() -> int:
             recommendation=rec,
             findings=findings,
             files_analyzed=1,
-            passed=rec in ("APPROVE", "CAUTION") and score < _RISK_THRESHOLD,
+            passed=(rec in ("APPROVE", "CAUTION") and score < _RISK_THRESHOLD
+                    and not any(f.severity in (Severity.CRITICAL, Severity.HIGH) for f in findings)),
         )
     else:
         report = scan_skill_directory(target)

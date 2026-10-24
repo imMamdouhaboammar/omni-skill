@@ -13,29 +13,31 @@ OmniSkill enforces a **deterministic, fail-closed security gate** before packagi
 
 ---
 
-## 1. Threat Model & Taxonomy (17 Categories)
+## 1. Threat Model & Taxonomy (18 Categories)
 
-OmniSkill inspects skills across 17 distinct threat categories containing 70+ vulnerability rules:
+The threat model names 18 categories and 70+ rule IDs. **Not every taxonomy rule is implemented.** The matrix below describes intended coverage, not a claim that every listed rule has a working detector. Current scanners use regular expressions, file/dependency checks, and a Python AST visitor.
 
-| Category | Rules | Threat Description | Severity |
+| Category | Taxonomy IDs | Threat Description | Severity |
 |---|---|---|---|
 | **Prompt Injection** | `P1`–`P5`, `P9` | Instruction overrides, invisible/steganographic text, exfiltration commands, harmful payloads, whitespace padding. | HIGH / CRITICAL |
 | **System Prompt Leakage** | `P6`–`P8` | Direct prompt extraction, indirect summarization/rephrasing extraction, exfiltration via tool calls. | MEDIUM / HIGH |
 | **Data Exfiltration** | `E1`–`E5` | Unauthorized transmission to external URLs, environment variable harvesting, credential search, cloud storage dumping. | HIGH / CRITICAL |
 | **Privilege Escalation** | `PE1`–`PE3` | Wildcard permissions (`*`), `sudo`/`su`/`doas`/`pkexec` invocation, reading SSH keys/AWS credentials/token files. | HIGH / CRITICAL |
-| **Supply Chain** | `SC1`–`SC3`, `SC7`–`SC10` | Unpinned dependencies, remote script piping (`curl \| sh`), obfuscated payloads (base64/hex), precompiled `.pyc` bytecode, concealed executables. | LOW to CRITICAL |
+| **Supply Chain** | `SC1`–`SC3`, `SC7`–`SC10` | Unpinned dependencies, piping remote downloads into interpreters, obfuscated payloads (base64/hex), precompiled `.pyc` bytecode, concealed executables. | LOW to CRITICAL |
 | **Excessive Agency** | `EA1`–`EA5` | Unrestricted tool access, autonomous destructive actions without human confirmation, scope creep, undisclosed external model/billing override. | MEDIUM / HIGH |
 | **Output Handling** | `OH1`–`OH3` | Unvalidated model output injected into shell/SQL/HTML, cross-context leaks, unbounded output exhaustion. | MEDIUM / HIGH |
 | **Memory Poisoning** | `MP1`–`MP3` | Persistent directives across sessions, context window stuffing/displacement, memory corruption. | MEDIUM / HIGH |
-| **Tool Misuse** | `TM1`–`TM4` | Destructive command flags (`rm -rf /`, `mkfs`, fork bomb), chaining abuse, unsafe defaults (`verify=False`), privileged Kubernetes workloads (`hostPath`). | MEDIUM / CRITICAL |
+| **Tool Misuse** | `TM1`–`TM4` | Destructive command flags, chaining abuse, disabled TLS verification, privileged Kubernetes workloads (`hostPath`). | MEDIUM / CRITICAL |
 | **Rogue Agent** | `RA1`–`RA2` | Self-modification of code or `SKILL.md` at runtime, session persistence hooks (`crontab`, launch agents, shell profiles). | HIGH |
 | **Trigger Abuse** | `TR1`–`TR3` | Overly broad trigger patterns, shadowing built-in commands, generic keyword baiting. | LOW / MEDIUM |
 | **Agent Snooping** | `AS1`–`AS3` | Reading agent config directories (`.claude/`, `.codex/`, `.gemini/`), MCP configs (`mcp.json`), enumerating peer skills. | MEDIUM / HIGH |
-| **Anti-Refusal / Jailbreak** | `AR1`–`AR3` | Refusal suppression ("never refuse", "always comply"), warning/disclaimer suppression ("no warnings", "skip ethics"), safety policy nullification. | MEDIUM / CRITICAL |
+| **Anti-Refusal / Jailbreak** | `AR1`–`AR3` | Unconditional agreement demands, suppression of safety notices, safety policy nullification. | MEDIUM / CRITICAL |
 | **Server-Side Request Forgery** | `SSRF1`–`SSRF3` | Cloud instance metadata IMDS endpoints (`169.254.169.254`, `metadata.google.internal`), private/loopback network calls, untrusted dynamic request targets. | MEDIUM / CRITICAL |
 | **Insecure Deserialization** | `DS1`–`DS4` | Insecure deserialization in non-Python scripts (PHP `unserialize`, Ruby `Marshal.load`, JavaScript `node-serialize`). | HIGH |
 | **Behavioral AST** | `AST1`–`AST10` | Python AST inspection detecting direct `exec`, `eval`, `compile`, dynamic `__import__`, `subprocess(shell=True)`, `os.system`, reflective `getattr(os, "system")`, insecure `pickle.loads`. | HIGH / CRITICAL |
 | **MCP Least Privilege** | `LP1`–`LP4`, `TP1`–`TP4` | Wildcard permissions, underdeclared tool capabilities, hidden metadata instructions, Unicode deception/homoglyphs, parameter description injection. | MEDIUM / HIGH |
+
+The following named rule IDs are **planned, not detected**: `P4`, `P8`, `E4`, `E5`, `SC7`, `SC9`, `SC10`, `EA3`–`EA5`, `OH2`, `OH3`, `MP3`, `TM2`, `TR1`–`TR3`, `SSRF3`, `LP1`, `LP3`, `LP4`, `TP1`–`TP4`, `AST7`, `AST8`. The other rule IDs are implemented as signatures or specialized checks; detections remain heuristic and require review. **Absence of a finding does not establish safety.**
 
 ---
 
@@ -66,7 +68,7 @@ OmniSkill analyzes Python script files using Python's native `ast` module:
 Source Code (.py) ──► ast.parse() ──► SkillASTVisitor
                                           ├── Direct Calls: exec(), eval(), compile(), __import__()
                                           ├── OS/Subprocess: os.system(), os.popen(), subprocess(shell=True)
-                                          ├── Reflection: getattr(os, "system"), __builtins__["exec"]
+                                          ├── Reflection: getattr(os, "system")
                                           └── Deserialization: pickle.loads(), yaml.unsafe_load()
 ```
 
@@ -107,8 +109,8 @@ Findings located in executable scripts (`.py`, `.sh`, `.js`, etc.) receive a **1
 - Any confirmed `CRITICAL` finding (e.g. `TM1`, `SC2`, `AR3`, `SSRF1`) enforces an automatic score floor of **$\ge 51$**.
 - Bands & Recommendations:
   - **0–20 (`LOW`)**: `APPROVE` (Installable)
-  - **21–50 (`MEDIUM`)**: `CAUTION` (Requires operator review of findings)
-  - **51–75 (`HIGH`)**: `REJECT` (Dangerous/unvetted)
+  - **21–49 (`MEDIUM`)**: `CAUTION` (Requires operator review of findings)
+  - **50–75 (`HIGH`)**: `REJECT` (Dangerous/unvetted)
   - **76–100 (`CRITICAL`)**: `REJECT` (Malicious or severe risk)
 
 ---
@@ -136,6 +138,6 @@ python3 scripts/scan_skill_security.py <path/to/skill> --strict
 1. **`validate_portability.py`**:
    Automatically runs `scan_skill_security.py` as **Layer 0: Security & Trust Gate**. Any `CRITICAL` or `HIGH` finding causes validation to fail.
 2. **`package_skill.py`**:
-   Enforces pre-flight security evaluation. If `recommendation == 'REJECT'` or `risk_score >= 50`, archive generation aborts fail-closed.
+   Enforces pre-flight security evaluation. A rejected report, a score of 50 or higher, or an unreviewed HIGH/CRITICAL finding aborts archive generation.
 3. **`quick_validate.py`**:
-   Enforces frontmatter sanitization, rejecting zero-width steganography and wildcard `allowed-tools: *` permissions.
+   Enforces frontmatter sanitization, rejecting zero-width steganography and wildcard tool permissions.

@@ -241,7 +241,13 @@ For static compilation:
 python3 scripts/compile_skill_spec.py --spec <spec.json> --out <output-dir>
 ```
 
-For structural and portability checks:
+Run the Layer 0 security gate before declaring CREATE validation complete:
+
+```bash
+python3 scripts/scan_skill_security.py <skill-dir>
+```
+
+For structural and portability checks (which also enforce Layer 0):
 
 ```bash
 python3 scripts/validate_portability.py <skill-dir> --targets <comma-separated-hosts>
@@ -324,7 +330,7 @@ python3 scripts/scan_skill_security.py <skill-dir> [--format terminal|json|markd
 
 Checks:
 
-- 17 vulnerability categories across 70+ rules (Prompt injection P1-P9, System prompt leakage P6-P8, Data exfiltration E1-E5, Privilege escalation PE1-PE3, Supply chain SC1-SC10, Excessive agency EA1-EA5, Output handling OH1-OH3, Memory poisoning MP1-MP3, Tool misuse TM1-TM4, Rogue agent RA1-RA2, Trigger abuse TR1-TR3, Agent snooping AS1-AS3, Anti-refusal AR1-AR3, SSRF SSRF1-SSRF3, Insecure deserialization DS1-DS4, Behavioral AST AST1-AST10, MCP least privilege LP1-LP4, MCP tool poisoning TP1-TP4)
+- 18 threat categories in the taxonomy; detection coverage varies by rule (see `references/skill-security.md`)
 - Defensive prohibition grammar: exemptions for verified defensive rules and negative constraints
 - Python AST inspection: unvetted `eval`, `exec`, `os.system`, `subprocess(shell=True)`, `getattr(os, "system")`, and insecure `pickle.loads`
 - Whitespace padding steganography and Unicode zero-width characters
@@ -405,8 +411,8 @@ Use for third-party skills before installation or reuse.
    - Dependency manifests (`requirements.txt`, `pyproject.toml`, `package.json`)
 4. **Classify Final Verdict**:
    - **`APPROVE`**: Risk score <= 20, zero HIGH or CRITICAL findings, source matches declared purpose.
-   - **`CAUTION`**: Risk score 21-50, findings are documented, justified, and controllable by user.
-   - **`REJECT`**: Risk score > 50, unexplained HIGH/CRITICAL findings, prompt injection, credential access, rogue agent persistence, or unvetted code execution sinks.
+   - **`CAUTION`**: Risk score 21-49, findings are documented, justified, and controllable by user.
+   - **`REJECT`**: Risk score >= 50, unexplained HIGH/CRITICAL findings, prompt injection, credential access, rogue agent persistence, or unvetted code execution sinks.
 
 Do not treat repository popularity as skill quality or security evidence.
 
@@ -488,7 +494,7 @@ Choose the package from the target host.
 
 For Agent Skills-compatible hosts, package the skill folder only after validation and security clearance.
 
-Existing `package_skill.py` enforces fail-closed pre-flight security evaluation (`scan_skill_security.py`) and creates the `.skill` archive only if the skill is verified `APPROVE` or `CAUTION`. Inspect the extracted archive before claiming success.
+Existing `package_skill.py` enforces fail-closed pre-flight security evaluation (`scan_skill_security.py`) and creates the `.skill` archive only if the skill has a risk score below 50 and is verified `APPROVE` or `CAUTION`. Inspect the extracted archive before claiming success.
 
 ### ChatGPT/Codex Plugin
 
