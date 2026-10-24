@@ -93,6 +93,9 @@ Handles edge cases; pre-flight checks; scripts error-handle; no secrets/env/keys
 - `DET-ROBUST-NO-SECRETS` — critical — "Is SKILL.md free of secrets/env/keys (API keys, exported env vars)?"
 - `DET-ROBUST-NO-USERPATHS` — non-critical — "Is SKILL.md free of user-absolute paths (/home/<user>, /Users/<user>)?"
 - `DET-ROBUST-SCRIPTS-NONEMPTY` — non-critical — "Are all bundled scripts non-empty?"
+- `DET-ROBUST-SECURITY-CLEARANCE` — critical — "Does the skill pass the SkillSpector-grade security scan with risk score < 50 and zero unexplained HIGH/CRITICAL findings?"
+- `DET-ROBUST-NO-AGENT-SNOOPING` — critical — "Is the skill free of agent configuration directory snooping (.claude/, .codex/, .gemini/) and cross-skill inspection?"
+- `DET-ROBUST-NO-DANGEROUS-AST` — critical — "Are bundled Python scripts free of unvetted eval(), exec(), os.system(), or reflective execution sinks?"
 
 ### LLM (source: llm, answered by agents/bineval.md)
 

@@ -92,6 +92,21 @@ def validate_skill(skill_path):
                 f"Description is too long ({len(description)} characters). Maximum is 1024 characters.",
             )
 
+    # Security: check for concealed zero-width characters (TP2 / P2)
+    zero_width_chars = frozenset("\u200B\u200C\u200D\u2060\uFEFF")
+    if any(ch in zero_width_chars for ch in name):
+        return False, "Security violation: zero-width steganography detected in name"
+    if any(ch in zero_width_chars for ch in description):
+        return False, "Security violation: zero-width steganography detected in description"
+
+    # Security: validate allowed-tools least-privilege (LP2)
+    allowed_tools = frontmatter.get("allowed-tools")
+    if allowed_tools is not None:
+        if isinstance(allowed_tools, str) and allowed_tools.strip() in ("*", "all"):
+            return False, "Security violation: wildcard '*' in allowed-tools is prohibited"
+        elif isinstance(allowed_tools, list) and any(t in ("*", "all") for t in allowed_tools):
+            return False, "Security violation: wildcard '*' in allowed-tools list is prohibited"
+
     # Validate compatibility field if present (optional)
     compatibility = frontmatter.get("compatibility", "")
     if compatibility:

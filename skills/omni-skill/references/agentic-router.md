@@ -39,7 +39,8 @@ flowchart TD
 |---|---|---|---|
 | **`CREATE`** (New skill from prompt/script) | `skill-architect` | `host-workspace-operator`, `skill-evaluator`, `skill-conductor` | `references/skill-spec.md`, `references/sop-practices.md` |
 | **`IMPROVE`** (Fix bugs, undertriggering, failure) | `skill-conductor` | `host-workspace-operator`, `skill-evaluator` | `references/pressure-testing.md`, `references/patterns.md` |
-| **`VALIDATE` / `EVAL`** (Run checks & BinEval) | `skill-evaluator` | `skill-conductor`, `sandbox-python-executor` | `references/bineval-method.md`, `references/schemas.md` |
+| **`VALIDATE` / `EVAL`** (Run checks & BinEval) | `skill-evaluator` | `skill-conductor`, `sandbox-python-executor` | `references/bineval-method.md`, `references/schemas.md`, `references/skill-security.md` |
+| **`SECURITY` / `REVIEW`** (Security audit, CVEs, SkillSpector scan) | `skill-evaluator` | `sandbox-python-executor`, `host-workspace-operator` | `references/skill-security.md`, `scripts/scan_skill_security.py` |
 | **`OPTIMIZE`** (Description tuning & train/test) | `skill-conductor` | `skill-evaluator` | `references/sop-practices.md`, `references/bineval-method.md` |
 | **`PORT`** (Cross-host adaptation) | `skill-portability-compiler` | `host-workspace-operator`, `skill-evaluator` | `references/host-profiles.md`, `references/cross-host-evaluation.md` |
 | **`PACKAGE`** (Bundle .skill / plugin) | `skill-conductor` | `sandbox-python-executor` | `references/runtime-setup.md`, `references/schemas.md` |

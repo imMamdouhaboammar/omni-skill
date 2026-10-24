@@ -116,6 +116,21 @@ DET_QUESTIONS = {
         "Are all bundled scripts non-empty?",
         "A bundled script file is empty.",
     ),
+    "DET-ROBUST-SECURITY-CLEARANCE": (
+        "Robustness", True,
+        "Does the skill pass the deterministic security clearance gate?",
+        "The security scan failed or the risk score is 50 or higher.",
+    ),
+    "DET-ROBUST-NO-AGENT-SNOOPING": (
+        "Robustness", True,
+        "Is the skill free of detected agent configuration snooping?",
+        "An AS1, AS2, or AS3 agent snooping rule matched.",
+    ),
+    "DET-ROBUST-NO-DANGEROUS-AST": (
+        "Robustness", True,
+        "Are the bundled Python scripts free of detected dangerous AST calls?",
+        "An AST1 through AST10 dangerous Python operation matched.",
+    ),
 }
 
 
@@ -387,6 +402,34 @@ def eval_skill(skill_path, json_mode=False):
     # Backfill a passing record when there are no scripts to flag (no dir / empty dir)
     if "DET-ROBUST-SCRIPTS-NONEMPTY" not in records_by_id:
         emit("DET-ROBUST-SCRIPTS-NONEMPTY", 1, "No empty scripts (or no scripts present)")
+
+    # One scan supplies the three contract questions. Scanner errors fail closed.
+    say("\n🔒 Security clearance:")
+    try:
+        from scan_skill_security import scan_skill_directory
+
+        security = scan_skill_directory(skill_path)
+        if security.passed:
+            ok(f"Security clearance: {security.recommendation} ({security.risk_score}/100)", "DET-ROBUST-SECURITY-CLEARANCE")
+        else:
+            fail(f"Security clearance: {security.recommendation} ({security.risk_score}/100)", "DET-ROBUST-SECURITY-CLEARANCE")
+
+        rule_ids = {finding.rule_id for finding in security.findings}
+        if rule_ids.intersection({"AS1", "AS2", "AS3"}):
+            fail("Agent configuration snooping detected", "DET-ROBUST-NO-AGENT-SNOOPING")
+        else:
+            ok("No agent configuration snooping detected", "DET-ROBUST-NO-AGENT-SNOOPING")
+        if any(re.fullmatch(r"AST(?:10|[1-9])", rule) for rule in rule_ids):
+            fail("Dangerous Python AST operation detected", "DET-ROBUST-NO-DANGEROUS-AST")
+        else:
+            ok("No dangerous Python AST operations detected", "DET-ROBUST-NO-DANGEROUS-AST")
+    except Exception as exc:
+        for cid in (
+            "DET-ROBUST-SECURITY-CLEARANCE",
+            "DET-ROBUST-NO-AGENT-SNOOPING",
+            "DET-ROBUST-NO-DANGEROUS-AST",
+        ):
+            fail(f"Security scan unavailable: {exc}", cid)
 
     # --- Summary ---
     say(f"\n{'='*50}")
