@@ -10108,7 +10108,7 @@ function routeCommand(prompt, options) {
 
 // src/index.ts
 var program2 = new Command2;
-program2.name("omni-skill").description("Universal Cross-Host Agent Skill Engine & Compiler").version("6.0.0");
+program2.name("omni-skill").description("Universal Cross-Host Agent Skill Engine & Compiler").version("6.0.1");
 program2.command("route <prompt>").description("Dynamic and smart agentic router: analyze prompt and generate optimal execution DAG").option("-h, --host <host>", "Target host agent (claude, antigravity, cursor, codex, windsurf)").option("-j, --json", "Output JSON execution graph").option("-e, --explain", "Explain router decision and rationale").action((prompt, options) => {
   routeCommand(prompt, options);
 });

@@ -46,7 +46,7 @@ fi
 echo -e "${CYAN}==>${NC} Installing dependencies and building CLI..."
 cd "${INSTALL_DIR}/repo"
 bun install --frozen-lockfile 2>/dev/null || bun install
-bun run --filter "@omni-skill/cli" build
+bun run --filter "@mamdouh-aboammar/omni-skill" build
 
 # Create wrapper binary in bin dir
 cat << 'WRAPPER' > "${BIN_DIR}/omni-skill"
