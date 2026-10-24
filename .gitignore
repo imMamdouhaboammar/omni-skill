@@ -3,9 +3,11 @@ node_modules/
 .pnpm-store/
 
 # Build artifacts
-dist/
 build/
 *.tsbuildinfo
+dist/*.zip
+dist/*.tar.gz
+dist/*.tgz
 
 # Python
 __pycache__/

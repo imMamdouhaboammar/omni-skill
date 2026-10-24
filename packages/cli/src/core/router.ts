@@ -546,7 +546,7 @@ export function buildExecutionDag(
         {
           id: "step-1-diagnose",
           skill: "skill-conductor",
-          mode: "REVIEW",
+          mode: "VALIDATE",
           purpose: "Isolate failure symptoms, undertriggering, and missing invariants against failure baseline",
           requiredReferences: ["references/pressure-testing.md", "references/sop-practices.md"],
           freedomLevel: "low"

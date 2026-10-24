@@ -3,6 +3,9 @@
   "version": "6.0.0",
   "private": true,
   "type": "module",
+  "bin": {
+    "omni-skill": "./packages/cli/dist/index.js"
+  },
   "workspaces": [
     "packages/*"
   ],
