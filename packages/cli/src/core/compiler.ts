@@ -82,6 +82,17 @@ export function compileOmniSkillSpec(spec: OmniSkillSpec, outputDir: string): st
     }
   }
 
+  if (spec.freedom_level !== undefined && spec.freedom_level !== null) {
+    if (
+      typeof spec.freedom_level !== "string" ||
+      !["high", "medium", "low"].includes(spec.freedom_level)
+    ) {
+      throw new (typeof spec.freedom_level !== "string" ? TypeError : Error)(
+        `Field 'freedom_level' must be one of 'high', 'medium', 'low'. Received: ${spec.freedom_level}`
+      );
+    }
+  }
+
   const refDir = join(targetDir, "references");
 
   // Preflight validation for references before creating any directories or writing files
