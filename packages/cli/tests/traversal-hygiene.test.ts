@@ -142,4 +142,68 @@ Target State
       rmSync(dir, { recursive: true });
     }
   });
+
+  it("safely handles cyclic symlink pointing to parent directory without infinite recursion", () => {
+    const dir = mkdtempSync(join(tmpdir(), "omni-test-cyclic-symlink-"));
+    const skillMd = join(dir, "SKILL.md");
+    writeFileSync(
+      skillMd,
+      `---
+name: cyclic-skill
+description: Tests cyclic symlink.
+---
+# Why This Skill Is Needed
+Target State
+`
+    );
+    const sub = join(dir, "sub");
+    mkdirSync(sub);
+    const cyclicLink = join(sub, "loop-to-parent");
+    symlinkSync(dir, cyclicLink);
+
+    try {
+      const result = validateSkillDirectory(dir);
+      expect(result.pass).toBe(false);
+      expect(result.errors).toBe(1);
+      const finding = result.findings.find((f) => f.code === "READ_FAILURE");
+      expect(finding).toBeDefined();
+      expect(finding?.message).toContain("sub/loop-to-parent");
+      expect(finding?.message).not.toContain(dir);
+    } finally {
+      rmSync(dir, { recursive: true });
+    }
+  });
+
+  it("safely handles symlink pointing to an absolute path outside the skill directory", () => {
+    const dir = mkdtempSync(join(tmpdir(), "omni-test-outside-symlink-"));
+    const skillMd = join(dir, "SKILL.md");
+    writeFileSync(
+      skillMd,
+      `---
+name: outside-symlink-skill
+description: Tests outside symlink.
+---
+# Why This Skill Is Needed
+Target State
+`
+    );
+    const outsideTarget = join(tmpdir(), "outside-secret-" + Date.now() + ".txt");
+    writeFileSync(outsideTarget, "secret outside");
+    const linkPath = join(dir, "link-to-outside");
+    symlinkSync(outsideTarget, linkPath);
+
+    try {
+      const result = validateSkillDirectory(dir);
+      expect(result.pass).toBe(false);
+      expect(result.errors).toBe(1);
+      const finding = result.findings.find((f) => f.code === "READ_FAILURE");
+      expect(finding).toBeDefined();
+      expect(finding?.message).toContain("link-to-outside");
+      expect(finding?.message).not.toContain(dir);
+      expect(finding?.message).not.toContain(outsideTarget);
+    } finally {
+      rmSync(outsideTarget, { force: true });
+      rmSync(dir, { recursive: true });
+    }
+  });
 });
