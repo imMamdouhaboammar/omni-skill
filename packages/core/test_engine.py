@@ -112,6 +112,63 @@ class TestOmniSkillEngine(unittest.TestCase):
                         compile_spec(spec, out_dir)
                     self.assertIn("job", str(ctx.exception).lower())
 
+    def test_compile_spec_instructions_validation(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir)
+            base_spec = {
+                "name": "sample-tool",
+                "description": "Valid description",
+                "job": "Valid job"
+            }
+
+            # 1. Missing or None instructions
+            for val in [None]:
+                spec = dict(base_spec)
+                spec["instructions"] = val
+                with self.subTest(inst=val):
+                    with self.assertRaises((TypeError, ValueError)) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("instructions", str(ctx.exception).lower())
+
+            # Missing key entirely
+            with self.assertRaises((TypeError, ValueError)) as ctx:
+                compile_spec(dict(base_spec), out_dir)
+            self.assertIn("instructions", str(ctx.exception).lower())
+
+            # 2. Non-list instructions
+            for val in ["Step 1", 12345, True, {"step": 1}]:
+                spec = dict(base_spec)
+                spec["instructions"] = val
+                with self.subTest(inst=val):
+                    with self.assertRaises(TypeError) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("instructions", str(ctx.exception).lower())
+
+            # 3. Empty instructions list
+            spec = dict(base_spec)
+            spec["instructions"] = []
+            with self.assertRaises(ValueError) as ctx:
+                compile_spec(spec, out_dir)
+            self.assertIn("instructions", str(ctx.exception).lower())
+
+            # 4. Non-string elements
+            for val in [[123], ["Step 1", None], ["Step 1", False], ["Step 1", {"sub": 2}]]:
+                spec = dict(base_spec)
+                spec["instructions"] = val
+                with self.subTest(inst=val):
+                    with self.assertRaises(TypeError) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("instructions", str(ctx.exception).lower())
+
+            # 5. Empty or whitespace elements
+            for val in [[""], ["Step 1", "   "], ["\t\n  \r\n"]]:
+                spec = dict(base_spec)
+                spec["instructions"] = val
+                with self.subTest(inst=val):
+                    with self.assertRaises(ValueError) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("instructions", str(ctx.exception).lower())
+
     def test_compile_spec_and_validate(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             out_dir = Path(tmpdir)
