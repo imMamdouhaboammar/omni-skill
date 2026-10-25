@@ -577,3 +577,82 @@ describe("compileOmniSkillSpec Instructions Validation", () => {
     }
   });
 });
+
+describe("compileOmniSkillSpec Target Hosts Validation", () => {
+  let rootDir: string;
+  let outDir: string;
+
+  beforeEach(() => {
+    rootDir = mkdtempSync(join(tmpdir(), "omni-compiler-hosts-"));
+    outDir = join(rootDir, "output");
+    mkdirSync(outDir, { recursive: true });
+  });
+
+  afterEach(() => {
+    if (existsSync(rootDir)) {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  it("should reject non-array target_hosts (string, number, boolean, object)", () => {
+    const badTypeSpecs = [
+      { name: "test-skill", description: "Valid desc", job: "Valid job", instructions: ["Step 1"], target_hosts: "chatgpt" },
+      { name: "test-skill", description: "Valid desc", job: "Valid job", instructions: ["Step 1"], target_hosts: 12345 },
+      { name: "test-skill", description: "Valid desc", job: "Valid job", instructions: ["Step 1"], target_hosts: true },
+      { name: "test-skill", description: "Valid desc", job: "Valid job", instructions: ["Step 1"], target_hosts: { host: "codex" } }
+    ];
+    for (const spec of badTypeSpecs) {
+      expect(() => {
+        compileOmniSkillSpec(spec as any, outDir);
+      }).toThrow(/Field 'target_hosts' must be an array of non-empty strings/);
+    }
+  });
+
+  it("should reject non-string elements in target_hosts", () => {
+    const badElementSpecs = [
+      { name: "test-skill", description: "Valid desc", job: "Valid job", instructions: ["Step 1"], target_hosts: [123] },
+      { name: "test-skill", description: "Valid desc", job: "Valid job", instructions: ["Step 1"], target_hosts: ["chatgpt", null] },
+      { name: "test-skill", description: "Valid desc", job: "Valid job", instructions: ["Step 1"], target_hosts: ["chatgpt", false] },
+      { name: "test-skill", description: "Valid desc", job: "Valid job", instructions: ["Step 1"], target_hosts: [{}] }
+    ];
+    for (const spec of badElementSpecs) {
+      expect(() => {
+        compileOmniSkillSpec(spec as any, outDir);
+      }).toThrow(/Field 'target_hosts\[\d+\]' must be a non-empty string/);
+    }
+  });
+
+  it("should reject empty or whitespace string elements in target_hosts", () => {
+    const emptyElementSpecs = [
+      { name: "test-skill", description: "Valid desc", job: "Valid job", instructions: ["Step 1"], target_hosts: [""] },
+      { name: "test-skill", description: "Valid desc", job: "Valid job", instructions: ["Step 1"], target_hosts: ["chatgpt", "   "] },
+      { name: "test-skill", description: "Valid desc", job: "Valid job", instructions: ["Step 1"], target_hosts: ["\t\n  \r\n"] }
+    ];
+    for (const spec of emptyElementSpecs) {
+      expect(() => {
+        compileOmniSkillSpec(spec as any, outDir);
+      }).toThrow(/Field 'target_hosts\[\d+\]' must be a non-empty string/);
+    }
+  });
+
+  it("should accept valid target_hosts or omitted target_hosts", () => {
+    const validSpec = {
+      name: "test-skill-1",
+      description: "Valid desc",
+      job: "Valid job",
+      instructions: ["Step 1"],
+      target_hosts: ["chatgpt", "codex"]
+    };
+    const res1 = compileOmniSkillSpec(validSpec as any, outDir);
+    expect(readFileSync(join(res1, "SKILL.md"), "utf-8")).toContain("- Target Hosts: chatgpt, codex");
+
+    const omittedSpec = {
+      name: "test-skill-2",
+      description: "Valid desc",
+      job: "Valid job",
+      instructions: ["Step 1"]
+    };
+    const res2 = compileOmniSkillSpec(omittedSpec as any, outDir);
+    expect(readFileSync(join(res2, "SKILL.md"), "utf-8")).toContain("- Target Hosts: agent-skills, chatgpt, codex, claude-code");
+  });
+});
