@@ -741,6 +741,20 @@ class TestOmniSkillEngine(unittest.TestCase):
             self.assertFalse((Path(tmpdir) / "escaped-ref.md").exists())
             self.assertFalse((Path(tmpdir).parent / "escaped-ref.md").exists())
 
+            # Invalid spec contract via CLI (e.g. missing instructions)
+            invalid_contract_file = Path(tmpdir) / "invalid_contract.json"
+            invalid_contract_file.write_text(json.dumps({
+                "name": "invalid-contract-tool",
+                "description": "Tool missing instructions",
+                "job": "Run tests"
+            }), encoding="utf-8")
+            target_out = Path(tmpdir) / "contract_out"
+            target_out.mkdir()
+            proc_contract = subprocess.run([sys.executable, str(CORE_DIR / "compile_spec.py"), str(invalid_contract_file), str(target_out)], capture_output=True, text=True)
+            self.assertEqual(proc_contract.returncode, 1)
+            self.assertIn("Field 'instructions' must be a non-empty array", proc_contract.stderr)
+            self.assertEqual(len(list(target_out.iterdir())), 0)
+
     def test_eval_engine_cli_end_to_end(self):
         """Test eval_engine.py CLI interface with valid and error states."""
         # Help flag
