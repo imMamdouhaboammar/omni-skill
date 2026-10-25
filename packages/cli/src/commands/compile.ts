@@ -20,6 +20,12 @@ export function compileSkillCommand(specPathArg: string, options: { out?: string
   }
 
   const outDir = options.out ? resolve(process.cwd(), options.out) : process.cwd();
-  const compiledPath = compileOmniSkillSpec(spec, outDir);
+  let compiledPath: string;
+  try {
+    compiledPath = compileOmniSkillSpec(spec, outDir);
+  } catch (err: any) {
+    console.log(pc.red(`✖ Failed to compile skill: ${err.message}`));
+    process.exit(1);
+  }
   console.log(pc.green(`✔ Compiled OmniSkillSpec to: `) + pc.bold(compiledPath));
 }
