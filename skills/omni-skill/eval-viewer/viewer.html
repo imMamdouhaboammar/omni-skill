@@ -281,9 +281,22 @@
         align-items: center;
         cursor: pointer;
         user-select: none;
+        background: none;
+        border: none;
+        padding: 0;
+        margin: 0;
+        font: inherit;
+        color: inherit;
+        text-align: left;
+        width: 100%;
       }
       .grades-toggle:hover {
         color: var(--accent);
+      }
+      .grades-toggle:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+        border-radius: 4px;
       }
       .grades-toggle .arrow {
         margin-right: 0.5rem;
@@ -653,10 +666,17 @@
           <!-- Previous Output (collapsible) -->
           <div class="section" id="prev-outputs-section" style="display: none">
             <div class="section-header">
-              <div class="grades-toggle" onclick="togglePrevOutputs()">
+              <button
+                type="button"
+                class="grades-toggle"
+                id="prev-outputs-toggle-btn"
+                aria-expanded="false"
+                aria-controls="prev-outputs-content"
+                onclick="togglePrevOutputs()"
+              >
                 <span class="arrow" id="prev-outputs-arrow">&#9654;</span>
                 Previous Output
-              </div>
+              </button>
             </div>
             <div class="grades-content" id="prev-outputs-content"></div>
           </div>
@@ -664,10 +684,17 @@
           <!-- Grades (collapsible) -->
           <div class="section" id="grades-section" style="display: none">
             <div class="section-header">
-              <div class="grades-toggle" onclick="toggleGrades()">
+              <button
+                type="button"
+                class="grades-toggle"
+                id="grades-toggle-btn"
+                aria-expanded="false"
+                aria-controls="grades-content"
+                onclick="toggleGrades()"
+              >
                 <span class="arrow" id="grades-arrow">&#9654;</span>
                 Formal Grades
-              </div>
+              </button>
             </div>
             <div class="grades-content" id="grades-content"></div>
           </div>
@@ -971,6 +998,10 @@
         // Reset to collapsed
         content.classList.remove("open");
         document.getElementById("grades-arrow").classList.remove("open");
+        const gradesBtn = document.getElementById("grades-toggle-btn");
+        if (gradesBtn) {
+          gradesBtn.setAttribute("aria-expanded", "false");
+        }
 
         const summary = grading.summary || {};
         const expectations = grading.expectations || [];
@@ -1035,8 +1066,12 @@
       function toggleGrades() {
         const content = document.getElementById("grades-content");
         const arrow = document.getElementById("grades-arrow");
-        content.classList.toggle("open");
-        arrow.classList.toggle("open");
+        const btn = document.getElementById("grades-toggle-btn");
+        const isOpen = content.classList.toggle("open");
+        arrow.classList.toggle("open", isOpen);
+        if (btn) {
+          btn.setAttribute("aria-expanded", String(isOpen));
+        }
       }
 
       // ---- Previous outputs (collapsible) ----
@@ -1054,6 +1089,10 @@
         // Reset to collapsed
         content.classList.remove("open");
         document.getElementById("prev-outputs-arrow").classList.remove("open");
+        const prevBtn = document.getElementById("prev-outputs-toggle-btn");
+        if (prevBtn) {
+          prevBtn.setAttribute("aria-expanded", "false");
+        }
 
         // Render the files into the content area
         content.innerHTML = "";
@@ -1114,8 +1153,12 @@
       function togglePrevOutputs() {
         const content = document.getElementById("prev-outputs-content");
         const arrow = document.getElementById("prev-outputs-arrow");
-        content.classList.toggle("open");
-        arrow.classList.toggle("open");
+        const btn = document.getElementById("prev-outputs-toggle-btn");
+        const isOpen = content.classList.toggle("open");
+        arrow.classList.toggle("open", isOpen);
+        if (btn) {
+          btn.setAttribute("aria-expanded", String(isOpen));
+        }
       }
 
       // ---- Feedback (saved to server -> feedback.json) ----
