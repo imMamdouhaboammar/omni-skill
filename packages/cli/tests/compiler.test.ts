@@ -675,6 +675,18 @@ describe("compileOmniSkillSpec Target Hosts Validation", () => {
     const res = compileOmniSkillSpec(emptyArraySpec as any, outDir);
     expect(readFileSync(join(res, "SKILL.md"), "utf-8")).toContain("- Target Hosts: agent-skills, chatgpt, codex, claude-code");
   });
+
+  it("should accept explicit null for target_hosts and fall back to default", () => {
+    const nullSpec = {
+      name: "test-skill-null-hosts",
+      description: "Valid desc",
+      job: "Valid job",
+      instructions: ["Step 1"],
+      target_hosts: null
+    };
+    const res = compileOmniSkillSpec(nullSpec as any, outDir);
+    expect(readFileSync(join(res, "SKILL.md"), "utf-8")).toContain("- Target Hosts: agent-skills, chatgpt, codex, claude-code");
+  });
 });
 
 describe("compileOmniSkillSpec Freedom Level Validation", () => {
