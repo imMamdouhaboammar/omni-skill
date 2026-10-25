@@ -20,6 +20,506 @@ from eval_engine import run_bineval, split_held_out
 CORE_DIR = Path(__file__).parent
 
 class TestOmniSkillEngine(unittest.TestCase):
+    def test_compile_spec_root_validation(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir)
+            invalid_roots = [None, "invalid", 12345, True, False, ["list"]]
+            for root_val in invalid_roots:
+                with self.subTest(root=root_val):
+                    with self.assertRaises(TypeError) as ctx:
+                        compile_spec(root_val, out_dir)
+                    self.assertIn("Specification data must be a dictionary", str(ctx.exception))
+
+    def test_compile_spec_description_validation(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir)
+            base_spec = {
+                "name": "sample-tool",
+                "job": "Does tasks",
+                "instructions": ["Step 1"]
+            }
+
+            # 1. Missing or None description
+            for val in [None]:
+                spec = dict(base_spec)
+                spec["description"] = val
+                with self.subTest(desc=val):
+                    with self.assertRaises((TypeError, ValueError)) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("description", str(ctx.exception).lower())
+
+            # Missing key entirely
+            with self.assertRaises((TypeError, ValueError)) as ctx:
+                compile_spec(dict(base_spec), out_dir)
+            self.assertIn("description", str(ctx.exception).lower())
+
+            # 2. Non-string description
+            for val in [12345, True, ["desc"], {"text": "desc"}]:
+                spec = dict(base_spec)
+                spec["description"] = val
+                with self.subTest(desc=val):
+                    with self.assertRaises(TypeError) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("description", str(ctx.exception).lower())
+
+            # 3. Empty or whitespace-only description
+            for val in ["", "   ", "\t\n  \r\n"]:
+                spec = dict(base_spec)
+                spec["description"] = val
+                with self.subTest(desc=val):
+                    with self.assertRaises(ValueError) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("description", str(ctx.exception).lower())
+
+    def test_compile_spec_job_validation(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir)
+            base_spec = {
+                "name": "sample-tool",
+                "description": "Valid description",
+                "instructions": ["Step 1"]
+            }
+
+            # 1. Missing or None job
+            for val in [None]:
+                spec = dict(base_spec)
+                spec["job"] = val
+                with self.subTest(job=val):
+                    with self.assertRaises((TypeError, ValueError)) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("job", str(ctx.exception).lower())
+
+            # Missing key entirely
+            with self.assertRaises((TypeError, ValueError)) as ctx:
+                compile_spec(dict(base_spec), out_dir)
+            self.assertIn("job", str(ctx.exception).lower())
+
+            # 2. Non-string job
+            for val in [12345, True, ["job"], {"text": "job"}]:
+                spec = dict(base_spec)
+                spec["job"] = val
+                with self.subTest(job=val):
+                    with self.assertRaises(TypeError) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("job", str(ctx.exception).lower())
+
+            # 3. Empty or whitespace-only job
+            for val in ["", "   ", "\r\n  \t"]:
+                spec = dict(base_spec)
+                spec["job"] = val
+                with self.subTest(job=val):
+                    with self.assertRaises(ValueError) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("job", str(ctx.exception).lower())
+
+    def test_compile_spec_instructions_validation(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir)
+            base_spec = {
+                "name": "sample-tool",
+                "description": "Valid description",
+                "job": "Valid job"
+            }
+
+            # 1. Missing or None instructions
+            for val in [None]:
+                spec = dict(base_spec)
+                spec["instructions"] = val
+                with self.subTest(inst=val):
+                    with self.assertRaises((TypeError, ValueError)) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("instructions", str(ctx.exception).lower())
+
+            # Missing key entirely
+            with self.assertRaises((TypeError, ValueError)) as ctx:
+                compile_spec(dict(base_spec), out_dir)
+            self.assertIn("instructions", str(ctx.exception).lower())
+
+            # 2. Non-list instructions
+            for val in ["Step 1", 12345, True, {"step": 1}]:
+                spec = dict(base_spec)
+                spec["instructions"] = val
+                with self.subTest(inst=val):
+                    with self.assertRaises(TypeError) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("instructions", str(ctx.exception).lower())
+
+            # 3. Empty instructions list
+            spec = dict(base_spec)
+            spec["instructions"] = []
+            with self.assertRaises(ValueError) as ctx:
+                compile_spec(spec, out_dir)
+            self.assertIn("instructions", str(ctx.exception).lower())
+
+            # 4. Non-string elements
+            for val in [[123], ["Step 1", None], ["Step 1", False], ["Step 1", {"sub": 2}]]:
+                spec = dict(base_spec)
+                spec["instructions"] = val
+                with self.subTest(inst=val):
+                    with self.assertRaises(TypeError) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("instructions", str(ctx.exception).lower())
+
+            # 5. Empty or whitespace elements
+            for val in [[""], ["Step 1", "   "], ["\t\n  \r\n"]]:
+                spec = dict(base_spec)
+                spec["instructions"] = val
+                with self.subTest(inst=val):
+                    with self.assertRaises(ValueError) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("instructions", str(ctx.exception).lower())
+
+    def test_compile_spec_target_hosts_validation(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir)
+            base_spec = {
+                "name": "sample-tool",
+                "description": "Valid description",
+                "job": "Valid job",
+                "instructions": ["Step 1"]
+            }
+
+            # 1. Non-list target_hosts
+            for val in ["chatgpt", 12345, True, {"host": "codex"}]:
+                spec = dict(base_spec)
+                spec["target_hosts"] = val
+                with self.subTest(hosts=val):
+                    with self.assertRaises(TypeError) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("target_hosts", str(ctx.exception).lower())
+
+            # 2. Non-string elements in target_hosts
+            for val in [[123], ["chatgpt", None], ["chatgpt", False], [{}]]:
+                spec = dict(base_spec)
+                spec["target_hosts"] = val
+                with self.subTest(hosts=val):
+                    with self.assertRaises(TypeError) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("target_hosts", str(ctx.exception).lower())
+
+            # 3. Empty or whitespace elements in target_hosts
+            for val in [[""], ["chatgpt", "   "], ["\t\n  \r\n"]]:
+                spec = dict(base_spec)
+                spec["target_hosts"] = val
+                with self.subTest(hosts=val):
+                    with self.assertRaises(ValueError) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("target_hosts", str(ctx.exception).lower())
+
+            # 4. Valid target_hosts or omitted
+            spec1 = dict(base_spec)
+            spec1["target_hosts"] = ["chatgpt", "codex"]
+            res1 = compile_spec(spec1, out_dir)
+            self.assertIn("- Target Hosts: chatgpt, codex", (res1 / "SKILL.md").read_text(encoding="utf-8"))
+
+            spec_empty = dict(base_spec)
+            spec_empty["name"] = "sample-empty-hosts"
+            spec_empty["target_hosts"] = []
+            res_empty = compile_spec(spec_empty, out_dir)
+            self.assertIn("- Target Hosts: agent-skills, chatgpt, codex, claude-code", (res_empty / "SKILL.md").read_text(encoding="utf-8"))
+
+            spec_null = dict(base_spec)
+            spec_null["name"] = "sample-null-hosts"
+            spec_null["target_hosts"] = None
+            res_null = compile_spec(spec_null, out_dir)
+            self.assertIn("- Target Hosts: agent-skills, chatgpt, codex, claude-code", (res_null / "SKILL.md").read_text(encoding="utf-8"))
+
+    def test_compile_spec_freedom_level_validation(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir)
+            base_spec = {
+                "name": "sample-tool",
+                "description": "Valid description",
+                "job": "Valid job",
+                "instructions": ["Step 1"]
+            }
+
+            # 1. Invalid enum strings
+            for val in ["extreme", "none", "HIGH", "low ", "medium\n", ""]:
+                spec = dict(base_spec)
+                spec["freedom_level"] = val
+                with self.subTest(level=val):
+                    with self.assertRaises(ValueError) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("freedom_level", str(ctx.exception).lower())
+
+            # 2. Non-string types
+            for val in [12345, True, False, ["high"], {"level": "high"}]:
+                spec = dict(base_spec)
+                spec["freedom_level"] = val
+                with self.subTest(level=val):
+                    with self.assertRaises((TypeError, ValueError)) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("freedom_level", str(ctx.exception).lower())
+
+            # 3. Valid values
+            for val in ["high", "medium", "low"]:
+                spec = dict(base_spec)
+                spec["name"] = f"sample-{val}"
+                spec["freedom_level"] = val
+                res = compile_spec(spec, out_dir)
+                self.assertIn(f"- Freedom Level: {val}", (res / "SKILL.md").read_text(encoding="utf-8"))
+
+            # Omitted or None
+            spec_none = dict(base_spec)
+            spec_none["name"] = "sample-none"
+            spec_none["freedom_level"] = None
+            res_none = compile_spec(spec_none, out_dir)
+            self.assertIn("- Freedom Level: medium", (res_none / "SKILL.md").read_text(encoding="utf-8"))
+
+    def test_compile_spec_references_values_validation(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir)
+            base_spec = {
+                "name": "sample-tool",
+                "description": "Valid description",
+                "job": "Valid job",
+                "instructions": ["Step 1"]
+            }
+
+            invalid_vals = [12345, True, False, None, {"nested": "val"}, ["array", "val"]]
+            for val in invalid_vals:
+                spec = dict(base_spec)
+                spec["references"] = {"api-guide": val}
+                with self.subTest(val=val):
+                    with self.assertRaises(TypeError) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("references", str(ctx.exception).lower())
+
+            # Empty references dict should not create references/ dir
+            spec_empty = dict(base_spec)
+            spec_empty["name"] = "sample-empty-refs"
+            spec_empty["references"] = {}
+            res_empty = compile_spec(spec_empty, out_dir)
+            self.assertFalse((res_empty / "references").exists())
+
+            # Explicit None references should not create references/ dir
+            spec_null_ref = dict(base_spec)
+            spec_null_ref["name"] = "sample-null-refs"
+            spec_null_ref["references"] = None
+            res_null_ref = compile_spec(spec_null_ref, out_dir)
+            self.assertFalse((res_null_ref / "references").exists())
+
+    def test_compile_spec_evals_validation(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir)
+            base_spec = {
+                "name": "sample-tool",
+                "description": "Valid description",
+                "job": "Valid job",
+                "instructions": ["Step 1"]
+            }
+
+            # 1. Non-list evals
+            for val in ["invalid", 12345, True, {"id": "case-1"}]:
+                spec = dict(base_spec)
+                spec["evals"] = val
+                with self.subTest(evals=val):
+                    with self.assertRaises(TypeError) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("evals", str(ctx.exception).lower())
+
+            # 2. Invalid eval items
+            invalid_items = [
+                "not-a-dict",
+                12345,
+                None,
+                [],
+                {"description": "Missing id", "assertions": [{"pattern": "success"}]},
+                {"id": "", "assertions": [{"pattern": "success"}]},
+                {"id": "   ", "assertions": [{"pattern": "success"}]},
+                {"id": 123, "assertions": [{"pattern": "success"}]},
+                {"id": "c1", "description": 12345, "assertions": [{"pattern": "success"}]},
+                {"id": "c1", "description": ["list"], "assertions": [{"pattern": "success"}]}
+            ]
+            for item in invalid_items:
+                spec = dict(base_spec)
+                spec["evals"] = [item]
+                with self.subTest(item=item):
+                    with self.assertRaises((TypeError, ValueError)) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("evals", str(ctx.exception).lower())
+
+            # 3. Invalid assertions
+            invalid_assertions = [
+                {"id": "c1"}, # missing assertions
+                {"id": "c1", "assertions": None},
+                {"id": "c1", "assertions": "not-a-list"},
+                {"id": "c1", "assertions": []}, # empty assertions
+                {"id": "c1", "assertions": ["not-a-dict"]},
+                {"id": "c1", "assertions": [None]},
+                {"id": "c1", "assertions": [{}]}, # missing pattern
+                {"id": "c1", "assertions": [{"pattern": ""}]}, # empty pattern
+                {"id": "c1", "assertions": [{"pattern": "   "}]}, # whitespace pattern
+                {"id": "c1", "assertions": [{"pattern": 123}]}, # non-string pattern
+                {"id": "c1", "assertions": [{"pattern": "ok", "required": "yes"}]}, # non-bool required
+                {"id": "c1", "assertions": [{"pattern": "ok", "required": 1}]} # non-bool required
+            ]
+            for item in invalid_assertions:
+                spec = dict(base_spec)
+                spec["evals"] = [item]
+                with self.subTest(item=item):
+                    with self.assertRaises((TypeError, ValueError)) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("evals", str(ctx.exception).lower())
+
+            # 4. Valid evals
+            spec_ok = dict(base_spec)
+            spec_ok["evals"] = [
+                {
+                    "id": "c1",
+                    "description": "desc",
+                    "assertions": [{"pattern": "ok", "required": True}]
+                },
+                {
+                    "id": "c2",
+                    "assertions": [{"pattern": "ok"}]
+                }
+            ]
+            res = compile_spec(spec_ok, out_dir)
+            evals_json = json.loads((res / "evals" / "evals.json").read_text(encoding="utf-8"))
+            self.assertEqual(len(evals_json["evals"]), 2)
+            self.assertEqual(evals_json["evals"][0]["id"], "c1")
+            self.assertTrue(evals_json["evals"][0]["assertions"][0]["required"])
+
+            # 5. Empty evals list creates no evals dir
+            spec_empty = dict(base_spec)
+            spec_empty["name"] = "sample-empty-evals"
+            spec_empty["evals"] = []
+            res_empty = compile_spec(spec_empty, out_dir)
+            self.assertFalse((res_empty / "evals").exists())
+
+            # 6. Explicit None evals list creates no evals dir
+            spec_null_eval = dict(base_spec)
+            spec_null_eval["name"] = "sample-null-evals"
+            spec_null_eval["evals"] = None
+            res_null_eval = compile_spec(spec_null_eval, out_dir)
+            self.assertFalse((res_null_eval / "evals").exists())
+
+    def test_compile_spec_zero_filesystem_mutation_on_validation_failure(self):
+        import hashlib
+
+        failure_scenarios = [
+            ("missing description", {"name": "fail-skill", "job": "Job", "instructions": ["Step 1"]}),
+            ("number description", {"name": "fail-skill", "description": 12345, "job": "Job", "instructions": ["Step 1"]}),
+            ("empty description", {"name": "fail-skill", "description": "   ", "job": "Job", "instructions": ["Step 1"]}),
+            ("missing job", {"name": "fail-skill", "description": "Desc", "instructions": ["Step 1"]}),
+            ("number job", {"name": "fail-skill", "description": "Desc", "job": 12345, "instructions": ["Step 1"]}),
+            ("empty job", {"name": "fail-skill", "description": "Desc", "job": "", "instructions": ["Step 1"]}),
+            ("missing instructions", {"name": "fail-skill", "description": "Desc", "job": "Job"}),
+            ("string instructions", {"name": "fail-skill", "description": "Desc", "job": "Job", "instructions": "Not list"}),
+            ("empty instructions", {"name": "fail-skill", "description": "Desc", "job": "Job", "instructions": []}),
+            ("number in instructions", {"name": "fail-skill", "description": "Desc", "job": "Job", "instructions": [123]}),
+            ("empty step in instructions", {"name": "fail-skill", "description": "Desc", "job": "Job", "instructions": [""]}),
+            ("string target_hosts", {"name": "fail-skill", "description": "Desc", "job": "Job", "instructions": ["Step 1"], "target_hosts": "chatgpt"}),
+            ("number in target_hosts", {"name": "fail-skill", "description": "Desc", "job": "Job", "instructions": ["Step 1"], "target_hosts": [123]}),
+            ("invalid freedom_level", {"name": "fail-skill", "description": "Desc", "job": "Job", "instructions": ["Step 1"], "freedom_level": "extreme"}),
+            ("adversarial reference key", {"name": "fail-skill", "description": "Desc", "job": "Job", "instructions": ["Step 1"], "references": {"../escape": "content"}}),
+            ("number reference value", {"name": "fail-skill", "description": "Desc", "job": "Job", "instructions": ["Step 1"], "references": {"api-guide": 12345}}),
+            ("string evals", {"name": "fail-skill", "description": "Desc", "job": "Job", "instructions": ["Step 1"], "evals": "bad"}),
+            ("eval item missing id", {"name": "fail-skill", "description": "Desc", "job": "Job", "instructions": ["Step 1"], "evals": [{"assertions": [{"pattern": "ok"}]}]}),
+            ("eval assertion missing pattern", {"name": "fail-skill", "description": "Desc", "job": "Job", "instructions": ["Step 1"], "evals": [{"id": "c1", "assertions": [{}]}]}),
+            ("eval assertion non-bool required", {"name": "fail-skill", "description": "Desc", "job": "Job", "instructions": ["Step 1"], "evals": [{"id": "c1", "assertions": [{"pattern": "ok", "required": "yes"}]}]})
+        ]
+
+        for label, spec in failure_scenarios:
+            with self.subTest(scenario=label):
+                with tempfile.TemporaryDirectory() as root_str:
+                    root = Path(root_str)
+                    out_dir = root / "output"
+                    out_dir.mkdir(parents=True, exist_ok=True)
+                    sentinel = root / "sentinel.txt"
+                    sentinel.write_text("TOP-SECRET-SENTINEL-DATA", encoding="utf-8")
+                    sentinel_hash = hashlib.sha256(sentinel.read_bytes()).hexdigest()
+
+                    with self.assertRaises((TypeError, ValueError)):
+                        compile_spec(spec, out_dir)
+
+                    self.assertFalse((out_dir / "fail-skill").exists())
+                    self.assertEqual(len(list(out_dir.iterdir())), 0)
+                    self.assertEqual(hashlib.sha256(sentinel.read_bytes()).hexdigest(), sentinel_hash)
+
+    def test_compile_spec_golden_spec_parity(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir)
+            golden_spec = {
+                "name": "golden-skill",
+                "description": "A comprehensive production-grade skill specification.",
+                "job": "Executes deterministic validation and compilation flows flawlessly.",
+                "target_hosts": ["chatgpt", "codex", "claude-code"],
+                "freedom_level": "low",
+                "instructions": [
+                    "Read input parameters carefully.",
+                    "Validate preconditions before mutation.",
+                    "Emit structured report."
+                ],
+                "references": {
+                    "architecture-overview": "# Architecture\nLayered system contract.",
+                    "api-conventions": "# Conventions\nFollow semver and fail closed."
+                },
+                "evals": [
+                    {
+                        "id": "case-preflight-gate",
+                        "description": "Verify preflight gates fail closed on malformed input",
+                        "assertions": [
+                            {"pattern": "FAIL_CLOSED", "required": True},
+                            {"pattern": "BYPASS_UNAUTHORIZED", "required": False}
+                        ]
+                    },
+                    {
+                        "id": "case-success-path",
+                        "assertions": [
+                            {"pattern": "COMPILED_SUCCESS", "required": True}
+                        ]
+                    }
+                ]
+            }
+
+            res = compile_spec(golden_spec, out_dir)
+            self.assertTrue(res.exists())
+
+            skill_md = (res / "SKILL.md").read_text(encoding="utf-8")
+            self.assertIn("name: golden-skill", skill_md)
+            self.assertIn("A comprehensive production-grade skill specification.", skill_md)
+            self.assertIn("# Golden Skill", skill_md)
+            self.assertIn("> Executes deterministic validation and compilation flows flawlessly.", skill_md)
+            self.assertIn("- Read input parameters carefully.", skill_md)
+            self.assertIn("- Validate preconditions before mutation.", skill_md)
+            self.assertIn("- Emit structured report.", skill_md)
+            self.assertIn("- Target Hosts: chatgpt, codex, claude-code", skill_md)
+            self.assertIn("- Freedom Level: low", skill_md)
+
+            ref1 = (res / "references" / "architecture-overview.md").read_text(encoding="utf-8")
+            self.assertEqual(ref1, "# Architecture\nLayered system contract.")
+            ref2 = (res / "references" / "api-conventions.md").read_text(encoding="utf-8")
+            self.assertEqual(ref2, "# Conventions\nFollow semver and fail closed.")
+
+            evals_data = json.loads((res / "evals" / "evals.json").read_text(encoding="utf-8"))
+            self.assertEqual(len(evals_data["evals"]), 2)
+            self.assertEqual(evals_data["evals"][0]["id"], "case-preflight-gate")
+            self.assertEqual(evals_data["evals"][0]["description"], "Verify preflight gates fail closed on malformed input")
+            self.assertEqual(len(evals_data["evals"][0]["assertions"]), 2)
+            self.assertEqual(evals_data["evals"][0]["assertions"][0]["pattern"], "FAIL_CLOSED")
+            self.assertTrue(evals_data["evals"][0]["assertions"][0]["required"])
+            self.assertEqual(evals_data["evals"][1]["id"], "case-success-path")
+            self.assertNotIn("description", evals_data["evals"][1])
+
+            # Minimal spec
+            minimal_spec = {
+                "name": "minimal-skill",
+                "description": "Minimal spec description.",
+                "job": "Performs minimum actions.",
+                "instructions": ["Step 1: Just run."]
+            }
+            res_min = compile_spec(minimal_spec, out_dir)
+            self.assertTrue(res_min.exists())
+            skill_md_min = (res_min / "SKILL.md").read_text(encoding="utf-8")
+            self.assertIn("name: minimal-skill", skill_md_min)
+            self.assertIn("- Target Hosts: agent-skills, chatgpt, codex, claude-code", skill_md_min)
+            self.assertIn("- Freedom Level: medium", skill_md_min)
+            self.assertFalse((res_min / "references").exists())
+            self.assertFalse((res_min / "evals").exists())
+
     def test_compile_spec_and_validate(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             out_dir = Path(tmpdir)
@@ -64,6 +564,10 @@ class TestOmniSkillEngine(unittest.TestCase):
                 ("sub\\dir", "backward slash separator"),
                 ("", "empty name"),
                 ("   ", "whitespace name"),
+                ("bad--name", "consecutive hyphens"),
+                ("-bad-name", "leading hyphen"),
+                ("bad-name-", "trailing hyphen"),
+                ("bad-name\n", "trailing newline in name"),
                 ("EvilSkill", "uppercase non-kebab name"),
                 ("bad$name!", "special symbols in name"),
                 (None, "None name"),
@@ -137,6 +641,9 @@ class TestOmniSkillEngine(unittest.TestCase):
                 ("reference.json", "file extension suffix .json"),
                 ("", "empty key"),
                 ("   ", "whitespace key"),
+                ("bad--ref", "consecutive hyphens in key"),
+                ("-bad-ref", "leading hyphen in key"),
+                ("bad-ref-", "trailing hyphen in key"),
                 ("ApiGuide", "uppercase non-kebab key"),
                 ("ref$name!", "special symbols in key"),
                 ("api_guide", "underscore in key"),
@@ -320,7 +827,8 @@ class TestOmniSkillEngine(unittest.TestCase):
             spec_file.write_text(json.dumps({
                 "name": "cli-compiled-tool",
                 "description": "Tool compiled via CLI.",
-                "job": "Runs CLI tests."
+                "job": "Runs CLI tests.",
+                "instructions": ["Step 1: Run CLI tests."]
             }), encoding="utf-8")
 
             proc_ok = subprocess.run([sys.executable, str(CORE_DIR / "compile_spec.py"), str(spec_file), tmpdir], capture_output=True, text=True)
@@ -360,6 +868,20 @@ class TestOmniSkillEngine(unittest.TestCase):
             self.assertEqual(proc_adv_ref.returncode, 1)
             self.assertFalse((Path(tmpdir) / "escaped-ref.md").exists())
             self.assertFalse((Path(tmpdir).parent / "escaped-ref.md").exists())
+
+            # Invalid spec contract via CLI (e.g. missing instructions)
+            invalid_contract_file = Path(tmpdir) / "invalid_contract.json"
+            invalid_contract_file.write_text(json.dumps({
+                "name": "invalid-contract-tool",
+                "description": "Tool missing instructions",
+                "job": "Run tests"
+            }), encoding="utf-8")
+            target_out = Path(tmpdir) / "contract_out"
+            target_out.mkdir()
+            proc_contract = subprocess.run([sys.executable, str(CORE_DIR / "compile_spec.py"), str(invalid_contract_file), str(target_out)], capture_output=True, text=True)
+            self.assertEqual(proc_contract.returncode, 1)
+            self.assertIn("Field 'instructions' must be a non-empty array", proc_contract.stderr)
+            self.assertEqual(len(list(target_out.iterdir())), 0)
 
     def test_eval_engine_cli_end_to_end(self):
         """Test eval_engine.py CLI interface with valid and error states."""

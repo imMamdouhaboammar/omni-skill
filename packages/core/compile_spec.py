@@ -32,6 +32,56 @@ def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
     if skill_path == resolved_output:
         raise ValueError("Skill path cannot be the output root directory.")
 
+    desc_raw = spec_data.get("description")
+    if desc_raw is None or not isinstance(desc_raw, str):
+        raise TypeError("Field 'description' must be a non-empty string.")
+    if len(desc_raw.strip()) == 0:
+        raise ValueError("Field 'description' must be a non-empty string.")
+    description = desc_raw.strip()
+
+    job_raw = spec_data.get("job")
+    if job_raw is None or not isinstance(job_raw, str):
+        raise TypeError("Field 'job' must be a non-empty string.")
+    if len(job_raw.strip()) == 0:
+        raise ValueError("Field 'job' must be a non-empty string.")
+    job = job_raw.strip()
+
+    instructions_raw = spec_data.get("instructions")
+    if instructions_raw is None or not isinstance(instructions_raw, list):
+        raise TypeError("Field 'instructions' must be a non-empty array of non-empty strings.")
+    if len(instructions_raw) == 0:
+        raise ValueError("Field 'instructions' must be a non-empty array of non-empty strings.")
+
+    instructions = []
+    for i, step in enumerate(instructions_raw):
+        if not isinstance(step, str):
+            raise TypeError(f"Field 'instructions[{i}]' must be a non-empty string.")
+        if len(step.strip()) == 0:
+            raise ValueError(f"Field 'instructions[{i}]' must be a non-empty string.")
+        instructions.append(step)
+
+    target_hosts = None
+    if "target_hosts" in spec_data and spec_data["target_hosts"] is not None:
+        raw_hosts = spec_data["target_hosts"]
+        if not isinstance(raw_hosts, list):
+            raise TypeError("Field 'target_hosts' must be an array of non-empty strings.")
+        target_hosts = []
+        for i, host in enumerate(raw_hosts):
+            if not isinstance(host, str):
+                raise TypeError(f"Field 'target_hosts[{i}]' must be a non-empty string.")
+            if len(host.strip()) == 0:
+                raise ValueError(f"Field 'target_hosts[{i}]' must be a non-empty string.")
+            target_hosts.append(host)
+
+    freedom_level = "medium"
+    if "freedom_level" in spec_data and spec_data["freedom_level"] is not None:
+        raw_level = spec_data["freedom_level"]
+        if not isinstance(raw_level, str):
+            raise TypeError(f"Field 'freedom_level' must be one of 'high', 'medium', 'low'. Received: {raw_level}")
+        if raw_level not in ("high", "medium", "low"):
+            raise ValueError(f"Field 'freedom_level' must be one of 'high', 'medium', 'low'. Received: {raw_level}")
+        freedom_level = raw_level
+
     references = spec_data.get("references")
     ref_dir = skill_path / "references"
     resolved_ref_dir = ref_dir.resolve()
@@ -51,6 +101,8 @@ def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
                 raise ValueError(
                     f"Invalid reference name '{ref_name}'. Must be lowercase kebab-case alphanumeric without file extensions."
                 )
+            if not isinstance(ref_content, str):
+                raise TypeError(f"Field 'references[\"{ref_name}\"]' must be a string.")
             canonical_ref_key = ref_name.lower()
             if canonical_ref_key in seen_ref_keys:
                 raise ValueError(f"Duplicate reference name detected: '{ref_name}'.")
@@ -68,10 +120,41 @@ def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
             if target_unresolved.is_symlink():
                 raise ValueError(f"Path containment violation: Target reference '{ref_name}.md' is a symbolic link.")
 
-    description = spec_data.get("description", "").strip()
-    job = spec_data.get("job", "")
-    instructions = spec_data.get("instructions", [])
-    evals = spec_data.get("evals", [])
+    evals = None
+    if "evals" in spec_data and spec_data["evals"] is not None:
+        raw_evals = spec_data["evals"]
+        if not isinstance(raw_evals, list):
+            raise TypeError("Field 'evals' must be an array of evaluation items.")
+        evals = []
+        for i, item in enumerate(raw_evals):
+            if not isinstance(item, dict):
+                raise TypeError(f"Field 'evals[{i}]' must be an object.")
+            eval_id = item.get("id")
+            if not isinstance(eval_id, str):
+                raise TypeError(f"Field 'evals[{i}].id' must be a non-empty string.")
+            if len(eval_id.strip()) == 0:
+                raise ValueError(f"Field 'evals[{i}].id' must be a non-empty string.")
+
+            if "description" in item and item["description"] is not None and not isinstance(item["description"], str):
+                raise TypeError(f"Field 'evals[{i}].description' must be a string.")
+
+            raw_assertions = item.get("assertions")
+            if not isinstance(raw_assertions, list):
+                raise TypeError(f"Field 'evals[{i}].assertions' must be a non-empty array of assertion objects.")
+            if len(raw_assertions) == 0:
+                raise ValueError(f"Field 'evals[{i}].assertions' must be a non-empty array of assertion objects.")
+
+            for j, assertion in enumerate(raw_assertions):
+                if not isinstance(assertion, dict):
+                    raise TypeError(f"Field 'evals[{i}].assertions[{j}]' must be an object.")
+                pattern = assertion.get("pattern")
+                if not isinstance(pattern, str):
+                    raise TypeError(f"Field 'evals[{i}].assertions[{j}].pattern' must be a non-empty string.")
+                if len(pattern.strip()) == 0:
+                    raise ValueError(f"Field 'evals[{i}].assertions[{j}].pattern' must be a non-empty string.")
+                if "required" in assertion and assertion["required"] is not None and not isinstance(assertion["required"], bool):
+                    raise TypeError(f"Field 'evals[{i}].assertions[{j}].required' must be a boolean.")
+            evals.append(item)
 
     skill_path.mkdir(parents=True, exist_ok=True)
 
@@ -97,8 +180,8 @@ def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
         "",
         "## Capability Requirements",
         "",
-        f"- Target Hosts: {', '.join(spec_data.get('target_hosts', ['agent-skills', 'chatgpt', 'codex', 'claude-code']))}",
-        f"- Freedom Level: {spec_data.get('freedom_level', 'medium')}",
+        f"- Target Hosts: {', '.join(target_hosts if target_hosts else ['agent-skills', 'chatgpt', 'codex', 'claude-code'])}",
+        f"- Freedom Level: {freedom_level}",
         ""
     ])
 
