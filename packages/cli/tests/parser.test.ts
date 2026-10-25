@@ -232,6 +232,30 @@ license: "MIT"
       expect(res.frontmatter.author).toBe("Test Author");
       expect((res.frontmatter as any).license).toBe("MIT");
     });
+
+    it("should reject an explicitly null optional version", () => {
+      const raw = `---
+name: null-version
+description: Optional fields must be strings when present.
+version: null
+---
+# Body`;
+      expect(() => parseSkillMarkdown(raw)).toThrow(
+        /Frontmatter field 'version' must be a string/
+      );
+    });
+
+    it("should reject an explicitly null optional author", () => {
+      const raw = `---
+name: null-author
+description: Optional fields must be strings when present.
+author: null
+---
+# Body`;
+      expect(() => parseSkillMarkdown(raw)).toThrow(
+        /Frontmatter field 'author' must be a string/
+      );
+    });
   });
 });
 

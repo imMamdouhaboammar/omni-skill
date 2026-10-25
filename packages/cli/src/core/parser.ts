@@ -34,12 +34,14 @@ export function validateFrontmatterTypes(data: unknown): asserts data is SkillFr
     throw new FrontmatterTypeError(`Frontmatter field 'description' must be a string, received ${receivedType}`);
   }
 
-  if ("version" in record && record.version !== undefined && record.version !== null && typeof record.version !== "string") {
-    throw new FrontmatterTypeError(`Frontmatter field 'version' must be a string, received ${typeof record.version}`);
+  if ("version" in record && typeof record.version !== "string") {
+    const receivedType = record.version === null ? "null" : typeof record.version;
+    throw new FrontmatterTypeError(`Frontmatter field 'version' must be a string, received ${receivedType}`);
   }
 
-  if ("author" in record && record.author !== undefined && record.author !== null && typeof record.author !== "string") {
-    throw new FrontmatterTypeError(`Frontmatter field 'author' must be a string, received ${typeof record.author}`);
+  if ("author" in record && typeof record.author !== "string") {
+    const receivedType = record.author === null ? "null" : typeof record.author;
+    throw new FrontmatterTypeError(`Frontmatter field 'author' must be a string, received ${receivedType}`);
   }
 }
 
