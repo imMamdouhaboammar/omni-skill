@@ -1,4 +1,5 @@
 import { validateSkillDirectory } from "../core/validator";
+import { sanitizeDiagnosticPath, sanitizeFsError } from "../core/path-sanitizer";
 import pc from "picocolors";
 import { resolve } from "node:path";
 import { statSync } from "node:fs";
@@ -14,15 +15,40 @@ export function validateSkillCommand(pathArg: string | string[]) {
 
   for (const p of paths) {
     const skillPath = resolve(process.cwd(), p);
+    const safeDisplay = sanitizeDiagnosticPath(process.cwd(), skillPath);
+
+    let stat;
+    let rootError: { code: string; message: string } | null = null;
     try {
-      if (!statSync(skillPath).isDirectory()) continue;
-    } catch {
+      stat = statSync(skillPath);
+      if (!stat.isDirectory()) {
+        rootError = {
+          code: "INVALID_ROOT",
+          message: `Root path does not exist or is not a directory: ${safeDisplay}`
+        };
+      }
+    } catch (err: unknown) {
+      const isAccess = (err as any)?.code === "EACCES" || (err as any)?.code === "EPERM";
+      rootError = {
+        code: isAccess ? "READ_FAILURE" : "INVALID_ROOT",
+        message: isAccess
+          ? `Cannot access root path (${sanitizeFsError(err)}): ${safeDisplay}`
+          : `Root path does not exist or is not a directory: ${safeDisplay}`
+      };
+    }
+
+    if (rootError) {
+      totalEvaluated++;
+      totalErrors++;
+      console.log(pc.cyan(`\n🔍 Validating Skill: ${pc.bold(safeDisplay)}`));
+      console.log(pc.red(`  ✖ [ERROR] (${rootError.code}) ${rootError.message}`));
+      console.log(pc.red(`  ✖ Validation FAILED with 1 errors.`));
       continue;
     }
 
     totalEvaluated++;
     const result = validateSkillDirectory(skillPath);
-    console.log(pc.cyan(`\n🔍 Validating Skill: ${pc.bold(result.skill)}`));
+    console.log(pc.cyan(`\n🔍 Validating Skill: ${pc.bold(safeDisplay)}`));
 
     if (result.findings.length === 0) {
       console.log(pc.green("  ✔ 0 errors, 0 warnings. Perfectly formatted OmniSkill!"));
@@ -49,7 +75,7 @@ export function validateSkillCommand(pathArg: string | string[]) {
   }
 
   console.log(pc.bold(`\n📊 Summary: ${totalPassed}/${totalEvaluated} skills valid (${totalErrors} errors, ${totalWarnings} warnings)\n`));
-  if (totalErrors > 0) {
+  if (totalErrors > 0 || totalPassed < totalEvaluated || totalEvaluated === 0) {
     process.exit(1);
   }
 }
