@@ -9398,6 +9398,7 @@ import { resolve as resolve5 } from "node:path";
 import { mkdirSync as mkdirSync2, writeFileSync as writeFileSync2 } from "node:fs";
 import { isAbsolute, join as join4, relative, resolve as resolve4 } from "node:path";
 var NAME_REGEX3 = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+var REF_NAME_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 function compileOmniSkillSpec(spec, outputDir) {
   if (!spec || typeof spec !== "object") {
     throw new TypeError("Skill specification must be an object.");
@@ -9414,6 +9415,28 @@ function compileOmniSkillSpec(spec, outputDir) {
   const rel = relative(resolvedOutput, targetDir);
   if (rel.startsWith("..") || isAbsolute(rel) || rel === "") {
     throw new Error(`Path containment violation: Skill name "${name}" escapes output directory "${outputDir}".`);
+  }
+  const refDir = join4(targetDir, "references");
+  if (spec.references !== undefined && spec.references !== null) {
+    if (typeof spec.references !== "object" || Array.isArray(spec.references)) {
+      throw new TypeError("Field 'references' must be a key-value object mapping reference names to markdown content.");
+    }
+    const seenRefKeys = new Set;
+    for (const [refName, refContent] of Object.entries(spec.references)) {
+      if (typeof refName !== "string" || !REF_NAME_REGEX.test(refName)) {
+        throw new Error(`Invalid reference name "${refName}". Reference keys must be lowercase kebab-case alphanumeric without file extensions.`);
+      }
+      const canonicalRefKey = refName.toLowerCase();
+      if (seenRefKeys.has(canonicalRefKey)) {
+        throw new Error(`Duplicate reference name detected: "${refName}".`);
+      }
+      seenRefKeys.add(canonicalRefKey);
+      const targetRefFile = resolve4(refDir, `${refName}.md`);
+      const refRel = relative(refDir, targetRefFile);
+      if (refRel.startsWith("..") || isAbsolute(refRel) || refRel !== `${refName}.md`) {
+        throw new Error(`Path containment violation: Reference "${refName}" escapes references/ directory.`);
+      }
+    }
   }
   mkdirSync2(targetDir, { recursive: true });
   const skillMdLines = [
@@ -9436,11 +9459,10 @@ function compileOmniSkillSpec(spec, outputDir) {
   skillMdLines.push("", "## Host & Portability Contract", "", `- Target Hosts: ${(spec.target_hosts || ["agent-skills", "chatgpt", "codex", "claude-code"]).join(", ")}`, `- Freedom Level: ${spec.freedom_level || "medium"}`, "");
   writeFileSync2(join4(targetDir, "SKILL.md"), skillMdLines.join(`
 `), "utf-8");
-  if (spec.references) {
-    const refDir = join4(targetDir, "references");
+  if (spec.references && Object.keys(spec.references).length > 0) {
     mkdirSync2(refDir, { recursive: true });
     for (const [refName, refContent] of Object.entries(spec.references)) {
-      writeFileSync2(join4(refDir, `${refName}.md`), refContent, "utf-8");
+      writeFileSync2(join4(refDir, `${refName}.md`), String(refContent), "utf-8");
     }
   }
   if (spec.evals && spec.evals.length > 0) {
@@ -9678,7 +9700,7 @@ function evalSkillCommand(skillPathArg) {
 // src/commands/package.ts
 var import_picocolors6 = __toESM(require_picocolors(), 1);
 import { existsSync as existsSync5, lstatSync as lstatSync3, mkdirSync as mkdirSync4, readFileSync as readFileSync5, readdirSync as readdirSync2, writeFileSync as writeFileSync4 } from "node:fs";
-import { basename, join as join7, resolve as resolve8, sep as sep2 } from "node:path";
+import { basename, join as join7, resolve as resolve8, sep } from "node:path";
 
 // ../../../../../../../.bun/install/cache/links/fflate@0.8.2-edd43745f90ceabf/node_modules/fflate/esm/index.mjs
 import { createRequire as createRequire2 } from "module";
@@ -10349,7 +10371,7 @@ function packageSkillCommand(skillPathArg, options) {
     process.exit(1);
   }
   const outDir = options?.out ? resolve8(process.cwd(), options.out) : process.cwd();
-  if (outDir === skillPath || outDir.startsWith(`${skillPath}${sep2}`)) {
+  if (outDir === skillPath || outDir.startsWith(`${skillPath}${sep}`)) {
     console.log(import_picocolors6.default.red("✖ Output directory must be outside the skill being packaged."));
     process.exit(1);
   }
