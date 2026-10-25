@@ -328,4 +328,52 @@ Target State
     expect(fullLog).toContain("1 errors");
     expect(fullLog).toContain("INVALID_ROOT");
   });
+
+  it("defaults to cwd and fails closed when called with empty array in an invalid skill directory", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "omni-test-empty-args-cwd-"));
+    const originalCwd = process.cwd();
+
+    try {
+      process.chdir(tempDir);
+      validateSkillCommand([]);
+    } catch {
+      // expect exit(1)
+    } finally {
+      process.chdir(originalCwd);
+      rmSync(tempDir, { recursive: true });
+    }
+
+    expect(exitCode).toBe(1);
+    const fullLog = logOutput.join("\n");
+    expect(fullLog).toContain("0/1 skills valid");
+    expect(fullLog).toContain("1 errors");
+    expect(fullLog).toContain("MISSING_SKILL_MD");
+  });
+
+  it("defaults to cwd and passes when called with empty array in a valid skill directory", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "omni-test-valid-cwd-"));
+    writeFileSync(
+      join(tempDir, "SKILL.md"),
+      `---
+name: valid-cwd-skill
+description: Tests cwd default pass.
+---
+# Why This Skill Is Needed
+Target State
+`
+    );
+    const originalCwd = process.cwd();
+
+    try {
+      process.chdir(tempDir);
+      validateSkillCommand([]);
+    } finally {
+      process.chdir(originalCwd);
+      rmSync(tempDir, { recursive: true });
+    }
+
+    expect(exitCode).toBeNull();
+    const fullLog = logOutput.join("\n");
+    expect(fullLog).toContain("1/1 skills valid (0 errors, 0 warnings)");
+  });
 });
