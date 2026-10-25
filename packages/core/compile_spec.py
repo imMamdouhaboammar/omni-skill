@@ -73,6 +73,15 @@ def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
                 raise ValueError(f"Field 'target_hosts[{i}]' must be a non-empty string.")
             target_hosts.append(host)
 
+    freedom_level = "medium"
+    if "freedom_level" in spec_data and spec_data["freedom_level"] is not None:
+        raw_level = spec_data["freedom_level"]
+        if not isinstance(raw_level, str):
+            raise TypeError(f"Field 'freedom_level' must be one of 'high', 'medium', 'low'. Received: {raw_level}")
+        if raw_level not in ("high", "medium", "low"):
+            raise ValueError(f"Field 'freedom_level' must be one of 'high', 'medium', 'low'. Received: {raw_level}")
+        freedom_level = raw_level
+
     references = spec_data.get("references")
     ref_dir = skill_path / "references"
     resolved_ref_dir = ref_dir.resolve()
@@ -136,7 +145,7 @@ def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
         "## Capability Requirements",
         "",
         f"- Target Hosts: {', '.join(target_hosts if target_hosts is not None else ['agent-skills', 'chatgpt', 'codex', 'claude-code'])}",
-        f"- Freedom Level: {spec_data.get('freedom_level', 'medium')}",
+        f"- Freedom Level: {freedom_level}",
         ""
     ])
 
