@@ -9944,8 +9944,17 @@ function evalSkillCommand(skillPathArg) {
 
 // src/commands/package.ts
 var import_picocolors6 = __toESM(require_picocolors(), 1);
-import { existsSync as existsSync6, lstatSync as lstatSync4, mkdirSync as mkdirSync4, readFileSync as readFileSync5, readdirSync as readdirSync2, writeFileSync as writeFileSync4 } from "node:fs";
-import { basename, join as join7, resolve as resolve8, sep } from "node:path";
+import {
+  existsSync as existsSync7,
+  lstatSync as lstatSync5,
+  mkdirSync as mkdirSync4,
+  readFileSync as readFileSync6,
+  readdirSync as readdirSync3,
+  renameSync,
+  rmSync as rmSync2,
+  writeFileSync as writeFileSync4
+} from "node:fs";
+import { basename as basename2, join as join8, relative as relative4, resolve as resolve8, sep } from "node:path";
 
 // ../../../../../../.bun/install/cache/links/fflate@0.8.2-edd43745f90ceabf/node_modules/fflate/esm/index.mjs
 import { createRequire as createRequire2 } from "module";
@@ -10043,7 +10052,25 @@ for (i = 0;i < 32; ++i)
   fdt[i] = 5;
 var i;
 var flm = /* @__PURE__ */ hMap(flt, 9, 0);
+var flrm = /* @__PURE__ */ hMap(flt, 9, 1);
 var fdm = /* @__PURE__ */ hMap(fdt, 5, 0);
+var fdrm = /* @__PURE__ */ hMap(fdt, 5, 1);
+var max = function(a) {
+  var m = a[0];
+  for (var i = 1;i < a.length; ++i) {
+    if (a[i] > m)
+      m = a[i];
+  }
+  return m;
+};
+var bits = function(d, p, m) {
+  var o = p / 8 | 0;
+  return (d[o] | d[o + 1] << 8) >> (p & 7) & m;
+};
+var bits16 = function(d, p) {
+  var o = p / 8 | 0;
+  return (d[o] | d[o + 1] << 8 | d[o + 2] << 16) >> (p & 7);
+};
 var shft = function(p) {
   return (p + 7) / 8 | 0;
 };
@@ -10078,6 +10105,147 @@ var err = function(ind, msg, nt) {
   if (!nt)
     throw e;
   return e;
+};
+var inflt = function(dat, st, buf, dict) {
+  var sl = dat.length, dl = dict ? dict.length : 0;
+  if (!sl || st.f && !st.l)
+    return buf || new u8(0);
+  var noBuf = !buf;
+  var resize = noBuf || st.i != 2;
+  var noSt = st.i;
+  if (noBuf)
+    buf = new u8(sl * 3);
+  var cbuf = function(l) {
+    var bl = buf.length;
+    if (l > bl) {
+      var nbuf = new u8(Math.max(bl * 2, l));
+      nbuf.set(buf);
+      buf = nbuf;
+    }
+  };
+  var final = st.f || 0, pos = st.p || 0, bt = st.b || 0, { l: lm, d: dm, m: lbt, n: dbt } = st;
+  var tbts = sl * 8;
+  do {
+    if (!lm) {
+      final = bits(dat, pos, 1);
+      var type = bits(dat, pos + 1, 3);
+      pos += 3;
+      if (!type) {
+        var s = shft(pos) + 4, l = dat[s - 4] | dat[s - 3] << 8, t = s + l;
+        if (t > sl) {
+          if (noSt)
+            err(0);
+          break;
+        }
+        if (resize)
+          cbuf(bt + l);
+        buf.set(dat.subarray(s, t), bt);
+        st.b = bt += l, st.p = pos = t * 8, st.f = final;
+        continue;
+      } else if (type == 1)
+        lm = flrm, dm = fdrm, lbt = 9, dbt = 5;
+      else if (type == 2) {
+        var hLit = bits(dat, pos, 31) + 257, hcLen = bits(dat, pos + 10, 15) + 4;
+        var tl = hLit + bits(dat, pos + 5, 31) + 1;
+        pos += 14;
+        var ldt = new u8(tl);
+        var clt = new u8(19);
+        for (var i = 0;i < hcLen; ++i) {
+          clt[clim[i]] = bits(dat, pos + i * 3, 7);
+        }
+        pos += hcLen * 3;
+        var clb = max(clt), clbmsk = (1 << clb) - 1;
+        var clm = hMap(clt, clb, 1);
+        for (var i = 0;i < tl; ) {
+          var r = clm[bits(dat, pos, clbmsk)];
+          pos += r & 15;
+          var s = r >> 4;
+          if (s < 16) {
+            ldt[i++] = s;
+          } else {
+            var c = 0, n = 0;
+            if (s == 16)
+              n = 3 + bits(dat, pos, 3), pos += 2, c = ldt[i - 1];
+            else if (s == 17)
+              n = 3 + bits(dat, pos, 7), pos += 3;
+            else if (s == 18)
+              n = 11 + bits(dat, pos, 127), pos += 7;
+            while (n--)
+              ldt[i++] = c;
+          }
+        }
+        var lt = ldt.subarray(0, hLit), dt = ldt.subarray(hLit);
+        lbt = max(lt);
+        dbt = max(dt);
+        lm = hMap(lt, lbt, 1);
+        dm = hMap(dt, dbt, 1);
+      } else
+        err(1);
+      if (pos > tbts) {
+        if (noSt)
+          err(0);
+        break;
+      }
+    }
+    if (resize)
+      cbuf(bt + 131072);
+    var lms = (1 << lbt) - 1, dms = (1 << dbt) - 1;
+    var lpos = pos;
+    for (;; lpos = pos) {
+      var c = lm[bits16(dat, pos) & lms], sym = c >> 4;
+      pos += c & 15;
+      if (pos > tbts) {
+        if (noSt)
+          err(0);
+        break;
+      }
+      if (!c)
+        err(2);
+      if (sym < 256)
+        buf[bt++] = sym;
+      else if (sym == 256) {
+        lpos = pos, lm = null;
+        break;
+      } else {
+        var add = sym - 254;
+        if (sym > 264) {
+          var i = sym - 257, b = fleb[i];
+          add = bits(dat, pos, (1 << b) - 1) + fl[i];
+          pos += b;
+        }
+        var d = dm[bits16(dat, pos) & dms], dsym = d >> 4;
+        if (!d)
+          err(3);
+        pos += d & 15;
+        var dt = fd[dsym];
+        if (dsym > 3) {
+          var b = fdeb[dsym];
+          dt += bits16(dat, pos) & (1 << b) - 1, pos += b;
+        }
+        if (pos > tbts) {
+          if (noSt)
+            err(0);
+          break;
+        }
+        if (resize)
+          cbuf(bt + 131072);
+        var end = bt + add;
+        if (bt < dt) {
+          var shift = dl - dt, dend = Math.min(dt, end);
+          if (shift + bt < 0)
+            err(3);
+          for (;bt < dend; ++bt)
+            buf[bt] = dict[shift + bt];
+        }
+        for (;bt < end; ++bt)
+          buf[bt] = buf[bt - dt];
+      }
+    }
+    st.l = lm, st.p = lpos, st.b = bt, st.f = final;
+    if (lm)
+      final = 1, st.m = lbt, st.d = dm, st.n = dbt;
+  } while (!final);
+  return bt != buf.length && noBuf ? slc(buf, 0, bt) : buf.subarray(0, bt);
 };
 var wbits = function(d, p, v) {
   v <<= p & 7;
@@ -10426,12 +10594,24 @@ var mrg = function(a, b) {
     o[k] = b[k];
   return o;
 };
+var b2 = function(d, b) {
+  return d[b] | d[b + 1] << 8;
+};
+var b4 = function(d, b) {
+  return (d[b] | d[b + 1] << 8 | d[b + 2] << 16 | d[b + 3] << 24) >>> 0;
+};
+var b8 = function(d, b) {
+  return b4(d, b) + b4(d, b + 4) * 4294967296;
+};
 var wbytes = function(d, b, v) {
   for (;v; ++b)
     d[b] = v, v >>>= 8;
 };
 function deflateSync(data, opts) {
   return dopt(data, opts || {}, 0, 0);
+}
+function inflateSync(data, opts) {
+  return inflt(data, { i: 2 }, opts && opts.out, opts && opts.dictionary);
 }
 var fltn = function(d, p, t, o) {
   for (var k in d) {
@@ -10453,6 +10633,22 @@ try {
   td.decode(et, { stream: true });
   tds = 1;
 } catch (e) {}
+var dutf8 = function(d) {
+  for (var r = "", i = 0;; ) {
+    var c = d[i++];
+    var eb = (c > 127) + (c > 223) + (c > 239);
+    if (i + eb > d.length)
+      return { s: r, r: slc(d, i - 1) };
+    if (!eb)
+      r += String.fromCharCode(c);
+    else if (eb == 3) {
+      c = ((c & 15) << 18 | (d[i++] & 63) << 12 | (d[i++] & 63) << 6 | d[i++] & 63) - 65536, r += String.fromCharCode(55296 | c >> 10, 56320 | c & 1023);
+    } else if (eb & 1)
+      r += String.fromCharCode((c & 31) << 6 | d[i++] & 63);
+    else
+      r += String.fromCharCode((c & 15) << 12 | (d[i++] & 63) << 6 | d[i++] & 63);
+  }
+};
 function strToU8(str, latin1) {
   if (latin1) {
     var ar_1 = new u8(str.length);
@@ -10486,6 +10682,34 @@ function strToU8(str, latin1) {
   }
   return slc(ar, 0, ai);
 }
+function strFromU8(dat, latin1) {
+  if (latin1) {
+    var r = "";
+    for (var i = 0;i < dat.length; i += 16384)
+      r += String.fromCharCode.apply(null, dat.subarray(i, i + 16384));
+    return r;
+  } else if (td) {
+    return td.decode(dat);
+  } else {
+    var _a = dutf8(dat), { s, r } = _a;
+    if (r.length)
+      err(8);
+    return s;
+  }
+}
+var slzh = function(d, b) {
+  return b + 30 + b2(d, b + 26) + b2(d, b + 28);
+};
+var zh = function(d, b, z) {
+  var fnl = b2(d, b + 28), fn = strFromU8(d.subarray(b + 46, b + 46 + fnl), !(b2(d, b + 8) & 2048)), es = b + 46 + fnl, bs = b4(d, b + 20);
+  var _a = z && bs == 4294967295 ? z64e(d, es) : [bs, b4(d, b + 24), b4(d, b + 42)], sc = _a[0], su = _a[1], off = _a[2];
+  return [b2(d, b + 10), sc, su, fn, es + b2(d, b + 30) + b2(d, b + 32), off];
+};
+var z64e = function(d, b) {
+  for (;b2(d, b) != 1; b += 4 + b2(d, b + 2))
+    ;
+  return [b8(d, b + 12), b8(d, b + 4), b8(d, b + 20)];
+};
 var exfl = function(ex) {
   var le = 0;
   if (ex) {
@@ -10587,26 +10811,1736 @@ function zipSync(data, opts) {
   wzf(out, o, files.length, cdl, oe);
   return out;
 }
+function unzipSync(data, opts) {
+  var files = {};
+  var e = data.length - 22;
+  for (;b4(data, e) != 101010256; --e) {
+    if (!e || data.length - e > 65558)
+      err(13);
+  }
+  var c = b2(data, e + 8);
+  if (!c)
+    return {};
+  var o = b4(data, e + 16);
+  var z = o == 4294967295 || c == 65535;
+  if (z) {
+    var ze = b4(data, e - 12);
+    z = b4(data, ze) == 101075792;
+    if (z) {
+      c = b4(data, ze + 32);
+      o = b4(data, ze + 48);
+    }
+  }
+  var fltr = opts && opts.filter;
+  for (var i = 0;i < c; ++i) {
+    var _a = zh(data, o, z), c_2 = _a[0], sc = _a[1], su = _a[2], fn = _a[3], no = _a[4], off = _a[5], b = slzh(data, off);
+    o = no;
+    if (!fltr || fltr({
+      name: fn,
+      size: sc,
+      originalSize: su,
+      compression: c_2
+    })) {
+      if (!c_2)
+        files[fn] = slc(data, b, b + sc);
+      else if (c_2 == 8)
+        files[fn] = inflateSync(data.subarray(b, b + sc), { out: new u8(su) });
+      else
+        err(14, "unknown compression type " + c_2);
+    }
+  }
+  return files;
+}
+
+// src/core/security.ts
+import { existsSync as existsSync6, lstatSync as lstatSync4, readdirSync as readdirSync2, readFileSync as readFileSync5 } from "node:fs";
+import { basename, join as join7, relative as relative3 } from "node:path";
+
+// src/core/security-types.ts
+var PatternCategory;
+((PatternCategory) => {
+  PatternCategory["PROMPT_INJECTION"] = "Prompt Injection";
+  PatternCategory["DATA_EXFILTRATION"] = "Data Exfiltration";
+  PatternCategory["PRIVILEGE_ESCALATION"] = "Privilege Escalation";
+  PatternCategory["SUPPLY_CHAIN"] = "Supply Chain";
+  PatternCategory["EXCESSIVE_AGENCY"] = "Excessive Agency";
+  PatternCategory["OUTPUT_HANDLING"] = "Output Handling";
+  PatternCategory["SYSTEM_PROMPT_LEAKAGE"] = "System Prompt Leakage";
+  PatternCategory["MEMORY_POISONING"] = "Memory Poisoning";
+  PatternCategory["TOOL_MISUSE"] = "Tool Misuse";
+  PatternCategory["ROGUE_AGENT"] = "Rogue Agent";
+  PatternCategory["TRIGGER_ABUSE"] = "Trigger Abuse";
+  PatternCategory["MCP_LEAST_PRIVILEGE"] = "MCP Least Privilege";
+  PatternCategory["MCP_TOOL_POISONING"] = "MCP Tool Poisoning";
+  PatternCategory["AGENT_SNOOPING"] = "Agent Snooping";
+  PatternCategory["ANTI_REFUSAL"] = "Anti-Refusal";
+  PatternCategory["SERVER_SIDE_REQUEST_FORGERY"] = "Server-Side Request Forgery";
+  PatternCategory["DESERIALIZATION"] = "Insecure Deserialization";
+  PatternCategory["BEHAVIORAL_AST"] = "Behavioral AST";
+})(PatternCategory ||= {});
+
+// src/core/security-metadata.ts
+var DEFAULT_EXPLANATIONS = {
+  P1: "Instruction override pattern detected. Overrides system instructions or safety rules.",
+  P2: "Concealed or invisible instructions detected in comments, base64 blobs, or zero-width text.",
+  P3: "Instructions commanding transmission of session context or user data to external hosts.",
+  P4: "Subtle bias or steering detected that alters agent decision-making outside stated scope.",
+  P5: "Directly harmful or destructive content detected.",
+  P9: "Oversized whitespace padding detected, typically used to hide instructions off-screen.",
+  P6: "Direct extraction pattern attempting to reveal confidential system prompts or directives.",
+  P7: "Indirect extraction attempting to infer system prompts via summary, rephrase, or translation.",
+  P8: "Exfiltration of system prompts via tool calls (logging, writing, or network request).",
+  E1: "External data transmission to remote URL or unvetted network sink.",
+  E2: "Mass environment variable harvesting or searching for secret keys.",
+  E3: "Filesystem enumeration scanning for SSH keys, credentials, or private user files.",
+  E4: "Instructions that leak conversation history or user prompts to external services.",
+  E5: "Unverified cloud storage exfiltration (S3/GCS/Azure blob upload).",
+  PE1: "Skill requests excessive permissions (e.g. wildcard '*' or unnecessary full access).",
+  PE2: "Command invokes sudo, su, doas, pkexec, or setuid elevation.",
+  PE3: "Direct access to credential files and privileged operating-system records.",
+  SC1: "Dependencies lack version pinning, allowing potential malicious package updates.",
+  SC2: "Remote script downloading and execution (e.g. curl | bash, wget | python).",
+  SC3: "Obfuscated code payload (base64/hex decode with execution).",
+  SC7: "Disabled container trust or insecure registry configuration.",
+  SC8: "Shipped precompiled Python bytecode (__pycache__, .pyc, .pyo) in skill package.",
+  SC9: "Concealed executable artifact disguised as a document or data file.",
+  SC10: "Dependency source redirection away from canonical package indexes.",
+  EA1: "Unrestricted tool access without least-privilege boundary.",
+  EA2: "Autonomous execution of high-impact or destructive operations without user confirmation.",
+  EA3: "Skill behavior extends significantly beyond its stated purpose (scope creep).",
+  EA4: "Unbounded resource access (infinite loops, unbounded batch downloads).",
+  EA5: "Undisclosed external model or provider override altering billing or trust boundary.",
+  OH1: "Unvalidated model output injected into shell, SQL, or execution contexts.",
+  OH2: "Output flowing across trust contexts without validation.",
+  OH3: "Unbounded output generation allowing resource exhaustion or context stuffing.",
+  MP1: "Persistent context injection attempting to permanently modify agent state across sessions.",
+  MP2: "Context stuffing that attempts to evict privileged instructions or safety rules.",
+  MP3: "Unauthorized manipulation of agent memory or personality state.",
+  TM1: "Destructive or dangerous tool parameter abuse (rm -rf, mkfs, fork bombs).",
+  TM2: "Tool chaining abuse attempting to bypass single-tool permission restrictions.",
+  TM3: "Insecure tool defaults (disabled TLS verification or world-writable file modes).",
+  TM4: "Privileged Kubernetes workload specifications (hostPath, privileged containers).",
+  RA1: "Self-modifying skill code or runtime editing of SKILL.md.",
+  RA2: "Unauthorized session persistence mechanisms (cron jobs, launch agents, shell profile hooks).",
+  TR1: "Overly broad trigger phrases that intercept unintended user requests.",
+  TR2: "Trigger shadows common built-in commands or system operations.",
+  TR3: "Generic keyword baiting designed to maximize activation frequency.",
+  AS1: "Agent config directory snooping (.claude/, .codex/, .gemini/ access).",
+  AS2: "MCP configuration file snooping (mcp.json access).",
+  AS3: "Cross-skill enumeration or reading other installed skills' instructions.",
+  AR1: "Instructions requiring unconditional agreement with unsafe user requests.",
+  AR2: "Instructions suppressing disclaimers or necessary safety notices.",
+  AR3: "Instructions nullifying the agent's safety restrictions or policies.",
+  SSRF1: "Access to cloud instance metadata IMDS endpoints (169.254.169.254, metadata.google.internal).",
+  SSRF2: "Network requests targeting private IP ranges, loopback, or link-local hosts.",
+  SSRF3: "Dynamic request target where host URL is constructed from untrusted variables.",
+  DS1: "Insecure PHP object injection via unserialize().",
+  DS2: "Insecure Ruby Marshal deserialization on untrusted data.",
+  DS3: "Unsafe Ruby YAML.load or Psych.load without safe loader.",
+  DS4: "Insecure JavaScript deserialization (node-serialize / funcster).",
+  AST1: "Direct exec() call enables arbitrary code execution.",
+  AST2: "Direct eval() call evaluates untrusted expressions.",
+  AST3: "Dynamic __import__() loading unvalidated modules at runtime.",
+  AST4: "Subprocess execution with shell=True or unquoted command strings.",
+  AST5: "os.system() or os.popen() shell execution sink.",
+  AST6: "Dynamic compile() with string source.",
+  AST7: "Dynamic getattr() with non-literal attribute name bypassing static checks.",
+  AST8: "Dangerous execution chain combining dynamic decoding with execution.",
+  AST9: "Reflective execution sink via getattr(os, 'system') or __builtins__['exec'].",
+  AST10: "Insecure Python deserialization via pickle, marshal, dill, or yaml.unsafe_load.",
+  LP1: "Code uses detectable tool capabilities not declared in skill frontmatter.",
+  LP2: "Wildcard permission declaration ('*' or 'all') granting blanket access.",
+  LP3: "Missing tool permission declarations in frontmatter while executing operations.",
+  LP4: "Overdeclared permissions that are never referenced or used in skill instructions.",
+  TP1: "Concealed instructions found in metadata descriptions or parameter fields.",
+  TP2: "Unicode homoglyphs, bidirectional overrides, or hidden characters in identifiers.",
+  TP3: "Prompt injection payloads embedded in tool parameter descriptions or default values.",
+  TP4: "Skill description does not match actual behavior and tool capabilities."
+};
+var DEFAULT_REMEDIATIONS = {
+  P1: "Remove text instructing the agent to ignore prompts or override rules. Keep instructions clear and scoped.",
+  P2: "Remove hidden comments, base64 payloads, and zero-width characters. Keep all text plain and reviewable.",
+  P3: "Remove instructions transmitting user session or conversation data to external endpoints.",
+  P4: "Ensure instructions are explicit and directly serve the documented purpose without hidden bias.",
+  P5: "Immediately remove dangerous or harmful instructions.",
+  P9: "Eliminate large whitespace padding. Keep markdown files compact and transparent.",
+  P6: "Remove instructions prompting disclosure of internal or system instructions.",
+  P7: "Add explicit rules against summarizing, translating, or paraphrasing internal guidelines.",
+  P8: "Filter system instructions from tool inputs, logs, and external payloads.",
+  E1: "Use documented, vetted API endpoints and verify no user secrets or tokens are sent.",
+  E2: "Read only explicitly named environment variables required for the specific tool.",
+  E3: "Scope file access to explicitly allowed relative workspace paths. Never read credential directories.",
+  E4: "Preserve session privacy; never send chat history or user inputs to external services.",
+  E5: "Verify cloud storage destinations are authenticated and authorized by the operator.",
+  PE1: "Declare only minimal required permissions. Avoid broad wildcards.",
+  PE2: "Avoid sudo/root invocation. Run commands with least privilege.",
+  PE3: "Do not access ~/.ssh, ~/.aws, or token files. Use secure environment managers.",
+  SC1: "Pin exact dependency versions (==) in requirements.txt or pyproject.toml.",
+  SC2: "Do not pipe curl/wget output directly to sh/bash/python. Audit scripts before execution.",
+  SC3: "Remove base64/hex obfuscated execution. Provide readable, inspectable source code.",
+  SC7: "Keep container image trust verification and TLS verification enabled.",
+  SC8: "Delete precompiled __pycache__ and .pyc files prior to packaging.",
+  SC9: "Ensure all executables are explicit script files with standard extensions.",
+  SC10: "Use canonical package repositories (e.g. PyPI, npm) and avoid untrusted index mirrors.",
+  EA1: "Define explicit allowed-tools boundaries in skill frontmatter.",
+  EA2: "Require human confirmation for destructive file modifications, deletion, or remote requests.",
+  EA3: "Restrict instructions strictly to the documented domain task.",
+  EA4: "Add bounded limits, timeouts, and pagination quotas to loops and API requests.",
+  EA5: "Remove hardcoded provider switches or prompt the user for model authorization.",
+  OH1: "Sanitize and quote all model outputs before passing to shell commands, SQL, or HTML.",
+  OH2: "Redact and validate data flowing between differing trust domains.",
+  OH3: "Set strict length and token boundaries on generated outputs.",
+  MP1: "Do not instruct the agent to permanently retain directives across sessions.",
+  MP2: "Eliminate repetitive padding or filler text.",
+  MP3: "Treat agent base rules as immutable.",
+  TM1: "Validate shell parameters. Reject destructive force-delete flags and root-targeted deletion.",
+  TM2: "Decompose tool calls and validate intermediate outputs before downstream chaining.",
+  TM3: "Enforce secure defaults (verify=True on network calls, restrictive file permissions).",
+  TM4: "Remove privileged containers and hostPath mounts from Kubernetes manifests.",
+  RA1: "Treat skill files and SKILL.md as read-only at runtime.",
+  RA2: "Remove cron, systemd, or profile persistence hooks.",
+  TR1: "Narrow trigger phrases to specific, domain-relevant language.",
+  TR2: "Prefix custom command triggers to avoid colliding with built-in commands.",
+  TR3: "Avoid generic keywords that trigger the skill inappropriately.",
+  AS1: "Do not read agent config directories (.claude/, .codex/, .gemini/).",
+  AS2: "Do not inspect mcp.json files directly. Rely on host-provided tool declarations.",
+  AS3: "Do not inspect or read files belonging to other installed skills.",
+  AR1: "Remove anti-refusal phrases. Agents must be allowed to decline unsafe actions.",
+  AR2: "Allow safety warnings and disclaimers to surface to the operator.",
+  AR3: "Remove jailbreak framing attempting to strip agent constraints.",
+  SSRF1: "Block requests to 169.254.169.254 and cloud metadata hostnames.",
+  SSRF2: "Validate request targets against an allowlist and reject private/loopback IP ranges.",
+  SSRF3: "Sanitize and validate dynamic URLs before dispatching network requests.",
+  DS1: "Use json_decode() instead of unserialize() in PHP.",
+  DS2: "Use JSON parsing instead of Marshal.load in Ruby.",
+  DS3: "Use YAML.safe_load instead of YAML.load in Ruby.",
+  DS4: "Use JSON.parse instead of node-serialize in JavaScript.",
+  AST1: "Replace exec() with safe, static dispatch or bounded functions.",
+  AST2: "Replace eval() with ast.literal_eval() or structured parsers.",
+  AST3: "Use standard import statements or explicit module allowlists.",
+  AST4: "Use subprocess.run() with shell=False and an explicit list of string arguments.",
+  AST5: "Replace os.system() with subprocess.run(shell=False, ...).",
+  AST6: "Avoid dynamic compile().",
+  AST7: "Use an explicit dictionary lookup or attribute allowlist instead of dynamic getattr.",
+  AST8: "Do not combine decoding and execution sinks.",
+  AST9: "Avoid reflective invocation of execution functions.",
+  AST10: "Use json for data exchange. For PyTorch use weights_only=True; for YAML use safe_load.",
+  LP1: "Add required tools to allowed-tools in frontmatter or remove unneeded capabilities.",
+  LP2: "Replace wildcard permissions with an explicit list of required tools.",
+  LP3: "Declare required tool capabilities in SKILL.md frontmatter.",
+  LP4: "Remove unused permissions from frontmatter.",
+  TP1: "Remove concealed directives from metadata fields.",
+  TP2: "Use standard ASCII alphanumeric characters for skill names and identifiers.",
+  TP3: "Remove injection patterns from parameter descriptions.",
+  TP4: "Align skill description with actual script implementations."
+};
+
+// src/core/security-exclusions.ts
+var EXCLUDE_DIRS = new Set([
+  ".git",
+  "__pycache__",
+  ".pytest_cache",
+  "node_modules",
+  "tests"
+]);
+var ROOT_EXCLUDE_DIRS = new Set;
+var EXCLUDE_FILES = new Set([".DS_Store", "conftest.py"]);
+var SCRIPT_EXTENSIONS = new Set([
+  ".py",
+  ".sh",
+  ".bash",
+  ".zsh",
+  ".ksh",
+  ".fish",
+  ".ps1",
+  ".bat",
+  ".cmd",
+  ".js",
+  ".jsx",
+  ".mjs",
+  ".cjs",
+  ".ts",
+  ".tsx",
+  ".rb",
+  ".rake",
+  ".php",
+  ".phtml"
+]);
+var SAFE_BINARY_SIGNATURES = {
+  ".png": [[137, 80, 78, 71, 13, 10, 26, 10]],
+  ".jpg": [[255, 216, 255]],
+  ".jpeg": [[255, 216, 255]],
+  ".gif": [
+    [71, 73, 70, 56, 55, 97],
+    [71, 73, 70, 56, 57, 97]
+  ],
+  ".webp": [[82, 73, 70, 70]],
+  ".ico": [[0, 0, 1, 0]],
+  ".woff": [[119, 79, 70, 70]],
+  ".woff2": [[119, 79, 70, 50]],
+  ".ttf": [[0, 1, 0, 0]],
+  ".otf": [[79, 84, 84, 79]]
+};
+function shouldExcludeSkillFile(relativeFilePath) {
+  const normalized = relativeFilePath.replace(/\\/g, "/");
+  const parts = normalized.split("/").filter(Boolean);
+  if (parts.length === 0)
+    return true;
+  for (let i = 0;i < parts.length - 1; i++) {
+    if (EXCLUDE_DIRS.has(parts[i])) {
+      return true;
+    }
+  }
+  if (parts.length > 1 && ROOT_EXCLUDE_DIRS.has(parts[0])) {
+    return true;
+  }
+  const fileName = parts[parts.length - 1];
+  if (EXCLUDE_FILES.has(fileName)) {
+    return true;
+  }
+  if (fileName.startsWith(".") || fileName.startsWith("test_") || fileName.endsWith("_test.py") || fileName.endsWith(".test.ts") || fileName.endsWith(".test.py") || fileName.endsWith(".pyc")) {
+    return true;
+  }
+  return false;
+}
+function isSafeBinaryAsset(ext, data) {
+  const lowerExt = ext.toLowerCase();
+  const signatures = SAFE_BINARY_SIGNATURES[lowerExt];
+  if (!signatures)
+    return false;
+  for (const sig of signatures) {
+    if (data.length >= sig.length) {
+      let matches = true;
+      for (let i = 0;i < sig.length; i++) {
+        if (data[i] !== sig[i]) {
+          matches = false;
+          break;
+        }
+      }
+      if (matches)
+        return true;
+    }
+  }
+  return false;
+}
+function isScriptFile(fileName, content, mode) {
+  const dotIndex = fileName.lastIndexOf(".");
+  const ext = dotIndex !== -1 ? fileName.slice(dotIndex).toLowerCase() : "";
+  if (SCRIPT_EXTENSIONS.has(ext)) {
+    return true;
+  }
+  if (content && content.startsWith("#!")) {
+    return true;
+  }
+  if (typeof mode === "number" && (mode & 73) !== 0) {
+    return true;
+  }
+  return false;
+}
+
+// src/core/security-prohibition.ts
+var CONTEXT_CHARS = 512;
+var DIRECT_PREFIX = /(?:^|(?<=[\n\r.!?;,\[]))[ \t]*(?:[-+][ \t]+|\d+[.)][ \t]+)?(?:please\s+)?(?:(?:you|(?:the\s+)?(?:agent|assistant|model))\s+)?(?:do\s+not|don['’]t|never|no|must\s+not|shall\s+not)\s+(?:(?:ever|first|verbatim|exactly|word\s+for\s+word)\s+)?(?:(?:execute|run|perform|do|use|call|issue)\s+)?$/i;
+var DISAVOWAL = /\b(?:ignore|disregard|override|obsolete|invalid|bypass|suspend|violat\w*|opposit\w*|invers\w*|invert\w*|revers\w*|contrar\w*|negat\w*)\b/i;
+var EXCEPTION = /\b(?:unless|except|until|but|however|instead)\b/i;
+function isDirectlyProhibited(content, start, end) {
+  if (start < 0 || end <= start || end > content.length) {
+    return false;
+  }
+  const left = Math.max(0, start - CONTEXT_CHARS);
+  const prefixRaw = content.slice(left, start);
+  const prefix = prefixRaw.replace(/[*_`#]/g, "");
+  const match = DIRECT_PREFIX.exec(prefix);
+  if (!match) {
+    return false;
+  }
+  if (left > 0 && match.index === 0) {
+    return false;
+  }
+  const tail = content.slice(end, Math.min(content.length, end + 256));
+  const leading = prefix.slice(0, match.index);
+  const quotesInLeading = (leading.match(/['"]/g) || []).length;
+  const quotesInTail = (tail.match(/['"]/g) || []).length;
+  if (quotesInLeading % 2 !== 0 && quotesInTail % 2 === 0) {
+    return false;
+  }
+  if (DISAVOWAL.test(leading)) {
+    return false;
+  }
+  const breaks = [tail.indexOf("."), tail.indexOf(`
+`), tail.indexOf("!"), tail.indexOf(";"), tail.indexOf("?")].filter((idx) => idx !== -1);
+  const firstBreak = breaks.length > 0 ? Math.min(...breaks) : tail.length;
+  const clause = tail.slice(0, firstBreak);
+  if (EXCEPTION.test(clause)) {
+    return false;
+  }
+  return true;
+}
+
+// src/core/security-patterns.ts
+var REQ_ANCHOR = "(?:(?:requests|httpx|aiohttp|urllib(?:\\.request)?|urllib3|session)\\s*\\.\\s*" + "(?:get|post|put|patch|delete|head|request|urlopen)|fetch|axios(?:\\.\\w+)?|XMLHttpRequest|\\bcurl\\b|\\bwget\\b)";
+var BIDI_CONTROL = "[\\u202A-\\u202E\\u2066-\\u2069]";
+var PATTERNS_DATABASE = [
+  {
+    ruleId: "P1",
+    name: "Instruction Override",
+    severity: "CRITICAL",
+    category: "Prompt Injection" /* PROMPT_INJECTION */,
+    patterns: [
+      { regex: "\\bignore\\s+(?:all\\s+)?previous\\s+instructions?\\b", confidence: 0.95 },
+      { regex: "\\bignore\\s+(?:all\\s+)?(?:safety|security)\\s+(?:rules?|constraints?|guidelines?)\\b", confidence: 0.95 },
+      { regex: "\\boverride\\s+(?:safety|security|system)\\s+(?:rules?|prompts?|instructions?)\\b", confidence: 0.9 },
+      { regex: "\\bbypass\\s+(?:safety|security|restrictions?|constraints?)\\b", confidence: 0.9 },
+      { regex: "\\bdisregard\\s+(?:all\\s+)?(?:previous|safety|security)\\b", confidence: 0.85 },
+      { regex: "\\bforget\\s+(?:all\\s+)?(?:previous|your)\\s+instructions?\\b", confidence: 0.9 },
+      { regex: "\\byou\\s+are\\s+now\\s+(?:in\\s+)?(?:jailbreak|unrestricted|unfiltered)\\s+mode\\b", confidence: 0.95 },
+      { regex: "\\benable\\s+(?:developer|debug|admin|root)\\s+mode\\b", confidence: 0.7 },
+      { regex: "\\byour\\s+new\\s+(?:instructions?|rules?)\\s+are\\b", confidence: 0.7 },
+      { regex: "\\bdo\\s+not\\s+follow\\s+(?:any|your|the)\\s+(?:rules?|guidelines?)\\b", confidence: 0.9 }
+    ]
+  },
+  {
+    ruleId: "P2",
+    name: "Hidden Instructions",
+    severity: "HIGH",
+    category: "Prompt Injection" /* PROMPT_INJECTION */,
+    patterns: [
+      {
+        regex: "<!--(?:(?!-->).)*?(?:system\\s+(?:prompt|instruction)|ignore\\s+instructions|transmit|eval\\s*\\(|exec\\s*\\(|POST\\s+https?://|GET\\s+https?://)(?:(?!-->).)*?-->",
+        confidence: 0.85
+      },
+      { regex: "data:text/plain;base64,[A-Za-z0-9+/=]{50,}", confidence: 0.75 },
+      { regex: BIDI_CONTROL, confidence: 0.9 }
+    ]
+  },
+  {
+    ruleId: "P3",
+    name: "Exfiltration Commands",
+    severity: "CRITICAL",
+    category: "Prompt Injection" /* PROMPT_INJECTION */,
+    patterns: [
+      { regex: "(?:send|transmit|upload|post|forward)\\s+(?:the\\s+)?(?:conversation|context|chat|history|messages?)\\s+to\\b", confidence: 0.95 },
+      { regex: "(?:copy|extract|collect)\\s+(?:the\\s+)?(?:conversation|context|session)\\s+(?:and\\s+)?(?:send|upload|transmit)\\b", confidence: 0.9 },
+      { regex: "(?:silently|quietly|secretly|covertly)\\s+(?:send|transmit|log|record)\\b", confidence: 0.9 },
+      { regex: "without\\s+(?:telling|informing|notifying)\\s+(?:the\\s+)?user.*?(?:send|transmit|upload)\\b", confidence: 0.95 }
+    ]
+  },
+  {
+    ruleId: "P5",
+    name: "Harmful / Destructive Content",
+    severity: "CRITICAL",
+    category: "Prompt Injection" /* PROMPT_INJECTION */,
+    patterns: [
+      { regex: "\\b(?:create|write|generate|deploy)\\s+(?:a\\s+)?(?:keylogger|ransomware|trojan|rootkit|botnet|worm)\\b", confidence: 0.95 },
+      { regex: "\\b(?:ddos|denial\\s+of\\s+service)\\s+(?:attack|script|tool)\\b", confidence: 0.85 }
+    ]
+  },
+  {
+    ruleId: "P6",
+    name: "Direct System Prompt Leakage",
+    severity: "HIGH",
+    category: "System Prompt Leakage" /* SYSTEM_PROMPT_LEAKAGE */,
+    patterns: [
+      { regex: "(?:print|output|show|display|reveal|expose|return|echo)\\s+(?:your\\s+)?(?:full\\s+)?(?:system\\s+)?(?:prompts?|instructions?|rules?|guidelines?|directives?)\\b", confidence: 0.9 },
+      { regex: "(?:what\\s+(?:are|is)\\s+your|tell\\s+me\\s+your)\\s+(?:system\\s+)?(?:prompts?|instructions?|rules?|guidelines?|directives?)\\b", confidence: 0.85 },
+      { regex: "(?:share|disclose|leak|give\\s+me)\\s+(?:your\\s+)?(?:internal|hidden|system|secret)\\s+(?:prompts?|instructions?|rules?)\\b", confidence: 0.9 },
+      { regex: "(?:verbatim|exactly|word\\s+for\\s+word)\\s+(?:repeat|output|print)\\s+(?:your\\s+)?(?:system\\s+)?(?:prompts?|instructions?)\\b", confidence: 0.95 }
+    ]
+  },
+  {
+    ruleId: "P7",
+    name: "Indirect System Prompt Leakage",
+    severity: "MEDIUM",
+    category: "System Prompt Leakage" /* SYSTEM_PROMPT_LEAKAGE */,
+    patterns: [
+      { regex: "(?:summarize|paraphrase|rephrase|translate)\\s+(?:your\\s+)?(?:system\\s+)?(?:prompt|instructions?|rules?|guidelines?)\\b", confidence: 0.8 },
+      { regex: "(?:repeat|recite|reproduce)\\s+(?:everything|all\\s+text)\\s+(?:above|before|prior)\\b", confidence: 0.8 }
+    ]
+  },
+  {
+    ruleId: "E1",
+    name: "External Transmission",
+    severity: "HIGH",
+    category: "Data Exfiltration" /* DATA_EXFILTRATION */,
+    patterns: [
+      { regex: `\\bcurl\\s+[^|;\\n]*(?:-d|--data|--data-raw|--data-binary)\\s+(?:[^|;\\n]*\\s+)?['"]?https?://`, confidence: 0.8 },
+      { regex: "\\bwget\\s+[^|;\\n]*--post-(?:data|file)", confidence: 0.8 },
+      { regex: "\\b(?:requests|httpx)\\.post\\s*\\([^)]*data\\s*=\\s*os\\.environ", confidence: 0.95 }
+    ]
+  },
+  {
+    ruleId: "E2",
+    name: "Environment Variable Harvesting",
+    severity: "HIGH",
+    category: "Data Exfiltration" /* DATA_EXFILTRATION */,
+    patterns: [
+      { regex: "(?:dict|list)\\s*\\(\\s*os\\.environ\\s*\\)", confidence: 0.8 },
+      { regex: "os\\.environ\\.copy\\s*\\(\\s*\\)", confidence: 0.8 },
+      { regex: "env\\s*\\|\\s*(?:grep|curl|nc|wget)\\b", confidence: 0.85 },
+      { regex: "printenv\\s*\\|\\s*(?:curl|nc|wget)\\b", confidence: 0.9 }
+    ]
+  },
+  {
+    ruleId: "E3",
+    name: "Filesystem Reconnaissance",
+    severity: "HIGH",
+    category: "Data Exfiltration" /* DATA_EXFILTRATION */,
+    patterns: [
+      { regex: `\\bfind\\s+(?:~|/home|/root|/)\\s+-(?:name|iname)\\s+['"]?\\*?(?:id_rsa|id_ed25519|\\.env|\\.aws|\\.kube|\\.dockercfg)['"]?`, confidence: 0.9 },
+      { regex: `\\bgrep\\s+-r[iI]?\\s+['"](?:api[_-]?key|secret|password|token)['"]\\s+(?:~|/home)`, confidence: 0.85 }
+    ]
+  },
+  {
+    ruleId: "PE1",
+    name: "Excessive Permissions",
+    severity: "HIGH",
+    category: "Privilege Escalation" /* PRIVILEGE_ESCALATION */,
+    patterns: [
+      { regex: `permissions?\\s*:\\s*\\[?\\s*['"]?\\*['"]?\\s*\\]?`, confidence: 0.9 },
+      { regex: `allowed-tools\\s*:\\s*\\[?\\s*['"]?\\*['"]?\\s*\\]?`, confidence: 0.9 },
+      { regex: "(?:request|require)s?\\s+(?:full|all|root|admin)\\s+(?:access|permissions?)", confidence: 0.75 }
+    ]
+  },
+  {
+    ruleId: "PE2",
+    name: "Privilege Escalation Commands",
+    severity: "HIGH",
+    category: "Privilege Escalation" /* PRIVILEGE_ESCALATION */,
+    patterns: [
+      { regex: "\\bsudo\\s+(?!-v|-l|--version|--list)\\b", confidence: 0.8 },
+      { regex: "\\bsu\\s+-\\s*$|\\bsu\\s+root\\b", confidence: 0.85 },
+      { regex: "\\bdoas\\s+|\\bpkexec\\s+", confidence: 0.8 },
+      { regex: "\\bchmod\\s+[ugo]*[+-=]*s\\b", confidence: 0.9 },
+      { regex: "\\bchmod\\s+0*[2-7][0-7]{3}\\b", confidence: 0.85 }
+    ]
+  },
+  {
+    ruleId: "PE3",
+    name: "Credential File Access",
+    severity: "CRITICAL",
+    category: "Privilege Escalation" /* PRIVILEGE_ESCALATION */,
+    patterns: [
+      { regex: "(?:~|/home/[^/\\s]+)/\\.(?:ssh/id_rsa|ssh/id_ed25519|aws/credentials|kube/config)", confidence: 0.95 },
+      { regex: "/etc/(?:shadow|sudoers|master\\.passwd)", confidence: 0.95 },
+      { regex: "\\b(?:cat|open|read)\\s+[^|;\\n]*\\.(?:env|pem|key)\\b", confidence: 0.75 }
+    ]
+  },
+  {
+    ruleId: "SC2",
+    name: "Remote Script Piping",
+    severity: "CRITICAL",
+    category: "Supply Chain" /* SUPPLY_CHAIN */,
+    patterns: [
+      { regex: "\\bcurl\\s+[^|;\\n]+\\|\\s*(?:ba|z|da)?sh\\b", confidence: 0.95 },
+      { regex: "\\bwget\\s+[^|;\\n]+-O\\s*-\\s*\\|\\s*(?:ba|z|da)?sh\\b", confidence: 0.95 },
+      { regex: "\\bcurl\\s+[^|;\\n]+\\|\\s*python[0-9.]*\\b", confidence: 0.95 },
+      { regex: "\\bwget\\s+[^|;\\n]+-O\\s*-\\s*\\|\\s*python[0-9.]*\\b", confidence: 0.95 }
+    ]
+  },
+  {
+    ruleId: "SC3",
+    name: "Obfuscated Code",
+    severity: "HIGH",
+    category: "Supply Chain" /* SUPPLY_CHAIN */,
+    patterns: [
+      { regex: "base64\\.b64decode\\s*\\([^)]*\\)\\s*\\|\\s*(?:exec|eval)", confidence: 0.95 },
+      { regex: "exec\\s*\\(\\s*base64\\.b64decode\\b", confidence: 0.95 },
+      { regex: `eval\\s*\\(\\s*Buffer\\.from\\s*\\([^)]*['"]base64['"]\\)`, confidence: 0.95 },
+      { regex: "\\bpowershell(?:\\.exe)?\\s+-[eE](?:nc(?:odedcommand)?)?\\s+[A-Za-z0-9+/=]{20,}", confidence: 0.95 }
+    ]
+  },
+  {
+    ruleId: "EA1",
+    name: "Unrestricted Tool Access",
+    severity: "MEDIUM",
+    category: "Excessive Agency" /* EXCESSIVE_AGENCY */,
+    patterns: [
+      { regex: "\\bgrant\\s+unrestricted\\s+access\\s+to\\s+(?:all\\s+)?tools?\\b", confidence: 0.8 },
+      { regex: "\\byou\\s+may\\s+execute\\s+any\\s+(?:command|tool|script)\\s+without\\s+restriction\\b", confidence: 0.85 }
+    ]
+  },
+  {
+    ruleId: "EA2",
+    name: "Autonomous Decision Making",
+    severity: "MEDIUM",
+    category: "Excessive Agency" /* EXCESSIVE_AGENCY */,
+    patterns: [
+      { regex: "\\bexecute\\s+(?:(?:destructive|permanent|database|git\\s+push)\\s+)+operations?\\s+without\\s+(?:asking|confirmation|user\\s+approval)\\b", confidence: 0.85 },
+      { regex: "\\bauto-confirm\\s+all\\s+(?:actions?|prompts?|steps?)\\b", confidence: 0.8 }
+    ]
+  },
+  {
+    ruleId: "OH1",
+    name: "Unvalidated Output Injection",
+    severity: "HIGH",
+    category: "Output Handling" /* OUTPUT_HANDLING */,
+    patterns: [
+      { regex: "\\bexecute\\s+(?:the\\s+)?(?:(?:generated|model|llm)\\s+)+(?:output|response|code)\\s+directly\\s+in\\s+shell\\b", confidence: 0.85 },
+      { regex: `\\bquery\\s*=\\s*f?['"]SELECT\\s+.*?\\s+WHERE\\s+.*?\\{.*?\\}['"]`, confidence: 0.75 }
+    ]
+  },
+  {
+    ruleId: "MP1",
+    name: "Persistent Memory Injection",
+    severity: "HIGH",
+    category: "Memory Poisoning" /* MEMORY_POISONING */,
+    patterns: [
+      { regex: "(?:always\\s+)?remember\\s+(?:this|that|the\\s+following)\\s+(?:for|in)\\s+(?:all|every|future)\\s+(?:interactions?|conversations?|sessions?)\\b", confidence: 0.85 },
+      { regex: "(?:from\\s+now\\s+on|permanently)\\s*[,:]?\\s*(?:always|you\\s+must|you\\s+will)\\b", confidence: 0.8 },
+      { regex: "(?:store|save|persist)\\s+(?:this|the\\s+following)\\s+(?:in|to|across)\\s+(?:your\\s+)?(?:memory|state)\\b", confidence: 0.8 }
+    ]
+  },
+  {
+    ruleId: "MP2",
+    name: "Context Window Stuffing",
+    severity: "MEDIUM",
+    category: "Memory Poisoning" /* MEMORY_POISONING */,
+    patterns: [
+      { regex: "(?:repeat|duplicate|echo)\\s+(?:this|the\\s+following)\\s+(?:\\d{3,}|hundreds?|thousands?)\\s+times?\\b", confidence: 0.85 },
+      { regex: "(?:displace|push\\s+out|overwrite|crowd\\s+out)\\s+(?:the\\s+)?(?:original|system|previous)\\s+(?:instructions?|prompt|context)\\b", confidence: 0.9 }
+    ]
+  },
+  {
+    ruleId: "TM1",
+    name: "Tool Parameter Abuse",
+    severity: "CRITICAL",
+    category: "Tool Misuse" /* TOOL_MISUSE */,
+    patterns: [
+      { regex: "\\brm\\s+-(?:r[fF]|fr)\\s+/(?:\\s|$|\\*)", confidence: 0.95 },
+      { regex: "--no-preserve-root", confidence: 0.95 },
+      { regex: ":\\(\\)\\s*\\{\\s*:\\s*\\|\\s*:\\s*&\\s*\\}\\s*;\\s*:", confidence: 0.95 },
+      { regex: "\\bmkfs(?:\\.[a-z0-9]+)?\\s+/dev/sd[a-z]", confidence: 0.95 },
+      { regex: "\\bdd\\s+if=/dev/(?:zero|urandom)\\s+of=/dev/sd[a-z]", confidence: 0.95 }
+    ]
+  },
+  {
+    ruleId: "TM3",
+    name: "Unsafe Defaults",
+    severity: "MEDIUM",
+    category: "Tool Misuse" /* TOOL_MISUSE */,
+    patterns: [
+      { regex: "verify\\s*=\\s*False\\b", confidence: 0.85 },
+      { regex: "rejectUnauthorized\\s*:\\s*false\\b", confidence: 0.85 },
+      { regex: "chmod\\s+0?777\\b", confidence: 0.8 }
+    ]
+  },
+  {
+    ruleId: "TM4",
+    name: "Privileged Kubernetes Workload",
+    severity: "HIGH",
+    category: "Tool Misuse" /* TOOL_MISUSE */,
+    patterns: [
+      { regex: "privileged\\s*:\\s*true\\b", confidence: 0.85 },
+      { regex: "hostPath\\s*:\\s*path\\b", confidence: 0.85 },
+      { regex: "hostNetwork\\s*:\\s*true\\b", confidence: 0.85 }
+    ]
+  },
+  {
+    ruleId: "RA1",
+    name: "Self-Modification",
+    severity: "HIGH",
+    category: "Rogue Agent" /* ROGUE_AGENT */,
+    patterns: [
+      { regex: `open\\s*\\(\\s*__file__\\s*,\\s*['"]w`, confidence: 0.95 },
+      { regex: "(?:Path|pathlib)\\s*\\(\\s*__file__\\s*\\)\\.write_text", confidence: 0.95 },
+      { regex: "\\b(?:modify|rewrite|overwrite|patch)\\s+(?:your\\s+own\\s+)?SKILL\\.md\\b", confidence: 0.9 }
+    ]
+  },
+  {
+    ruleId: "RA2",
+    name: "Unauthorized Session Persistence",
+    severity: "HIGH",
+    category: "Rogue Agent" /* ROGUE_AGENT */,
+    patterns: [
+      { regex: "\\bcrontab\\s+-[eir]?\\b", confidence: 0.85 },
+      { regex: "~/Library/LaunchAgents/.*?\\.(?:plist)", confidence: 0.9 },
+      { regex: "/etc/systemd/system/.*?\\.(?:service)", confidence: 0.9 },
+      { regex: "(?:echo|cat|printf)\\s+[^|;\\n]*>>\\s*~/\\.(?:bashrc|zshrc|profile|bash_profile)", confidence: 0.9 }
+    ]
+  },
+  {
+    ruleId: "AS1",
+    name: "Agent Config Snooping",
+    severity: "HIGH",
+    category: "Agent Snooping" /* AGENT_SNOOPING */,
+    patterns: [
+      { regex: "(?:open|cat|head|tail|grep|find)\\s+[^|;\\n]*~?/?\\.(?:claude|codex|gemini|continue)/(?:config|settings?|credentials?)\\b", confidence: 0.9 },
+      { regex: "~?/?\\.(?:claude|codex|gemini|continue)/(?:config|settings?|preferences?|credentials?)(?:\\.(?:json|yaml|yml|toml))?", confidence: 0.95 },
+      { regex: "(?:read|load|open|access|fetch)\\s+(?:the\\s+)?(?:agent|claude|codex|gemini)\\s+(?:config|configuration|settings?|credentials?)\\s+(?:from|at|in)\\s+~?/?\\.(?:claude|codex|gemini)", confidence: 0.9 },
+      { regex: "(?:read|access|inspect|examine|retrieve)\\s+(?:the\\s+)?(?:agent|assistant)\\s+(?:config(?:uration)?|settings?|preferences?|credentials?)\\s+(?:file|directory|folder)", confidence: 0.85 }
+    ]
+  },
+  {
+    ruleId: "AS2",
+    name: "MCP Configuration Access",
+    severity: "HIGH",
+    category: "Agent Snooping" /* AGENT_SNOOPING */,
+    patterns: [
+      { regex: "(?:open|cat|grep)\\s+[^|;\\n]*mcp(?:_config)?\\.json", confidence: 0.95 },
+      { regex: "\\.(?:claude|codex|gemini)/mcp\\.json", confidence: 0.95 },
+      { regex: "(?:read|access|load|inspect)\\s+(?:the\\s+)?mcp(?:\\.json|_config)?\\s+(?:file|config)\\b", confidence: 0.9 }
+    ]
+  },
+  {
+    ruleId: "AS3",
+    name: "Cross-Skill Snooping",
+    severity: "MEDIUM",
+    category: "Agent Snooping" /* AGENT_SNOOPING */,
+    patterns: [
+      { regex: "(?:os\\.listdir|glob\\.glob|Path\\.iterdir)\\s*\\([^)]*\\.(?:claude|codex|gemini)/skills?", confidence: 0.9 },
+      { regex: "(?:list|enumerate|inspect)\\s+(?:all\\s+)?(?:installed\\s+)?skills\\s+in\\s+~?/?\\.(?:claude|codex|gemini)", confidence: 0.85 }
+    ]
+  },
+  {
+    ruleId: "AR1",
+    name: "Refusal Suppression",
+    severity: "HIGH",
+    category: "Anti-Refusal" /* ANTI_REFUSAL */,
+    patterns: [
+      { regex: "\\b(?:never|do\\s+not|don'?t)\\s+(?:ever\\s+)?(?:refuse|decline)\\b", confidence: 0.9 },
+      { regex: "\\byou\\s+(?:must|will|should|can)\\s*(?:not|never)\\s+(?:refuse|decline|say\\s+no)\\b", confidence: 0.9 },
+      { regex: "\\balways\\s+(?:comply|obey|agree|answer|respond)\\b", confidence: 0.75 },
+      { regex: "\\bno\\s+request\\s+is\\s+(?:off[- ]limits|forbidden)\\b", confidence: 0.85 }
+    ]
+  },
+  {
+    ruleId: "AR2",
+    name: "Disclaimer Suppression",
+    severity: "MEDIUM",
+    category: "Anti-Refusal" /* ANTI_REFUSAL */,
+    patterns: [
+      { regex: "\\b(?:do\\s+not|don'?t|never|no)\\s+(?:include|add|give|provide)?\\s*(?:any\\s+)?(?:warnings?|disclaimers?|caveats?)\\b", confidence: 0.85 },
+      { regex: "\\bwithout\\s+(?:any\\s+)?(?:warnings?|disclaimers?|caveats?|moralizing|moralising|judg(?:e?ment|ing))\\b", confidence: 0.85 },
+      { regex: "\\b(?:do\\s+not|don'?t|never)\\s+(?:lecture|moralize|moralise|preach|warn)\\b", confidence: 0.85 },
+      { regex: "\\b(?:skip|omit|leave\\s+out|drop)\\s+(?:the\\s+)?(?:disclaimer|warning|ethics|safety)\\b", confidence: 0.85 },
+      { regex: "\\b(?:no|without)\\s+(?:ethical|moral)\\s+(?:judg(?:e?ment)|considerations?|commentary|objections?)\\b", confidence: 0.85 }
+    ]
+  },
+  {
+    ruleId: "AR3",
+    name: "Safety Policy Nullification",
+    severity: "CRITICAL",
+    category: "Anti-Refusal" /* ANTI_REFUSAL */,
+    patterns: [
+      { regex: "\\byou\\s+have\\s+no\\s+(?:restrictions?|limitations?|filters?|rules?|guidelines?|boundaries|limits)\\b", confidence: 0.95 },
+      { regex: "\\b(?:you\\s+are|act\\s+as)[^.\\n]{0,30}(?:unrestricted|unfiltered|uncensored|no\\s+filter)\\b", confidence: 0.9 },
+      { regex: "\\b(?:ignore|disregard|bypass|override)\\s+(?:your\\s+)?(?:content\\s+)?(?:policy|policies|guidelines?|safety|restrictions?)\\b", confidence: 0.95 },
+      { regex: "\\bnot\\s+bound\\s+by\\s+(?:any\\s+)?(?:policy|rules?|guidelines?|safety|constraints?)\\b", confidence: 0.95 }
+    ]
+  },
+  {
+    ruleId: "SSRF1",
+    name: "Cloud Metadata IMDS Access",
+    severity: "CRITICAL",
+    category: "Server-Side Request Forgery" /* SERVER_SIDE_REQUEST_FORGERY */,
+    patterns: [
+      { regex: "(?:" + REQ_ANCHOR + ")\\s*\\([^)]*169\\.254\\.169\\.254", confidence: 0.95 },
+      { regex: "(?:" + REQ_ANCHOR + ")\\s*\\([^)]*metadata\\.google\\.internal", confidence: 0.95 },
+      { regex: "(?:" + REQ_ANCHOR + ")\\s*\\([^)]*100\\.100\\.100\\.200", confidence: 0.9 },
+      { regex: "(?:" + REQ_ANCHOR + ")\\s*\\([^)]*fd00:ec2::254", confidence: 0.9 }
+    ]
+  },
+  {
+    ruleId: "SSRF2",
+    name: "Internal Network Requests",
+    severity: "MEDIUM",
+    category: "Server-Side Request Forgery" /* SERVER_SIDE_REQUEST_FORGERY */,
+    patterns: [
+      {
+        regex: "(?:" + REQ_ANCHOR + `)\\s*\\(\\s*f?['"]https?://(?:localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0|\\[::1\\]|10\\.\\d+\\.\\d+\\.\\d+|192\\.168\\.\\d+\\.\\d+|172\\.(?:1[6-9]|2\\d|3[01])\\.\\d+\\.\\d+)`,
+        confidence: 0.8
+      }
+    ]
+  }
+];
+
+// src/core/security-specialized.ts
+var ZERO_WIDTH_CHARS = new Set(["​", "‌", "‍", "⁠", "\uFEFF"]);
+function isDependencyManifest(filePath) {
+  const lower = filePath.replace(/\\/g, "/").toLowerCase();
+  const base = lower.split("/").pop() || "";
+  return base.startsWith("requirements") || ["package.json", "pyproject.toml", "setup.py", "pipfile", "environment.yml"].includes(base);
+}
+function analyzeWhitespacePadding(content, filename) {
+  const findings = [];
+  const lines = content.split(/\r?\n/);
+  let consecutiveBlank = 0;
+  let startLine = 0;
+  for (let i = 0;i < lines.length; i++) {
+    const lineNum = i + 1;
+    const line = lines[i];
+    if (!line.trim()) {
+      if (consecutiveBlank === 0) {
+        startLine = lineNum;
+      }
+      consecutiveBlank++;
+    } else {
+      if (consecutiveBlank >= 20) {
+        findings.push({
+          ruleId: "P9",
+          message: `Vertical whitespace padding: ${consecutiveBlank} consecutive blank lines`,
+          severity: consecutiveBlank >= 40 ? "HIGH" : "MEDIUM",
+          category: "Prompt Injection" /* PROMPT_INJECTION */,
+          file: filename,
+          line: startLine,
+          matchedText: `${consecutiveBlank} blank lines`,
+          confidence: 0.85,
+          explanation: DEFAULT_EXPLANATIONS["P9"],
+          remediation: DEFAULT_REMEDIATIONS["P9"]
+        });
+      }
+      consecutiveBlank = 0;
+    }
+  }
+  if (consecutiveBlank >= 20) {
+    findings.push({
+      ruleId: "P9",
+      message: `Vertical whitespace padding: ${consecutiveBlank} consecutive trailing blank lines`,
+      severity: consecutiveBlank >= 40 ? "HIGH" : "MEDIUM",
+      category: "Prompt Injection" /* PROMPT_INJECTION */,
+      file: filename,
+      line: startLine,
+      matchedText: `${consecutiveBlank} blank lines`,
+      confidence: 0.85,
+      explanation: DEFAULT_EXPLANATIONS["P9"],
+      remediation: DEFAULT_REMEDIATIONS["P9"]
+    });
+  }
+  const horizontalPaddingRegex = /[ \t]{80,}/g;
+  for (let i = 0;i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    if (trimmed.startsWith("|") && trimmed.endsWith("|")) {
+      continue;
+    }
+    let match;
+    horizontalPaddingRegex.lastIndex = 0;
+    while ((match = horizontalPaddingRegex.exec(line)) !== null) {
+      findings.push({
+        ruleId: "P9",
+        message: `Horizontal whitespace padding: ${match[0].length} consecutive spaces/tabs`,
+        severity: "MEDIUM",
+        category: "Prompt Injection" /* PROMPT_INJECTION */,
+        file: filename,
+        line: i + 1,
+        matchedText: `${match[0].length} padding chars`,
+        confidence: 0.8,
+        explanation: DEFAULT_EXPLANATIONS["P9"],
+        remediation: DEFAULT_REMEDIATIONS["P9"]
+      });
+    }
+  }
+  return findings;
+}
+function checkSupplyChainDependencies(content, fileRel) {
+  if (!isDependencyManifest(fileRel)) {
+    return [];
+  }
+  const findings = [];
+  const lines = content.split(/\r?\n/);
+  for (let idx = 0;idx < lines.length; idx++) {
+    const line = lines[idx].trim();
+    if (!line || line.startsWith("#") || line.startsWith("//")) {
+      continue;
+    }
+    if (fileRel.toLowerCase().includes("requirements")) {
+      if (/^[a-zA-Z0-9_-]+(?:\s*>[^=].*|\s*>=.*|\s*)?$/.test(line) && !line.includes("==") && !line.includes("@")) {
+        if (!line.startsWith("-")) {
+          findings.push({
+            ruleId: "SC1",
+            message: `Unpinned package dependency: ${line}`,
+            severity: "LOW",
+            category: "Supply Chain" /* SUPPLY_CHAIN */,
+            file: fileRel,
+            line: idx + 1,
+            matchedText: line,
+            confidence: 0.7,
+            explanation: DEFAULT_EXPLANATIONS["SC1"],
+            remediation: DEFAULT_REMEDIATIONS["SC1"]
+          });
+        }
+      }
+    }
+  }
+  return findings;
+}
+function checkLanguageDeserialization(content, fileRel) {
+  const findings = [];
+  const lower = fileRel.toLowerCase();
+  const ext = lower.slice(lower.lastIndexOf("."));
+  if (ext === ".php" || ext === ".phtml") {
+    const regex = /\bunserialize\s*\(/g;
+    let m;
+    while ((m = regex.exec(content)) !== null) {
+      const line = content.slice(0, m.index).split(`
+`).length;
+      findings.push({
+        ruleId: "DS1",
+        message: "PHP object injection via unserialize()",
+        severity: "HIGH",
+        category: "Insecure Deserialization" /* DESERIALIZATION */,
+        file: fileRel,
+        line,
+        matchedText: m[0],
+        confidence: 0.85,
+        explanation: DEFAULT_EXPLANATIONS["DS1"],
+        remediation: DEFAULT_REMEDIATIONS["DS1"]
+      });
+    }
+  } else if (ext === ".rb" || ext === ".rake") {
+    const marshalRegex = /\bMarshal\s*\.\s*(?:load|restore)\b/g;
+    let m;
+    while ((m = marshalRegex.exec(content)) !== null) {
+      const line = content.slice(0, m.index).split(`
+`).length;
+      findings.push({
+        ruleId: "DS2",
+        message: "Ruby Marshal deserialization on untrusted data",
+        severity: "HIGH",
+        category: "Insecure Deserialization" /* DESERIALIZATION */,
+        file: fileRel,
+        line,
+        matchedText: m[0],
+        confidence: 0.85,
+        explanation: DEFAULT_EXPLANATIONS["DS2"],
+        remediation: DEFAULT_REMEDIATIONS["DS2"]
+      });
+    }
+    const yamlRegex = /\b(?:YAML|Psych)\s*\.\s*load\s*\(/g;
+    while ((m = yamlRegex.exec(content)) !== null) {
+      const line = content.slice(0, m.index).split(`
+`).length;
+      findings.push({
+        ruleId: "DS3",
+        message: "Unsafe Ruby YAML.load without safe_load",
+        severity: "MEDIUM",
+        category: "Insecure Deserialization" /* DESERIALIZATION */,
+        file: fileRel,
+        line,
+        matchedText: m[0],
+        confidence: 0.75,
+        explanation: DEFAULT_EXPLANATIONS["DS3"],
+        remediation: DEFAULT_REMEDIATIONS["DS3"]
+      });
+    }
+  } else if ([".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx"].includes(ext)) {
+    const jsDeserRegex = /require\(\s*['"](?:node-serialize|serialize-to-js)['"]\s*\)/g;
+    let m;
+    while ((m = jsDeserRegex.exec(content)) !== null) {
+      const line = content.slice(0, m.index).split(`
+`).length;
+      findings.push({
+        ruleId: "DS4",
+        message: "Insecure JavaScript deserialization package",
+        severity: "HIGH",
+        category: "Insecure Deserialization" /* DESERIALIZATION */,
+        file: fileRel,
+        line,
+        matchedText: m[0],
+        confidence: 0.85,
+        explanation: DEFAULT_EXPLANATIONS["DS4"],
+        remediation: DEFAULT_REMEDIATIONS["DS4"]
+      });
+    }
+  }
+  return findings;
+}
+function analyzeBehavioralSinks(content, filename, isScript) {
+  const findings = [];
+  const lower = filename.toLowerCase();
+  const isPython = lower.endsWith(".py") || isScript && /^#![^\n]*\bpython(?:[0-9.]*)?\b/.test(content);
+  const isJsTs = [".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx"].some((e) => lower.endsWith(e)) || isScript && /^#![^\n]*\b(?:node|bun|deno)\b/.test(content);
+  const lines = content.split(/\r?\n/);
+  function getContext(lineNum) {
+    const idx = Math.max(0, lineNum - 1);
+    const start = Math.max(0, idx - 1);
+    const end = Math.min(lines.length, idx + 2);
+    return lines.slice(start, end).join(`
+`);
+  }
+  if (isPython) {
+    const execRegex = /\bexec\s*\(/g;
+    let m;
+    while ((m = execRegex.exec(content)) !== null) {
+      const line = content.slice(0, m.index).split(`
+`).length;
+      findings.push({
+        ruleId: "AST1",
+        message: "Direct exec() call",
+        severity: "CRITICAL",
+        category: "Behavioral AST" /* BEHAVIORAL_AST */,
+        file: filename,
+        line,
+        matchedText: "exec(...)",
+        confidence: 0.95,
+        explanation: DEFAULT_EXPLANATIONS["AST1"],
+        remediation: DEFAULT_REMEDIATIONS["AST1"],
+        context: getContext(line)
+      });
+    }
+    const evalRegex = /\beval\s*\(/g;
+    while ((m = evalRegex.exec(content)) !== null) {
+      const line = content.slice(0, m.index).split(`
+`).length;
+      findings.push({
+        ruleId: "AST2",
+        message: "Direct eval() call",
+        severity: "CRITICAL",
+        category: "Behavioral AST" /* BEHAVIORAL_AST */,
+        file: filename,
+        line,
+        matchedText: "eval(...)",
+        confidence: 0.95,
+        explanation: DEFAULT_EXPLANATIONS["AST2"],
+        remediation: DEFAULT_REMEDIATIONS["AST2"],
+        context: getContext(line)
+      });
+    }
+    const importRegex = /\b__import__\s*\(/g;
+    while ((m = importRegex.exec(content)) !== null) {
+      const line = content.slice(0, m.index).split(`
+`).length;
+      findings.push({
+        ruleId: "AST3",
+        message: "Dynamic __import__() call",
+        severity: "HIGH",
+        category: "Behavioral AST" /* BEHAVIORAL_AST */,
+        file: filename,
+        line,
+        matchedText: "__import__(...)",
+        confidence: 0.95,
+        explanation: DEFAULT_EXPLANATIONS["AST3"],
+        remediation: DEFAULT_REMEDIATIONS["AST3"],
+        context: getContext(line)
+      });
+    }
+    const compileRegex = /\bcompile\s*\(/g;
+    while ((m = compileRegex.exec(content)) !== null) {
+      const line = content.slice(0, m.index).split(`
+`).length;
+      findings.push({
+        ruleId: "AST6",
+        message: "Dynamic compile() call",
+        severity: "HIGH",
+        category: "Behavioral AST" /* BEHAVIORAL_AST */,
+        file: filename,
+        line,
+        matchedText: "compile(...)",
+        confidence: 0.9,
+        explanation: DEFAULT_EXPLANATIONS["AST6"],
+        remediation: DEFAULT_REMEDIATIONS["AST6"],
+        context: getContext(line)
+      });
+    }
+    const osExecRegex = /\bos\s*\.\s*(system|popen)\s*\(/g;
+    while ((m = osExecRegex.exec(content)) !== null) {
+      const line = content.slice(0, m.index).split(`
+`).length;
+      const fn = m[1];
+      findings.push({
+        ruleId: "AST5",
+        message: `Direct os.${fn}() shell execution sink`,
+        severity: "HIGH",
+        category: "Behavioral AST" /* BEHAVIORAL_AST */,
+        file: filename,
+        line,
+        matchedText: `os.${fn}(...)`,
+        confidence: 0.9,
+        explanation: DEFAULT_EXPLANATIONS["AST5"],
+        remediation: DEFAULT_REMEDIATIONS["AST5"],
+        context: getContext(line)
+      });
+    }
+    const spRegex = /\b(?:subprocess|sp)\s*\.\s*[a-zA-Z0-9_]+\s*\([^)]*shell\s*=\s*True/g;
+    while ((m = spRegex.exec(content)) !== null) {
+      const line = content.slice(0, m.index).split(`
+`).length;
+      findings.push({
+        ruleId: "AST4",
+        message: "Subprocess call with shell=True",
+        severity: "HIGH",
+        category: "Behavioral AST" /* BEHAVIORAL_AST */,
+        file: filename,
+        line,
+        matchedText: "subprocess.*(..., shell=True)",
+        confidence: 0.9,
+        explanation: DEFAULT_EXPLANATIONS["AST4"],
+        remediation: DEFAULT_REMEDIATIONS["AST4"],
+        context: getContext(line)
+      });
+    }
+    const getattrRegex = /\bgetattr\s*\([^,]+,\s*['"](exec|eval|system|popen|__import__)['"]\s*\)/g;
+    while ((m = getattrRegex.exec(content)) !== null) {
+      const line = content.slice(0, m.index).split(`
+`).length;
+      const target = m[1];
+      findings.push({
+        ruleId: "AST9",
+        message: `Reflective execution handle: getattr(..., '${target}')`,
+        severity: "CRITICAL",
+        category: "Behavioral AST" /* BEHAVIORAL_AST */,
+        file: filename,
+        line,
+        matchedText: `getattr(..., '${target}')`,
+        confidence: 0.95,
+        explanation: DEFAULT_EXPLANATIONS["AST9"],
+        remediation: DEFAULT_REMEDIATIONS["AST9"],
+        context: getContext(line)
+      });
+    }
+    const pickleRegex = /\b(?:pickle|cPickle|dill|marshal)\s*\.\s*(load|loads)\s*\(/g;
+    while ((m = pickleRegex.exec(content)) !== null) {
+      const line = content.slice(0, m.index).split(`
+`).length;
+      findings.push({
+        ruleId: "AST10",
+        message: "Insecure deserialization via pickle/marshal/dill",
+        severity: "HIGH",
+        category: "Behavioral AST" /* BEHAVIORAL_AST */,
+        file: filename,
+        line,
+        matchedText: m[0],
+        confidence: 0.9,
+        explanation: DEFAULT_EXPLANATIONS["AST10"],
+        remediation: DEFAULT_REMEDIATIONS["AST10"],
+        context: getContext(line)
+      });
+    }
+    const yamlUnsafeRegex = /\b(?:yaml|ruamel)\s*\.\s*unsafe_load\s*\(/g;
+    while ((m = yamlUnsafeRegex.exec(content)) !== null) {
+      const line = content.slice(0, m.index).split(`
+`).length;
+      findings.push({
+        ruleId: "AST10",
+        message: "Insecure YAML loading without SafeLoader",
+        severity: "HIGH",
+        category: "Behavioral AST" /* BEHAVIORAL_AST */,
+        file: filename,
+        line,
+        matchedText: m[0],
+        confidence: 0.85,
+        explanation: DEFAULT_EXPLANATIONS["AST10"],
+        remediation: DEFAULT_REMEDIATIONS["AST10"],
+        context: getContext(line)
+      });
+    }
+    const yamlLoadRegex = /\b(?:yaml|ruamel)\s*\.\s*load\s*\(([^)]*)\)/g;
+    while ((m = yamlLoadRegex.exec(content)) !== null) {
+      const args = m[1];
+      const hasSafeLoader = /Loader\s*=\s*(?:yaml\.)?(?:SafeLoader|CSafeLoader)\b/.test(args) || /,\s*(?:yaml\.)?(?:SafeLoader|CSafeLoader)\b/.test(args);
+      if (!hasSafeLoader) {
+        const line = content.slice(0, m.index).split(`
+`).length;
+        findings.push({
+          ruleId: "AST10",
+          message: "Insecure YAML loading without SafeLoader",
+          severity: "HIGH",
+          category: "Behavioral AST" /* BEHAVIORAL_AST */,
+          file: filename,
+          line,
+          matchedText: m[0],
+          confidence: 0.85,
+          explanation: DEFAULT_EXPLANATIONS["AST10"],
+          remediation: DEFAULT_REMEDIATIONS["AST10"],
+          context: getContext(line)
+        });
+      }
+    }
+  }
+  if (isJsTs) {
+    const jsEval = /\beval\s*\(/g;
+    let m;
+    while ((m = jsEval.exec(content)) !== null) {
+      const line = content.slice(0, m.index).split(`
+`).length;
+      findings.push({
+        ruleId: "AST2",
+        message: "Direct eval() call in JavaScript/TypeScript",
+        severity: "CRITICAL",
+        category: "Behavioral AST" /* BEHAVIORAL_AST */,
+        file: filename,
+        line,
+        matchedText: "eval(...)",
+        confidence: 0.95,
+        explanation: DEFAULT_EXPLANATIONS["AST2"],
+        remediation: DEFAULT_REMEDIATIONS["AST2"],
+        context: getContext(line)
+      });
+    }
+    const jsFunc = /\b(?:new\s+Function|Function)\s*\(/g;
+    while ((m = jsFunc.exec(content)) !== null) {
+      const line = content.slice(0, m.index).split(`
+`).length;
+      findings.push({
+        ruleId: "AST1",
+        message: "Dynamic Function constructor execution in JavaScript/TypeScript",
+        severity: "CRITICAL",
+        category: "Behavioral AST" /* BEHAVIORAL_AST */,
+        file: filename,
+        line,
+        matchedText: m[0],
+        confidence: 0.95,
+        explanation: DEFAULT_EXPLANATIONS["AST1"],
+        remediation: DEFAULT_REMEDIATIONS["AST1"],
+        context: getContext(line)
+      });
+    }
+    const childProc = /\bchild_process\s*\.\s*(exec|execSync)\s*\(/g;
+    while ((m = childProc.exec(content)) !== null) {
+      const line = content.slice(0, m.index).split(`
+`).length;
+      findings.push({
+        ruleId: "AST5",
+        message: `Direct child_process.${m[1]}() shell execution sink`,
+        severity: "HIGH",
+        category: "Behavioral AST" /* BEHAVIORAL_AST */,
+        file: filename,
+        line,
+        matchedText: m[0],
+        confidence: 0.9,
+        explanation: DEFAULT_EXPLANATIONS["AST5"],
+        remediation: DEFAULT_REMEDIATIONS["AST5"],
+        context: getContext(line)
+      });
+    }
+  }
+  return findings;
+}
+function checkLeastPrivilegeFrontmatter(manifest, fileName) {
+  if (!manifest)
+    return [];
+  const findings = [];
+  const allowedTools = manifest["allowed-tools"] || manifest["allowed_tools"];
+  if (typeof allowedTools === "string") {
+    if (allowedTools.trim() === "*" || allowedTools.trim() === "all") {
+      findings.push({
+        ruleId: "LP2",
+        message: "Wildcard permission '*' grants blanket tool access",
+        severity: "HIGH",
+        category: "MCP Least Privilege" /* MCP_LEAST_PRIVILEGE */,
+        file: fileName,
+        line: 1,
+        matchedText: "wildcard tool permission",
+        confidence: 0.95,
+        explanation: DEFAULT_EXPLANATIONS["LP2"],
+        remediation: DEFAULT_REMEDIATIONS["LP2"]
+      });
+    }
+  } else if (Array.isArray(allowedTools)) {
+    if (allowedTools.some((t) => t === "*" || t === "all")) {
+      findings.push({
+        ruleId: "LP2",
+        message: "Wildcard permission in allowed-tools list",
+        severity: "HIGH",
+        category: "MCP Least Privilege" /* MCP_LEAST_PRIVILEGE */,
+        file: fileName,
+        line: 1,
+        matchedText: "wildcard tool permission list",
+        confidence: 0.95,
+        explanation: DEFAULT_EXPLANATIONS["LP2"],
+        remediation: DEFAULT_REMEDIATIONS["LP2"]
+      });
+    }
+  }
+  return findings;
+}
+
+// src/core/security-scoring.ts
+var SEVERITY_POINTS = {
+  CRITICAL: 50,
+  HIGH: 25,
+  MEDIUM: 10,
+  LOW: 5,
+  INFO: 0
+};
+var DIMINISHING_WEIGHTS = [1, 0.5, 0.25];
+var MAX_OCCURRENCES_PER_RULE = DIMINISHING_WEIGHTS.length;
+var RISK_THRESHOLD = 50;
+var SEVERITY_RANK = {
+  CRITICAL: 0,
+  HIGH: 1,
+  MEDIUM: 2,
+  LOW: 3,
+  INFO: 4
+};
+function computeRiskScore(findings, hasExecutableScripts = false, scriptFiles = new Set) {
+  const sortedFindings = [...findings].sort((a, b) => {
+    if (a.ruleId !== b.ruleId) {
+      return a.ruleId.localeCompare(b.ruleId);
+    }
+    const rankA = SEVERITY_RANK[a.severity] ?? 4;
+    const rankB = SEVERITY_RANK[b.severity] ?? 4;
+    return rankA - rankB;
+  });
+  const ruleCounts = new Map;
+  let totalScore = 0;
+  for (const f of sortedFindings) {
+    const rawConf = typeof f.confidence === "number" ? f.confidence : 1;
+    const conf = Math.max(0, Math.min(1, rawConf));
+    if (conf <= 0)
+      continue;
+    const basePoints = SEVERITY_POINTS[f.severity] ?? 5;
+    const count = ruleCounts.get(f.ruleId) ?? 0;
+    ruleCounts.set(f.ruleId, count + 1);
+    if (count >= MAX_OCCURRENCES_PER_RULE) {
+      continue;
+    }
+    const weight = DIMINISHING_WEIGHTS[count];
+    let contribution = basePoints * weight * conf;
+    if (hasExecutableScripts && scriptFiles.has(f.file)) {
+      contribution *= 1.3;
+    }
+    totalScore += contribution;
+  }
+  let scoreFloor = 0;
+  for (const f of sortedFindings) {
+    const conf = typeof f.confidence === "number" ? f.confidence : 1;
+    if (f.severity === "CRITICAL" && conf >= 0.7) {
+      scoreFloor = Math.max(scoreFloor, 51);
+    } else if (["TM1", "SC2", "AR3", "SSRF1"].includes(f.ruleId)) {
+      scoreFloor = Math.max(scoreFloor, 51);
+    }
+  }
+  const finalScore = Math.min(100, Math.max(scoreFloor, Math.floor(totalScore)));
+  let severity;
+  let recommendation;
+  if (finalScore <= 20) {
+    severity = "LOW";
+    recommendation = "APPROVE";
+  } else if (finalScore < RISK_THRESHOLD) {
+    severity = "MEDIUM";
+    recommendation = "CAUTION";
+  } else if (finalScore <= 75) {
+    severity = "HIGH";
+    recommendation = "REJECT";
+  } else {
+    severity = "CRITICAL";
+    recommendation = "REJECT";
+  }
+  return {
+    riskScore: finalScore,
+    severity,
+    recommendation
+  };
+}
+
+// src/core/security.ts
+function parseSkillFrontmatter(content) {
+  if (!content.startsWith(`---
+`) && !content.startsWith(`---\r
+`)) {
+    return null;
+  }
+  const endMatch = content.slice(4).match(/(?:^|\r?\n)---(?:\r?\n|$)/);
+  if (!endMatch || endMatch.index === undefined) {
+    return null;
+  }
+  const yamlBlock = content.slice(4, 4 + endMatch.index);
+  try {
+    const parsed = $parse(yamlBlock);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return parsed;
+    }
+  } catch {
+    const result = {};
+    for (const line of yamlBlock.split(/\r?\n/)) {
+      const colonIdx = line.indexOf(":");
+      if (colonIdx !== -1) {
+        const k = line.slice(0, colonIdx).trim();
+        const v = line.slice(colonIdx + 1).trim().replace(/^['"]|['"]$/g, "");
+        result[k] = v;
+      }
+    }
+    return result;
+  }
+  return null;
+}
+function scanSkillText(content, fileRel, options) {
+  const isScript = options?.isScript ?? false;
+  const manifest = options?.skillManifest ?? null;
+  const findings = [];
+  const lines = content.split(/\r?\n/);
+  function getLineContext(lineNum) {
+    const idx = Math.max(0, lineNum - 1);
+    const extraLines = [];
+    if (idx < lines.length && lines[idx].trim().startsWith("|")) {
+      let curr = idx;
+      while (curr >= 0 && lines[curr].trim().startsWith("|")) {
+        curr--;
+      }
+      if (curr + 1 <= idx && curr + 1 < lines.length) {
+        extraLines.push(lines[curr + 1]);
+      }
+    }
+    const start = Math.max(0, idx - 10);
+    const end = Math.min(lines.length, idx + 4);
+    return [...extraLines, ...lines.slice(start, end)].join(`
+`);
+  }
+  for (let idx = 0;idx < lines.length; idx++) {
+    const line = lines[idx];
+    const foundZw = [];
+    for (const ch of line) {
+      if (ZERO_WIDTH_CHARS.has(ch)) {
+        foundZw.push(ch);
+      }
+    }
+    if (foundZw.length > 0) {
+      findings.push({
+        ruleId: "P2",
+        message: `Concealed zero-width steganography detected (${foundZw.length} invisible chars)`,
+        severity: "HIGH",
+        category: "Prompt Injection" /* PROMPT_INJECTION */,
+        file: fileRel,
+        line: idx + 1,
+        matchedText: "[ZERO_WIDTH_CHARS]",
+        confidence: 0.9,
+        explanation: DEFAULT_EXPLANATIONS["P2"],
+        remediation: DEFAULT_REMEDIATIONS["P2"],
+        context: line.slice(0, 100)
+      });
+    }
+  }
+  findings.push(...analyzeWhitespacePadding(content, fileRel));
+  findings.push(...checkSupplyChainDependencies(content, fileRel));
+  findings.push(...checkLanguageDeserialization(content, fileRel));
+  for (const rule of PATTERNS_DATABASE) {
+    for (const { regex: patStr, confidence } of rule.patterns) {
+      const reg = new RegExp(patStr, "gim");
+      let match;
+      while ((match = reg.exec(content)) !== null) {
+        const matchStart = match.index;
+        const matchEnd = matchStart + match[0].length;
+        if (!isScript && isDirectlyProhibited(content, matchStart, matchEnd)) {
+          continue;
+        }
+        const lineNum = content.slice(0, matchStart).split(`
+`).length;
+        const matchedSnippet = match[0].slice(0, 120);
+        const context = getLineContext(lineNum);
+        findings.push({
+          ruleId: rule.ruleId,
+          message: rule.name,
+          severity: rule.severity,
+          category: rule.category,
+          file: fileRel,
+          line: lineNum,
+          matchedText: matchedSnippet,
+          confidence,
+          explanation: DEFAULT_EXPLANATIONS[rule.ruleId] || "",
+          remediation: DEFAULT_REMEDIATIONS[rule.ruleId] || "",
+          context
+        });
+      }
+    }
+  }
+  if (isScript || fileRel.endsWith(".py")) {
+    findings.push(...analyzeBehavioralSinks(content, fileRel, isScript));
+  }
+  if (fileRel.endsWith("SKILL.md") && manifest) {
+    findings.push(...checkLeastPrivilegeFrontmatter(manifest, fileRel));
+  }
+  return findings;
+}
+function scanSkillDirectory(skillDirArg) {
+  const skillDir = join7(skillDirArg);
+  const skillMdPath = join7(skillDir, "SKILL.md");
+  let skillName = basename(skillDir);
+  let manifest = null;
+  if (existsSync6(skillMdPath)) {
+    try {
+      const content = readFileSync5(skillMdPath, "utf-8");
+      manifest = parseSkillFrontmatter(content);
+      if (manifest && typeof manifest.name === "string") {
+        skillName = manifest.name;
+      }
+    } catch {}
+  }
+  const allFindings = [];
+  let filesAnalyzed = 0;
+  const scriptFiles = new Set;
+  function walk(currentDir) {
+    const entries = readdirSync2(currentDir).sort();
+    for (const entry of entries) {
+      const fullPath = join7(currentDir, entry);
+      const relPath = relative3(skillDir, fullPath).replace(/\\/g, "/");
+      if (shouldExcludeSkillFile(relPath)) {
+        continue;
+      }
+      const stat = lstatSync4(fullPath);
+      if (stat.isSymbolicLink()) {
+        allFindings.push({
+          ruleId: "SC9",
+          message: "Symbolic link cannot be safely packaged",
+          severity: "HIGH",
+          category: "Supply Chain" /* SUPPLY_CHAIN */,
+          file: relPath,
+          line: 1,
+          matchedText: relPath,
+          confidence: 1,
+          explanation: DEFAULT_EXPLANATIONS["SC9"],
+          remediation: DEFAULT_REMEDIATIONS["SC9"]
+        });
+        continue;
+      }
+      if (stat.isDirectory()) {
+        walk(fullPath);
+        continue;
+      }
+      if (!stat.isFile()) {
+        continue;
+      }
+      filesAnalyzed++;
+      const dotIdx = entry.lastIndexOf(".");
+      const ext = dotIdx !== -1 ? entry.slice(dotIdx).toLowerCase() : "";
+      let contentBytes;
+      try {
+        contentBytes = readFileSync5(fullPath);
+      } catch (err) {
+        throw new Error(`cannot inspect ${relPath}`);
+      }
+      if (isSafeBinaryAsset(ext, contentBytes)) {
+        continue;
+      }
+      let isBinary = false;
+      let textContent = "";
+      try {
+        textContent = new TextDecoder("utf-8", { fatal: true }).decode(contentBytes);
+        if (textContent.includes("\x00")) {
+          isBinary = true;
+        }
+      } catch {
+        isBinary = true;
+      }
+      if (ext === ".pyo" || isBinary) {
+        allFindings.push({
+          ruleId: ext === ".pyo" ? "SC8" : "SC9",
+          message: `Unreviewable executable or binary asset: ${relPath}`,
+          severity: "HIGH",
+          category: "Supply Chain" /* SUPPLY_CHAIN */,
+          file: relPath,
+          line: 1,
+          matchedText: relPath,
+          confidence: 1,
+          explanation: DEFAULT_EXPLANATIONS[ext === ".pyo" ? "SC8" : "SC9"],
+          remediation: DEFAULT_REMEDIATIONS[ext === ".pyo" ? "SC8" : "SC9"]
+        });
+        continue;
+      }
+      const isScript = isScriptFile(relPath, textContent, stat.mode);
+      if (isScript) {
+        scriptFiles.add(relPath);
+      }
+      allFindings.push(...scanSkillText(textContent, relPath, {
+        isScript,
+        skillManifest: relPath === "SKILL.md" ? manifest : null
+      }));
+    }
+  }
+  walk(skillDir);
+  const evalResult = computeRiskScore(allFindings, scriptFiles.size > 0, scriptFiles);
+  const highRisk = allFindings.some((f) => f.severity === "CRITICAL" || f.severity === "HIGH");
+  const passed = (evalResult.recommendation === "APPROVE" || evalResult.recommendation === "CAUTION") && evalResult.riskScore < RISK_THRESHOLD && !highRisk;
+  return {
+    targetPath: skillDir,
+    skillName,
+    riskScore: evalResult.riskScore,
+    severity: evalResult.severity,
+    recommendation: evalResult.recommendation,
+    findings: allFindings,
+    filesAnalyzed,
+    passed
+  };
+}
+function formatSecurityReportTerminal(report) {
+  const lines = [];
+  lines.push("=================================================================");
+  lines.push(`  SKILL SECURITY SCAN: ${report.skillName}`);
+  lines.push(`  Target: ${report.targetPath}`);
+  lines.push(`  Files Analyzed: ${report.filesAnalyzed}`);
+  lines.push("-----------------------------------------------------------------");
+  const statusIcon = report.passed ? "✓" : "✗";
+  lines.push(`  Verdict:        [${statusIcon}] ${report.recommendation}`);
+  lines.push(`  Risk Score:     ${report.riskScore} / 100`);
+  lines.push(`  Severity Band:  ${report.severity}`);
+  lines.push("=================================================================");
+  if (report.findings.length === 0) {
+    lines.push(`
+  [OK] No security vulnerabilities or malicious patterns detected.`);
+    return lines.join(`
+`);
+  }
+  lines.push(`
+  Findings (${report.findings.length}):`);
+  for (let idx = 0;idx < report.findings.length; idx++) {
+    const f = report.findings[idx];
+    lines.push(`
+  [${idx + 1}] [${f.severity}] ${f.ruleId}: ${f.message}`);
+    lines.push(`      Category: ${f.category}`);
+    lines.push(`      Location: ${f.file}:${f.line}`);
+    lines.push(`      Matched:  ${f.matchedText}`);
+    if (f.explanation)
+      lines.push(`      Why:      ${f.explanation}`);
+    if (f.remediation)
+      lines.push(`      Fix:      ${f.remediation}`);
+  }
+  return lines.join(`
+`);
+}
+function formatSecurityReportJson(report) {
+  return JSON.stringify(report, null, 2);
+}
+function formatSecurityReportSarif(report) {
+  const rulesMap = new Map;
+  const results = [];
+  for (const f of report.findings) {
+    if (!rulesMap.has(f.ruleId)) {
+      rulesMap.set(f.ruleId, {
+        id: f.ruleId,
+        name: f.ruleId,
+        shortDescription: { text: f.message },
+        fullDescription: { text: f.explanation || f.message },
+        help: { text: f.remediation || "Review code for security risks." },
+        defaultConfiguration: {
+          level: f.severity === "CRITICAL" || f.severity === "HIGH" ? "error" : "warning"
+        },
+        properties: {
+          category: f.category,
+          precision: "high",
+          "security-severity": f.severity === "CRITICAL" ? "9.0" : f.severity === "HIGH" ? "7.0" : "4.0"
+        }
+      });
+    }
+    results.push({
+      ruleId: f.ruleId,
+      level: f.severity === "CRITICAL" || f.severity === "HIGH" ? "error" : "warning",
+      message: { text: `${f.message}: ${f.explanation || ""}` },
+      locations: [
+        {
+          physicalLocation: {
+            artifactLocation: { uri: f.file },
+            region: { startLine: f.line }
+          }
+        }
+      ]
+    });
+  }
+  const sarifData = {
+    $schema: "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+    version: "2.1.0",
+    runs: [
+      {
+        tool: {
+          driver: {
+            name: "omni-skill-security-scanner",
+            version: "2.0.0",
+            informationUri: "https://github.com/imMamdouhaboammar/omni-skill",
+            rules: Array.from(rulesMap.values())
+          }
+        },
+        results
+      }
+    ]
+  };
+  return JSON.stringify(sarifData, null, 2);
+}
 
 // src/commands/package.ts
 function collectSkillFiles(skillDir, name) {
   const files = {};
   function walk(directory, prefix) {
-    for (const entry of readdirSync2(directory).sort()) {
-      if (entry.startsWith(".") || entry === "node_modules" || entry === "__pycache__" || entry.startsWith("test_") || entry.endsWith(".test.ts") || entry.endsWith(".test.py"))
+    for (const entry of readdirSync3(directory).sort()) {
+      const fullPath = join8(directory, entry);
+      const relPath = relative4(skillDir, fullPath).replace(/\\/g, "/");
+      if (shouldExcludeSkillFile(relPath))
         continue;
-      const fullPath = join7(directory, entry);
-      const stat = lstatSync4(fullPath);
-      if (stat.isSymbolicLink())
+      const stat = lstatSync5(fullPath);
+      if (stat.isSymbolicLink()) {
         throw new Error(`Refusing to package symbolic link: ${fullPath}`);
-      if (stat.isDirectory())
+      }
+      if (stat.isDirectory()) {
         walk(fullPath, `${prefix}${entry}/`);
-      else if (stat.isFile())
-        files[`${prefix}${entry}`] = readFileSync5(fullPath);
+      } else if (stat.isFile()) {
+        files[`${prefix}${entry}`] = readFileSync6(fullPath);
+      }
     }
   }
   walk(skillDir, `${name}/`);
   return files;
+}
+function verifyArchiveIntegrity(archiveBytes, skillPath, skillName) {
+  let unzipped;
+  try {
+    unzipped = unzipSync(archiveBytes);
+  } catch (err) {
+    return { ok: false, reason: "Decompression error: corrupted ZIP archive bytes" };
+  }
+  const entryKeys = Object.keys(unzipped);
+  if (entryKeys.length === 0) {
+    return { ok: false, reason: "Archive contains zero entries" };
+  }
+  for (const key of entryKeys) {
+    if (!key.startsWith(`${skillName}/`)) {
+      return {
+        ok: false,
+        reason: `Archive entry does not reside within root folder '${skillName}/': ${key}`
+      };
+    }
+  }
+  const skillMdKey = `${skillName}/SKILL.md`;
+  if (!unzipped[skillMdKey] || unzipped[skillMdKey].length === 0) {
+    return {
+      ok: false,
+      reason: `Required '${skillMdKey}' is missing or empty inside archive`
+    };
+  }
+  for (const key of entryKeys) {
+    const rel = key.slice(skillName.length + 1);
+    if (!rel || rel.endsWith("/"))
+      continue;
+    if (shouldExcludeSkillFile(rel)) {
+      return {
+        ok: false,
+        reason: `Archive contains prohibited or excluded file: ${rel}`
+      };
+    }
+    const lower = rel.toLowerCase();
+    if (lower.includes(".env") || lower.startsWith(".") || lower.includes("/.") || lower.endsWith(".pyc") || lower.endsWith(".pyo")) {
+      return {
+        ok: false,
+        reason: `Archive contains prohibited sensitive or hidden file: ${rel}`
+      };
+    }
+  }
+  for (const key of entryKeys) {
+    const rel = key.slice(skillName.length + 1);
+    if (!rel || rel.endsWith("/"))
+      continue;
+    const sourceFilePath = join8(skillPath, rel);
+    if (!existsSync7(sourceFilePath)) {
+      return {
+        ok: false,
+        reason: `Archived file not found in source directory: ${rel}`
+      };
+    }
+    const sourceBytes = readFileSync6(sourceFilePath);
+    const archivedBytes = unzipped[key];
+    if (sourceBytes.length !== archivedBytes.length) {
+      return {
+        ok: false,
+        reason: `File size mismatch for ${rel}: expected ${sourceBytes.length} bytes, archived ${archivedBytes.length} bytes`
+      };
+    }
+    for (let i = 0;i < sourceBytes.length; i++) {
+      if (sourceBytes[i] !== archivedBytes[i]) {
+        return {
+          ok: false,
+          reason: `Byte content mismatch at offset ${i} for ${rel}`
+        };
+      }
+    }
+  }
+  return { ok: true };
 }
 function packageSkillCommand(skillPathArg, options) {
   const skillPath = resolve8(process.cwd(), skillPathArg);
@@ -10620,18 +12554,59 @@ function packageSkillCommand(skillPathArg, options) {
     console.log(import_picocolors6.default.red("✖ Output directory must be outside the skill being packaged."));
     process.exit(1);
   }
-  const archivePath = join7(outDir, `${basename(skillPath)}.skill`);
-  if (existsSync6(archivePath)) {
+  const skillName = basename2(skillPath);
+  const archivePath = join8(outDir, `${skillName}.skill`);
+  if (existsSync7(archivePath)) {
     console.log(import_picocolors6.default.red(`✖ Refusing to overwrite existing package: ${archivePath}`));
     process.exit(1);
   }
-  const archive = zipSync(collectSkillFiles(skillPath, basename(skillPath)), { level: 6 });
+  let secReport;
+  try {
+    secReport = scanSkillDirectory(skillPath);
+  } catch (err) {
+    console.log(import_picocolors6.default.red(`✖ Security scan failed unexpectedly: ${err instanceof Error ? err.message : String(err)}`));
+    process.exit(1);
+  }
+  if (!secReport.passed) {
+    console.log(import_picocolors6.default.red(`✖ Security pre-flight failed: ${secReport.recommendation} (Score: ${secReport.riskScore}/100, Band: ${secReport.severity})`));
+    for (const f of secReport.findings) {
+      if (f.severity === "CRITICAL" || f.severity === "HIGH") {
+        const safeFile = sanitizeDiagnosticPath(skillPath, f.file);
+        console.log(import_picocolors6.default.red(`  - [${f.severity}] ${f.ruleId}: ${f.message} (${safeFile}:${f.line})`));
+      }
+    }
+    console.log(import_picocolors6.default.red("✖ Packaging aborted fail-closed. Remediate security findings before packaging."));
+    process.exit(1);
+  }
   mkdirSync4(outDir, { recursive: true });
-  writeFileSync4(archivePath, archive, { flag: "wx" });
-  console.log(import_picocolors6.default.cyan(`
+  const tempArchivePath = join8(outDir, `${skillName}.skill.tmp.${process.pid}.${Date.now()}`);
+  try {
+    const files = collectSkillFiles(skillPath, skillName);
+    const archive = zipSync(files, { level: 6 });
+    writeFileSync4(tempArchivePath, archive, { flag: "wx" });
+    const tempBytes = readFileSync6(tempArchivePath);
+    const integrity = verifyArchiveIntegrity(tempBytes, skillPath, skillName);
+    if (!integrity.ok) {
+      console.log(import_picocolors6.default.red(`✖ Archive integrity check failed: ${integrity.reason}`));
+      if (existsSync7(tempArchivePath)) {
+        rmSync2(tempArchivePath, { force: true });
+      }
+      process.exit(1);
+    }
+    renameSync(tempArchivePath, archivePath);
+    console.log(import_picocolors6.default.cyan(`
 \uD83D\uDCE6 Packaging skill: ${import_picocolors6.default.bold(val.skill)}`));
-  console.log(import_picocolors6.default.green("✔ Validation passed for all inspected files."));
-  console.log(import_picocolors6.default.green(`✔ Package ready for distribution: `) + import_picocolors6.default.bold(archivePath));
+    console.log(import_picocolors6.default.green("✔ Validation passed for all inspected files."));
+    console.log(import_picocolors6.default.green(`✔ Security pre-flight passed: ${secReport.recommendation} (Score: ${secReport.riskScore}/100)`));
+    console.log(import_picocolors6.default.green("✔ Archive integrity verified."));
+    console.log(import_picocolors6.default.green(`✔ Package ready for distribution: `) + import_picocolors6.default.bold(archivePath));
+  } catch (err) {
+    if (existsSync7(tempArchivePath)) {
+      rmSync2(tempArchivePath, { force: true });
+    }
+    console.log(import_picocolors6.default.red(`✖ Packaging failed: ${err instanceof Error ? err.message : String(err)}`));
+    process.exit(1);
+  }
 }
 
 // src/commands/route.ts
