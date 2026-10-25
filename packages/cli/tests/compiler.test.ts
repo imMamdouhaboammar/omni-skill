@@ -359,3 +359,29 @@ describe("compileOmniSkillSpec Reference Containment (#8)", () => {
     expect(readFileSync(join(compiled, "references", "api-guide.md"), "utf-8")).toBe("Valid Content");
   });
 });
+
+describe("compileOmniSkillSpec Spec Root Validation", () => {
+  let rootDir: string;
+  let outDir: string;
+
+  beforeEach(() => {
+    rootDir = mkdtempSync(join(tmpdir(), "omni-compiler-root-"));
+    outDir = join(rootDir, "output");
+    mkdirSync(outDir, { recursive: true });
+  });
+
+  afterEach(() => {
+    if (existsSync(rootDir)) {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  it("should reject non-object root spec (null, undefined, primitives, arrays)", () => {
+    const invalidSpecs = [null, undefined, "string", 12345, true, false, []];
+    for (const invalid of invalidSpecs) {
+      expect(() => {
+        compileOmniSkillSpec(invalid as any, outDir);
+      }).toThrow(new TypeError("Skill specification must be an object."));
+    }
+  });
+});
