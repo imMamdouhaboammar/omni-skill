@@ -4,6 +4,10 @@ import pc from "picocolors";
 import { resolve } from "node:path";
 import { statSync } from "node:fs";
 
+/**
+ * Inspects an explicit skill root path to verify it exists and is a readable directory.
+ * Returns either ok: true with resolved paths or ok: false with structured failure diagnostics.
+ */
 export function inspectSkillRoot(rawPath: string):
   | { ok: true; skillPath: string; safeDisplay: string }
   | { ok: false; code: string; message: string; safeDisplay: string } {
@@ -43,6 +47,11 @@ export function inspectSkillRoot(rawPath: string):
   }
 }
 
+/**
+ * Executes skill validation across one or more target skill directories.
+ * Conforms to fail-closed CLI requirements: exits 1 if any root is invalid,
+ * unreadable, or contains validation errors.
+ */
 export function validateSkillCommand(pathArg: string | string[]) {
   const rawPaths = Array.isArray(pathArg) ? pathArg : [pathArg];
   const paths = rawPaths.length > 0 ? rawPaths : ["."];
