@@ -1,6 +1,6 @@
 import { ValidationFinding, ValidationResult } from "./types";
 import { parseSkillMarkdown } from "./parser";
-import { existsSync, lstatSync, readFileSync, readdirSync } from "node:fs";
+import { accessSync, constants, existsSync, lstatSync, readFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { sanitizeDiagnosticPath, sanitizeFsError } from "./path-sanitizer";
 
@@ -19,6 +19,71 @@ export function validateSkillDirectory(
   targets: string[] = ["agent-skills", "chatgpt", "codex", "claude-code"]
 ): ValidationResult {
   const findings: ValidationFinding[] = [];
+
+  try {
+    const stat = lstatSync(skillDir);
+    if (stat.isSymbolicLink()) {
+      return {
+        skill: skillDir,
+        targets,
+        errors: 1,
+        warnings: 0,
+        findings: [{
+          severity: "error",
+          code: "READ_FAILURE",
+          message: `Cannot safely scan symbolic link root: "${sanitizeDiagnosticPath(skillDir, skillDir)}"`
+        }],
+        pass: false
+      };
+    }
+    if (!stat.isDirectory()) {
+      return {
+        skill: skillDir,
+        targets,
+        errors: 1,
+        warnings: 0,
+        findings: [{
+          severity: "error",
+          code: "INVALID_ROOT",
+          message: `Root path does not exist or is not a directory: "${sanitizeDiagnosticPath(process.cwd(), skillDir)}"`
+        }],
+        pass: false
+      };
+    }
+    try {
+      accessSync(skillDir, constants.R_OK);
+    } catch (accessErr: unknown) {
+      return {
+        skill: skillDir,
+        targets,
+        errors: 1,
+        warnings: 0,
+        findings: [{
+          severity: "error",
+          code: "READ_FAILURE",
+          message: `Cannot access skill root (${sanitizeFsError(accessErr)}): "${sanitizeDiagnosticPath(process.cwd(), skillDir)}"`
+        }],
+        pass: false
+      };
+    }
+  } catch (err: unknown) {
+    const isAccess = (err as any)?.code === "EACCES" || (err as any)?.code === "EPERM";
+    return {
+      skill: skillDir,
+      targets,
+      errors: 1,
+      warnings: 0,
+      findings: [{
+        severity: "error",
+        code: isAccess ? "READ_FAILURE" : "INVALID_ROOT",
+        message: isAccess
+          ? `Cannot access skill root (${sanitizeFsError(err)}): "${sanitizeDiagnosticPath(process.cwd(), skillDir)}"`
+          : `Root path does not exist or is not a directory: "${sanitizeDiagnosticPath(process.cwd(), skillDir)}"`
+      }],
+      pass: false
+    };
+  }
+
   const skillFile = join(skillDir, "SKILL.md");
 
   if (!existsSync(skillFile)) {
