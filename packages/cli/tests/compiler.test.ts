@@ -7,7 +7,8 @@ import {
   readFileSync,
   writeFileSync,
   mkdirSync,
-  symlinkSync
+  symlinkSync,
+  readdirSync
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -897,4 +898,67 @@ describe("compileOmniSkillSpec Evals Validation", () => {
     expect(parsed.evals[0].assertions[0].required).toBe(true);
     expect(parsed.evals[1].id).toBe("case-2");
   });
+});
+
+describe("compileOmniSkillSpec Zero Filesystem Mutation on Validation Failure", () => {
+  let rootDir: string;
+  let outDir: string;
+  let sentinelFile: string;
+  let sentinelHash: string;
+
+  beforeEach(() => {
+    rootDir = mkdtempSync(join(tmpdir(), "omni-compiler-mutation-"));
+    outDir = join(rootDir, "output");
+    mkdirSync(outDir, { recursive: true });
+
+    sentinelFile = join(rootDir, "sentinel.txt");
+    writeFileSync(sentinelFile, "TOP-SECRET-SENTINEL-DATA", "utf-8");
+    sentinelHash = sha256(sentinelFile);
+  });
+
+  afterEach(() => {
+    if (existsSync(rootDir)) {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  const failureScenarios = [
+    { label: "missing description", spec: { name: "fail-skill", job: "Job", instructions: ["Step 1"] } },
+    { label: "number description", spec: { name: "fail-skill", description: 12345, job: "Job", instructions: ["Step 1"] } },
+    { label: "empty description", spec: { name: "fail-skill", description: "   ", job: "Job", instructions: ["Step 1"] } },
+    { label: "missing job", spec: { name: "fail-skill", description: "Desc", instructions: ["Step 1"] } },
+    { label: "number job", spec: { name: "fail-skill", description: "Desc", job: 12345, instructions: ["Step 1"] } },
+    { label: "empty job", spec: { name: "fail-skill", description: "Desc", job: "", instructions: ["Step 1"] } },
+    { label: "missing instructions", spec: { name: "fail-skill", description: "Desc", job: "Job" } },
+    { label: "string instructions", spec: { name: "fail-skill", description: "Desc", job: "Job", instructions: "Not array" } },
+    { label: "empty instructions", spec: { name: "fail-skill", description: "Desc", job: "Job", instructions: [] } },
+    { label: "number in instructions", spec: { name: "fail-skill", description: "Desc", job: "Job", instructions: [123] } },
+    { label: "empty step in instructions", spec: { name: "fail-skill", description: "Desc", job: "Job", instructions: [""] } },
+    { label: "string target_hosts", spec: { name: "fail-skill", description: "Desc", job: "Job", instructions: ["Step 1"], target_hosts: "chatgpt" } },
+    { label: "number in target_hosts", spec: { name: "fail-skill", description: "Desc", job: "Job", instructions: ["Step 1"], target_hosts: [123] } },
+    { label: "invalid freedom_level", spec: { name: "fail-skill", description: "Desc", job: "Job", instructions: ["Step 1"], freedom_level: "extreme" } },
+    { label: "adversarial reference key", spec: { name: "fail-skill", description: "Desc", job: "Job", instructions: ["Step 1"], references: { "../escape": "content" } } },
+    { label: "number reference value", spec: { name: "fail-skill", description: "Desc", job: "Job", instructions: ["Step 1"], references: { "api-guide": 12345 } } },
+    { label: "string evals", spec: { name: "fail-skill", description: "Desc", job: "Job", instructions: ["Step 1"], evals: "bad" } },
+    { label: "eval item missing id", spec: { name: "fail-skill", description: "Desc", job: "Job", instructions: ["Step 1"], evals: [{ assertions: [{ pattern: "ok" }] }] } },
+    { label: "eval assertion missing pattern", spec: { name: "fail-skill", description: "Desc", job: "Job", instructions: ["Step 1"], evals: [{ id: "c1", assertions: [{}] }] } },
+    { label: "eval assertion non-bool required", spec: { name: "fail-skill", description: "Desc", job: "Job", instructions: ["Step 1"], evals: [{ id: "c1", assertions: [{ pattern: "ok", required: "yes" }] }] } }
+  ];
+
+  for (const tc of failureScenarios) {
+    it(`should guarantee zero filesystem mutations for ${tc.label}`, () => {
+      expect(() => {
+        compileOmniSkillSpec(tc.spec as any, outDir);
+      }).toThrow();
+
+      // Assert target directory was never created
+      expect(existsSync(join(outDir, "fail-skill"))).toBe(false);
+
+      // Assert output directory remains completely empty
+      expect(readdirSync(outDir)).toHaveLength(0);
+
+      // Assert sentinel remains intact
+      expect(sha256(sentinelFile)).toBe(sentinelHash);
+    });
+  }
 });
