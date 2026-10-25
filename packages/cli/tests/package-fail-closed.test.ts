@@ -193,4 +193,81 @@ Target State
       rmSync(tempBase, { recursive: true });
     }
   });
+
+  it("refuses to package when output directory is inside the skill directory", () => {
+    const tempBase = mkdtempSync(join(tmpdir(), "omni-test-out-inside-"));
+    const skillDir = join(tempBase, "valid-skill");
+    mkdirSync(skillDir);
+    writeFileSync(
+      join(skillDir, "SKILL.md"),
+      `---
+name: valid-skill
+description: A perfectly valid skill.
+---
+# Why This Skill Is Needed
+Target State
+`
+    );
+    const insideOut = join(skillDir, "dist");
+
+    try {
+      packageSkillCommand(skillDir, { out: insideOut });
+    } catch {
+      // expect exit(1)
+    } finally {
+      rmSync(tempBase, { recursive: true });
+    }
+
+    expect(exitCode).toBe(1);
+    expect(logOutput.join("\n")).toContain("Output directory must be outside the skill");
+  });
+
+  it("refuses to package when archive file already exists", () => {
+    const tempBase = mkdtempSync(join(tmpdir(), "omni-test-existing-archive-"));
+    const skillDir = join(tempBase, "valid-skill");
+    mkdirSync(skillDir);
+    writeFileSync(
+      join(skillDir, "SKILL.md"),
+      `---
+name: valid-skill
+description: A perfectly valid skill.
+---
+# Why This Skill Is Needed
+Target State
+`
+    );
+    const outDir = join(tempBase, "out");
+    mkdirSync(outDir);
+    const existingArchive = join(outDir, "valid-skill.skill");
+    writeFileSync(existingArchive, "dummy archive");
+
+    try {
+      packageSkillCommand(skillDir, { out: outDir });
+    } catch {
+      // expect exit(1)
+    } finally {
+      rmSync(tempBase, { recursive: true });
+    }
+
+    expect(exitCode).toBe(1);
+    expect(logOutput.join("\n")).toContain("Refusing to overwrite existing package");
+  });
+
+  it("refuses to package when SKILL.md is empty (0 bytes)", () => {
+    const tempBase = mkdtempSync(join(tmpdir(), "omni-test-empty-md-pkg-"));
+    const skillDir = join(tempBase, "empty-skill");
+    mkdirSync(skillDir);
+    writeFileSync(join(skillDir, "SKILL.md"), "");
+
+    try {
+      packageSkillCommand(skillDir);
+    } catch {
+      // expect exit(1)
+    } finally {
+      rmSync(tempBase, { recursive: true });
+    }
+
+    expect(exitCode).toBe(1);
+    expect(logOutput.join("\n")).toContain("Cannot package skill with validation errors");
+  });
 });
