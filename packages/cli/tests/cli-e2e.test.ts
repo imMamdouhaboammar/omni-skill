@@ -32,19 +32,25 @@ describe("CLI End-to-End Test Suite", () => {
 
   describe("omni-skill init", () => {
     it("should initialize a complete skill structure with default options", () => {
-      const res = runCli(["init", "weather-reporter", "-o", tempBase]);
+      const res = runCli(["init", "default-options-skill", "-o", tempBase]);
       expect(res.status).toBe(0);
 
-      const skillDir = join(tempBase, "weather-reporter");
+      const skillDir = join(tempBase, "default-options-skill");
       expect(existsSync(join(skillDir, "SKILL.md"))).toBe(true);
       expect(existsSync(join(skillDir, "usecases", "run.md"))).toBe(true);
       expect(existsSync(join(skillDir, "references", "spec.md"))).toBe(true);
       expect(existsSync(join(skillDir, "evals", "evals.json"))).toBe(true);
 
       const skillMd = readFileSync(join(skillDir, "SKILL.md"), "utf-8");
-      expect(skillMd).toContain("name: weather-reporter");
+      expect(skillMd).toContain("name: default-options-skill");
       expect(skillMd).toContain("Why This Skill Is Needed & Target State");
       expect(skillMd).toContain("Invariant Rules");
+    });
+
+    it("should exit with code 1 when attempting to re-initialize an existing skill", () => {
+      const res = runCli(["init", "weather-reporter", "-o", tempBase]);
+      expect(res.status).toBe(1);
+      expect(res.stdout + res.stderr).toContain("already exists");
     });
 
     it("should initialize with custom description", () => {
