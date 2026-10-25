@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+REF_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
     if not isinstance(spec_data, dict):
@@ -31,10 +32,36 @@ def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
     if skill_path == resolved_output:
         raise ValueError("Skill path cannot be the output root directory.")
 
+    references = spec_data.get("references")
+    ref_dir = skill_path / "references"
+    resolved_ref_dir = ref_dir.resolve()
+
+    # Preflight validate all references before any filesystem modification
+    if references is not None:
+        if not isinstance(references, dict):
+            raise TypeError("Field 'references' must be a dictionary mapping reference names to markdown content.")
+        seen_ref_keys = set()
+        for ref_name, ref_content in references.items():
+            if not isinstance(ref_name, str) or not REF_NAME_RE.match(ref_name):
+                raise ValueError(
+                    f"Invalid reference name '{ref_name}'. Must be lowercase kebab-case alphanumeric without file extensions."
+                )
+            canonical_ref_key = ref_name.lower()
+            if canonical_ref_key in seen_ref_keys:
+                raise ValueError(f"Duplicate reference name detected: '{ref_name}'.")
+            seen_ref_keys.add(canonical_ref_key)
+
+            target_ref_file = (ref_dir / f"{ref_name}.md").resolve()
+            try:
+                ref_rel = target_ref_file.relative_to(resolved_ref_dir)
+            except ValueError:
+                raise ValueError(f"Path containment violation: Reference '{ref_name}' escapes references directory.")
+            if ref_rel != Path(f"{ref_name}.md"):
+                raise ValueError(f"Path containment violation: Reference '{ref_name}' escapes references directory.")
+
     description = spec_data.get("description", "").strip()
     job = spec_data.get("job", "")
     instructions = spec_data.get("instructions", [])
-    references = spec_data.get("references", {})
     evals = spec_data.get("evals", [])
 
     skill_path.mkdir(parents=True, exist_ok=True)
@@ -70,7 +97,6 @@ def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
 
     # 2. Generate references
     if references:
-        ref_dir = skill_path / "references"
         ref_dir.mkdir(exist_ok=True)
         for ref_name, ref_content in references.items():
             (ref_dir / f"{ref_name}.md").write_text(str(ref_content), encoding="utf-8")
