@@ -53,6 +53,21 @@ export function compileOmniSkillSpec(spec: OmniSkillSpec, outputDir: string): st
     );
   }
 
+  if (!Array.isArray(spec.instructions) || spec.instructions.length === 0) {
+    throw new (Array.isArray(spec.instructions) ? Error : TypeError)(
+      "Field 'instructions' must be a non-empty array of non-empty strings."
+    );
+  }
+
+  for (let i = 0; i < spec.instructions.length; i++) {
+    const step = spec.instructions[i];
+    if (typeof step !== "string" || step.trim().length === 0) {
+      throw new (typeof step !== "string" ? TypeError : Error)(
+        `Field 'instructions[${i}]' must be a non-empty string.`
+      );
+    }
+  }
+
   const refDir = join(targetDir, "references");
 
   // Preflight validation for references before creating any directories or writing files
