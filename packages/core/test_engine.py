@@ -274,6 +274,88 @@ class TestOmniSkillEngine(unittest.TestCase):
                         compile_spec(spec, out_dir)
                     self.assertIn("references", str(ctx.exception).lower())
 
+    def test_compile_spec_evals_validation(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir)
+            base_spec = {
+                "name": "sample-tool",
+                "description": "Valid description",
+                "job": "Valid job",
+                "instructions": ["Step 1"]
+            }
+
+            # 1. Non-list evals
+            for val in ["invalid", 12345, True, {"id": "case-1"}]:
+                spec = dict(base_spec)
+                spec["evals"] = val
+                with self.subTest(evals=val):
+                    with self.assertRaises(TypeError) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("evals", str(ctx.exception).lower())
+
+            # 2. Invalid eval items
+            invalid_items = [
+                "not-a-dict",
+                12345,
+                None,
+                [],
+                {"description": "Missing id", "assertions": [{"pattern": "success"}]},
+                {"id": "", "assertions": [{"pattern": "success"}]},
+                {"id": "   ", "assertions": [{"pattern": "success"}]},
+                {"id": 123, "assertions": [{"pattern": "success"}]},
+                {"id": "c1", "description": 12345, "assertions": [{"pattern": "success"}]},
+                {"id": "c1", "description": ["list"], "assertions": [{"pattern": "success"}]}
+            ]
+            for item in invalid_items:
+                spec = dict(base_spec)
+                spec["evals"] = [item]
+                with self.subTest(item=item):
+                    with self.assertRaises((TypeError, ValueError)) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("evals", str(ctx.exception).lower())
+
+            # 3. Invalid assertions
+            invalid_assertions = [
+                {"id": "c1"}, # missing assertions
+                {"id": "c1", "assertions": None},
+                {"id": "c1", "assertions": "not-a-list"},
+                {"id": "c1", "assertions": []}, # empty assertions
+                {"id": "c1", "assertions": ["not-a-dict"]},
+                {"id": "c1", "assertions": [None]},
+                {"id": "c1", "assertions": [{}]}, # missing pattern
+                {"id": "c1", "assertions": [{"pattern": ""}]}, # empty pattern
+                {"id": "c1", "assertions": [{"pattern": "   "}]}, # whitespace pattern
+                {"id": "c1", "assertions": [{"pattern": 123}]}, # non-string pattern
+                {"id": "c1", "assertions": [{"pattern": "ok", "required": "yes"}]}, # non-bool required
+                {"id": "c1", "assertions": [{"pattern": "ok", "required": 1}]} # non-bool required
+            ]
+            for item in invalid_assertions:
+                spec = dict(base_spec)
+                spec["evals"] = [item]
+                with self.subTest(item=item):
+                    with self.assertRaises((TypeError, ValueError)) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("evals", str(ctx.exception).lower())
+
+            # 4. Valid evals
+            spec_ok = dict(base_spec)
+            spec_ok["evals"] = [
+                {
+                    "id": "c1",
+                    "description": "desc",
+                    "assertions": [{"pattern": "ok", "required": True}]
+                },
+                {
+                    "id": "c2",
+                    "assertions": [{"pattern": "ok"}]
+                }
+            ]
+            res = compile_spec(spec_ok, out_dir)
+            evals_json = json.loads((res / "evals" / "evals.json").read_text(encoding="utf-8"))
+            self.assertEqual(len(evals_json["evals"]), 2)
+            self.assertEqual(evals_json["evals"][0]["id"], "c1")
+            self.assertTrue(evals_json["evals"][0]["assertions"][0]["required"])
+
     def test_compile_spec_and_validate(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             out_dir = Path(tmpdir)
