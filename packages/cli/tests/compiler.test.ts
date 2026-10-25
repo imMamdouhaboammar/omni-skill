@@ -656,3 +656,85 @@ describe("compileOmniSkillSpec Target Hosts Validation", () => {
     expect(readFileSync(join(res2, "SKILL.md"), "utf-8")).toContain("- Target Hosts: agent-skills, chatgpt, codex, claude-code");
   });
 });
+
+describe("compileOmniSkillSpec Freedom Level Validation", () => {
+  let rootDir: string;
+  let outDir: string;
+
+  beforeEach(() => {
+    rootDir = mkdtempSync(join(tmpdir(), "omni-compiler-freedom-"));
+    outDir = join(rootDir, "output");
+    mkdirSync(outDir, { recursive: true });
+  });
+
+  afterEach(() => {
+    if (existsSync(rootDir)) {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  it("should reject invalid freedom_level enum strings", () => {
+    const invalidValues = ["extreme", "none", "HIGH", "low ", "medium\n", ""];
+    for (const val of invalidValues) {
+      const spec = {
+        name: "test-skill",
+        description: "Valid desc",
+        job: "Valid job",
+        instructions: ["Step 1"],
+        freedom_level: val
+      };
+      expect(() => {
+        compileOmniSkillSpec(spec as any, outDir);
+      }).toThrow(/Field 'freedom_level' must be one of 'high', 'medium', 'low'/);
+    }
+  });
+
+  it("should reject non-string freedom_level types (number, boolean, array, object)", () => {
+    const invalidTypes = [12345, true, false, ["high"], { level: "high" }];
+    for (const val of invalidTypes) {
+      const spec = {
+        name: "test-skill",
+        description: "Valid desc",
+        job: "Valid job",
+        instructions: ["Step 1"],
+        freedom_level: val
+      };
+      expect(() => {
+        compileOmniSkillSpec(spec as any, outDir);
+      }).toThrow(/Field 'freedom_level' must be one of 'high', 'medium', 'low'/);
+    }
+  });
+
+  it("should accept valid freedom_level values ('high', 'medium', 'low', omitted, undefined, null)", () => {
+    for (const val of ["high", "medium", "low"]) {
+      const spec = {
+        name: `test-skill-${val}`,
+        description: "Valid desc",
+        job: "Valid job",
+        instructions: ["Step 1"],
+        freedom_level: val
+      };
+      const res = compileOmniSkillSpec(spec as any, outDir);
+      expect(readFileSync(join(res, "SKILL.md"), "utf-8")).toContain(`- Freedom Level: ${val}`);
+    }
+
+    const omittedSpec = {
+      name: "test-skill-omitted",
+      description: "Valid desc",
+      job: "Valid job",
+      instructions: ["Step 1"]
+    };
+    const resOmitted = compileOmniSkillSpec(omittedSpec as any, outDir);
+    expect(readFileSync(join(resOmitted, "SKILL.md"), "utf-8")).toContain("- Freedom Level: medium");
+
+    const nullSpec = {
+      name: "test-skill-null",
+      description: "Valid desc",
+      job: "Valid job",
+      instructions: ["Step 1"],
+      freedom_level: null
+    };
+    const resNull = compileOmniSkillSpec(nullSpec as any, outDir);
+    expect(readFileSync(join(resNull, "SKILL.md"), "utf-8")).toContain("- Freedom Level: medium");
+  });
+});
