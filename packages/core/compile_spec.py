@@ -60,6 +60,19 @@ def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
             raise ValueError(f"Field 'instructions[{i}]' must be a non-empty string.")
         instructions.append(step)
 
+    target_hosts = None
+    if "target_hosts" in spec_data and spec_data["target_hosts"] is not None:
+        raw_hosts = spec_data["target_hosts"]
+        if not isinstance(raw_hosts, list):
+            raise TypeError("Field 'target_hosts' must be an array of non-empty strings.")
+        target_hosts = []
+        for i, host in enumerate(raw_hosts):
+            if not isinstance(host, str):
+                raise TypeError(f"Field 'target_hosts[{i}]' must be a non-empty string.")
+            if len(host.strip()) == 0:
+                raise ValueError(f"Field 'target_hosts[{i}]' must be a non-empty string.")
+            target_hosts.append(host)
+
     references = spec_data.get("references")
     ref_dir = skill_path / "references"
     resolved_ref_dir = ref_dir.resolve()
@@ -122,7 +135,7 @@ def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
         "",
         "## Capability Requirements",
         "",
-        f"- Target Hosts: {', '.join(spec_data.get('target_hosts', ['agent-skills', 'chatgpt', 'codex', 'claude-code']))}",
+        f"- Target Hosts: {', '.join(target_hosts if target_hosts is not None else ['agent-skills', 'chatgpt', 'codex', 'claude-code'])}",
         f"- Freedom Level: {spec_data.get('freedom_level', 'medium')}",
         ""
     ])
