@@ -280,6 +280,13 @@ class TestOmniSkillEngine(unittest.TestCase):
                         compile_spec(spec, out_dir)
                     self.assertIn("references", str(ctx.exception).lower())
 
+            # Empty references dict should not create references/ dir
+            spec_empty = dict(base_spec)
+            spec_empty["name"] = "sample-empty-refs"
+            spec_empty["references"] = {}
+            res_empty = compile_spec(spec_empty, out_dir)
+            self.assertFalse((res_empty / "references").exists())
+
     def test_compile_spec_evals_validation(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             out_dir = Path(tmpdir)
