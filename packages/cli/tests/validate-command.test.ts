@@ -430,6 +430,31 @@ Target State
     expect(fullLog).toContain("SECRET_LEAK");
     expect(fullLog).toContain("0/1 skills valid (1 errors, 0 warnings)");
   });
+
+  it("reports granular error codes and exact summary counts across diverse root failures", () => {
+    const tempBase = mkdtempSync(join(tmpdir(), "omni-test-diverse-roots-"));
+    const missing = join(tempBase, "missing-root");
+    const fileRoot = join(tempBase, "regular.txt");
+    writeFileSync(fileRoot, "not a dir");
+    const unreadableDir = join(tempBase, "forbidden-root");
+    mkdirSync(unreadableDir);
+    chmodSync(unreadableDir, 0o000);
+
+    try {
+      validateSkillCommand([missing, fileRoot, unreadableDir]);
+    } catch {
+      // expect exit(1)
+    } finally {
+      chmodSync(unreadableDir, 0o755);
+      rmSync(tempBase, { recursive: true });
+    }
+
+    expect(exitCode).toBe(1);
+    const fullLog = logOutput.join("\n");
+    expect(fullLog).toContain("0/3 skills valid (3 errors, 0 warnings)");
+    expect(fullLog).toContain("INVALID_ROOT");
+    expect(fullLog).toContain("READ_FAILURE");
+  });
 });
 
 describe("inspectSkillRoot", () => {
