@@ -173,7 +173,7 @@ export function validateSkillDirectory(
         findings.push({
           severity: "error",
           code: "BROKEN_RELATIVE_LINK",
-          message: `Referenced file does not exist: "${rawTarget}"`
+          message: `Referenced file does not exist: "${sanitizeDiagnosticPath(skillDir, rawTarget)}"`
         });
       }
     }
