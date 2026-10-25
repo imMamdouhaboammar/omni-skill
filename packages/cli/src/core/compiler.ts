@@ -158,6 +158,68 @@ export function compileOmniSkillSpec(spec: OmniSkillSpec, outputDir: string): st
     validatedReferences = entries;
   }
 
+  // Preflight validation for evals before creating any directories or writing files
+  if (spec.evals !== undefined && spec.evals !== null) {
+    if (!Array.isArray(spec.evals)) {
+      throw new TypeError("Field 'evals' must be an array of evaluation items.");
+    }
+
+    for (let i = 0; i < spec.evals.length; i++) {
+      const item = spec.evals[i];
+      if (!item || typeof item !== "object" || Array.isArray(item)) {
+        throw new TypeError(`Field 'evals[${i}]' must be an object.`);
+      }
+
+      if (typeof item.id !== "string" || item.id.trim().length === 0) {
+        throw new (typeof item.id !== "string" ? TypeError : Error)(
+          `Field 'evals[${i}].id' must be a non-empty string.`
+        );
+      }
+
+      if (
+        item.description !== undefined &&
+        item.description !== null &&
+        typeof item.description !== "string"
+      ) {
+        throw new TypeError(`Field 'evals[${i}].description' must be a string.`);
+      }
+
+      if (
+        item.assertions === undefined ||
+        item.assertions === null ||
+        !Array.isArray(item.assertions) ||
+        item.assertions.length === 0
+      ) {
+        throw new (Array.isArray(item.assertions) ? Error : TypeError)(
+          `Field 'evals[${i}].assertions' must be a non-empty array of assertion objects.`
+        );
+      }
+
+      for (let j = 0; j < item.assertions.length; j++) {
+        const assertion = item.assertions[j];
+        if (!assertion || typeof assertion !== "object" || Array.isArray(assertion)) {
+          throw new TypeError(`Field 'evals[${i}].assertions[${j}]' must be an object.`);
+        }
+
+        if (typeof assertion.pattern !== "string" || assertion.pattern.trim().length === 0) {
+          throw new (typeof assertion.pattern !== "string" ? TypeError : Error)(
+            `Field 'evals[${i}].assertions[${j}].pattern' must be a non-empty string.`
+          );
+        }
+
+        if (
+          assertion.required !== undefined &&
+          assertion.required !== null &&
+          typeof assertion.required !== "boolean"
+        ) {
+          throw new TypeError(
+            `Field 'evals[${i}].assertions[${j}].required' must be a boolean.`
+          );
+        }
+      }
+    }
+  }
+
   mkdirSync(targetDir, { recursive: true });
 
   const skillMdLines = [
