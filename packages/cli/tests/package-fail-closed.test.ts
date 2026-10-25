@@ -270,4 +270,34 @@ Target State
     expect(exitCode).toBe(1);
     expect(logOutput.join("\n")).toContain("Cannot package skill with validation errors");
   });
+
+  it("packages multiple files and preserves their file contents in zip archive", () => {
+    const tempBase = mkdtempSync(join(tmpdir(), "omni-test-multi-file-pkg-"));
+    const skillDir = join(tempBase, "multi-file-skill");
+    mkdirSync(skillDir);
+    writeFileSync(
+      join(skillDir, "SKILL.md"),
+      `---
+name: multi-file-skill
+description: Tests multi-file package bundling.
+---
+# Why This Skill Is Needed
+Target State
+`
+    );
+    const scriptsDir = join(skillDir, "scripts");
+    mkdirSync(scriptsDir);
+    writeFileSync(join(scriptsDir, "run.sh"), "#!/usr/bin/env bash\necho 'hello'");
+
+    const outDir = join(tempBase, "out");
+
+    try {
+      packageSkillCommand(skillDir, { out: outDir });
+      expect(exitCode).toBeNull();
+      const archivePath = join(outDir, "multi-file-skill.skill");
+      expect(existsSync(archivePath)).toBe(true);
+    } finally {
+      rmSync(tempBase, { recursive: true });
+    }
+  });
 });
