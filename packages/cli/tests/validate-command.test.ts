@@ -455,6 +455,35 @@ Target State
     expect(fullLog).toContain("INVALID_ROOT");
     expect(fullLog).toContain("READ_FAILURE");
   });
+
+  it("fails closed and exits with code 1 if totalPassed is less than totalEvaluated", () => {
+    const tempBase = mkdtempSync(join(tmpdir(), "omni-test-partial-pass-"));
+    const valid = join(tempBase, "valid");
+    mkdirSync(valid);
+    writeFileSync(
+      join(valid, "SKILL.md"),
+      `---
+name: valid-partial
+description: Valid skill.
+---
+# Why This Skill Is Needed
+Target State
+`
+    );
+    const missing = join(tempBase, "missing");
+
+    try {
+      validateSkillCommand([valid, missing]);
+    } catch {
+      // expect exit(1)
+    } finally {
+      rmSync(tempBase, { recursive: true });
+    }
+
+    expect(exitCode).toBe(1);
+    const fullLog = logOutput.join("\n");
+    expect(fullLog).toContain("1/2 skills valid");
+  });
 });
 
 describe("inspectSkillRoot", () => {
