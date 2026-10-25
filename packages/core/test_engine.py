@@ -469,7 +469,8 @@ class TestOmniSkillEngine(unittest.TestCase):
             spec_file.write_text(json.dumps({
                 "name": "cli-compiled-tool",
                 "description": "Tool compiled via CLI.",
-                "job": "Runs CLI tests."
+                "job": "Runs CLI tests.",
+                "instructions": ["Step 1: Run CLI tests."]
             }), encoding="utf-8")
 
             proc_ok = subprocess.run([sys.executable, str(CORE_DIR / "compile_spec.py"), str(spec_file), tmpdir], capture_output=True, text=True)
