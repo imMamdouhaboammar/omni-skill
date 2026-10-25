@@ -291,4 +291,30 @@ TODO: finish the actual instructions.
       rmSync(dir, { recursive: true });
     }
   });
+
+  it("produces ANTI_SLOP_PREAMBLE warning when ceremonial narrative preamble is present", () => {
+    const dir = mkdtempSync(join(tmpdir(), "omni-test-anti-slop-preamble-"));
+    writeFileSync(
+      join(dir, "SKILL.md"),
+      `---
+name: anti-slop-preamble-skill
+description: Tests anti-slop preamble.
+---
+# Why This Skill Is Needed
+Target State
+
+The following table outlines the components.
+`
+    );
+
+    try {
+      const result = validateSkillDirectory(dir);
+      expect(result.pass).toBe(true);
+      expect(result.errors).toBe(0);
+      const preambleWarn = result.findings.find((f) => f.code === "ANTI_SLOP_PREAMBLE");
+      expect(preambleWarn).toBeDefined();
+    } finally {
+      rmSync(dir, { recursive: true });
+    }
+  });
 });
