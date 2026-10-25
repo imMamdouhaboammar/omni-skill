@@ -8,6 +8,9 @@ const PERSONAL_PATH_REGEX = /(?:\/(?:Users|home)\/(?!(?:<[^>]+>|username|user))[
  * - If outside baseDir or cannot be resolved, strips any personal user directories.
  */
 export function sanitizeDiagnosticPath(baseDir: string, targetPath: string): string {
+  if (!targetPath || targetPath.trim().length === 0) {
+    return ".";
+  }
   try {
     const rel = relative(baseDir, targetPath);
     if (!rel.startsWith("..") && !rel.startsWith("/")) {
