@@ -738,3 +738,38 @@ describe("compileOmniSkillSpec Freedom Level Validation", () => {
     expect(readFileSync(join(resNull, "SKILL.md"), "utf-8")).toContain("- Freedom Level: medium");
   });
 });
+
+describe("compileOmniSkillSpec Reference Value Validation", () => {
+  let rootDir: string;
+  let outDir: string;
+
+  beforeEach(() => {
+    rootDir = mkdtempSync(join(tmpdir(), "omni-compiler-ref-vals-"));
+    outDir = join(rootDir, "output");
+    mkdirSync(outDir, { recursive: true });
+  });
+
+  afterEach(() => {
+    if (existsSync(rootDir)) {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  it("should reject non-string reference values (number, boolean, null, object, array)", () => {
+    const invalidVals = [12345, true, false, null, { nested: "val" }, ["array", "val"]];
+    for (const val of invalidVals) {
+      const spec = {
+        name: "test-skill",
+        description: "Valid desc",
+        job: "Valid job",
+        instructions: ["Step 1"],
+        references: {
+          "api-guide": val
+        }
+      };
+      expect(() => {
+        compileOmniSkillSpec(spec as any, outDir);
+      }).toThrow(/Field 'references\["api-guide"\]' must be a string/);
+    }
+  });
+});
