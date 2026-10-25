@@ -300,4 +300,30 @@ Target State
       rmSync(tempBase, { recursive: true });
     }
   });
+
+  it("creates non-existent nested output directories recursively when packaging", () => {
+    const tempBase = mkdtempSync(join(tmpdir(), "omni-test-nested-out-pkg-"));
+    const skillDir = join(tempBase, "skill");
+    mkdirSync(skillDir);
+    writeFileSync(
+      join(skillDir, "SKILL.md"),
+      `---
+name: nested-out-skill
+description: Tests recursive outDir creation.
+---
+# Why This Skill Is Needed
+Target State
+`
+    );
+    const deepOutDir = join(tempBase, "deep", "nested", "releases");
+
+    try {
+      packageSkillCommand(skillDir, { out: deepOutDir });
+      expect(exitCode).toBeNull();
+      const archivePath = join(deepOutDir, "skill.skill");
+      expect(existsSync(archivePath)).toBe(true);
+    } finally {
+      rmSync(tempBase, { recursive: true });
+    }
+  });
 });
