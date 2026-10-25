@@ -300,4 +300,32 @@ Target State
     expect(fullLog).toContain("0/1 skills valid");
     expect(fullLog).toContain("1 errors");
   });
+
+  it("fails closed when explicit root path is an empty string", () => {
+    try {
+      validateSkillCommand([""]);
+    } catch {
+      // expect exit(1)
+    }
+
+    expect(exitCode).toBe(1);
+    const fullLog = logOutput.join("\n");
+    expect(fullLog).toContain("0/1 skills valid");
+    expect(fullLog).toContain("1 errors");
+    expect(fullLog).toContain("INVALID_ROOT");
+  });
+
+  it("fails closed when explicit root path is whitespace only", () => {
+    try {
+      validateSkillCommand(["   "]);
+    } catch {
+      // expect exit(1)
+    }
+
+    expect(exitCode).toBe(1);
+    const fullLog = logOutput.join("\n");
+    expect(fullLog).toContain("0/1 skills valid");
+    expect(fullLog).toContain("1 errors");
+    expect(fullLog).toContain("INVALID_ROOT");
+  });
 });
