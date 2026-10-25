@@ -150,6 +150,14 @@ describe("CLI End-to-End Test Suite", () => {
       expect(res.stdout).toContain("0/3 skills valid (3 errors, 0 warnings)");
     });
 
+    it("should fail validation and exit 1 when root contains special characters", () => {
+      const weirdPath = join(tempBase, "weird-path-!@#$%^");
+      const res = runCli(["validate", weirdPath]);
+      expect(res.status).toBe(1);
+      expect(res.stdout).toContain("INVALID_ROOT");
+      expect(res.stdout).toContain("0/1 skills valid (1 errors, 0 warnings)");
+    });
+
     it("should not leak user absolute paths in error messages", () => {
       const dir = join(tempBase, "leak-check-skill");
       runCli(["init", "leak-check-skill", "-o", tempBase]);
