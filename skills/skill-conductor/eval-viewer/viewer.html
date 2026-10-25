@@ -611,10 +611,19 @@
       .toast.visible {
         opacity: 1;
       }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.01ms !important;
+          scroll-behavior: auto !important;
+        }
+      }
     </style>
   </head>
   <body>
-    <div id="app" style="height: 100vh; display: flex; flex-direction: column">
+    <main id="app" style="height: 100vh; display: flex; flex-direction: column">
       <div class="header">
         <div>
           <h1>Eval Review: <span id="skill-name"></span></h1>
@@ -749,7 +758,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </main>
 
     <!-- Done overlay -->
     <div class="done-overlay" id="done-overlay">
