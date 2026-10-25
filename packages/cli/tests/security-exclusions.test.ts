@@ -21,11 +21,6 @@ describe("Security Exclusions and Binary Magic Byte Validation", () => {
     expect(shouldExcludeSkillFile("scripts/runner.test.py")).toBe(true);
   });
 
-  it("excludes root evals/ directory", () => {
-    expect(shouldExcludeSkillFile("evals/benchmark.sh")).toBe(true);
-    expect(shouldExcludeSkillFile("evals/sub/eval.json")).toBe(true);
-  });
-
   it("does not exclude files in skill named 'tests' ancestor", () => {
     expect(shouldExcludeSkillFile("scripts/runner.sh")).toBe(false);
     expect(shouldExcludeSkillFile("SKILL.md")).toBe(false);

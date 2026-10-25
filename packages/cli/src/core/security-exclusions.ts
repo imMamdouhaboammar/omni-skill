@@ -10,7 +10,7 @@ export const EXCLUDE_DIRS = new Set([
   "tests",
 ]);
 
-export const ROOT_EXCLUDE_DIRS = new Set(["evals"]);
+export const ROOT_EXCLUDE_DIRS = new Set<string>();
 
 export const EXCLUDE_FILES = new Set([".DS_Store", "conftest.py"]);
 
