@@ -39,6 +39,13 @@ def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
         raise ValueError("Field 'description' must be a non-empty string.")
     description = desc_raw.strip()
 
+    job_raw = spec_data.get("job")
+    if job_raw is None or not isinstance(job_raw, str):
+        raise TypeError("Field 'job' must be a non-empty string.")
+    if len(job_raw.strip()) == 0:
+        raise ValueError("Field 'job' must be a non-empty string.")
+    job = job_raw.strip()
+
     references = spec_data.get("references")
     ref_dir = skill_path / "references"
     resolved_ref_dir = ref_dir.resolve()
@@ -75,7 +82,6 @@ def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
             if target_unresolved.is_symlink():
                 raise ValueError(f"Path containment violation: Target reference '{ref_name}.md' is a symbolic link.")
 
-    job = spec_data.get("job", "")
     instructions = spec_data.get("instructions", [])
     evals = spec_data.get("evals", [])
 
