@@ -1,6 +1,6 @@
 import { describe, expect, it, spyOn, beforeEach, afterEach } from "bun:test";
 import { validateSkillCommand } from "../src/commands/validate";
-import { chmodSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -248,5 +248,56 @@ Target State
     expect(exitCode).toBeNull();
     const fullLog = logOutput.join("\n");
     expect(fullLog).toContain("1/1 skills valid (0 errors, 0 warnings)");
+  });
+
+  it("fails closed when explicit root is a symbolic link to a directory", () => {
+    const tempBase = mkdtempSync(join(tmpdir(), "omni-test-symlink-root-cmd-"));
+    const realDir = join(tempBase, "real-skill");
+    mkdirSync(realDir);
+    writeFileSync(
+      join(realDir, "SKILL.md"),
+      `---
+name: real-symlinked-skill
+description: Real skill.
+---
+# Why This Skill Is Needed
+Target State
+`
+    );
+    const symlinkRoot = join(tempBase, "symlink-root");
+    symlinkSync(realDir, symlinkRoot);
+
+    try {
+      validateSkillCommand(symlinkRoot);
+    } catch {
+      // expect exit(1)
+    } finally {
+      rmSync(tempBase, { recursive: true });
+    }
+
+    expect(exitCode).toBe(1);
+    const fullLog = logOutput.join("\n");
+    expect(fullLog).toContain("0/1 skills valid");
+    expect(fullLog).toContain("1 errors");
+    expect(fullLog).toContain("READ_FAILURE");
+  });
+
+  it("fails closed when explicit root is a broken symbolic link", () => {
+    const tempBase = mkdtempSync(join(tmpdir(), "omni-test-broken-symlink-root-"));
+    const brokenLink = join(tempBase, "broken-root-link");
+    symlinkSync("target-does-not-exist", brokenLink);
+
+    try {
+      validateSkillCommand(brokenLink);
+    } catch {
+      // expect exit(1)
+    } finally {
+      rmSync(tempBase, { recursive: true });
+    }
+
+    expect(exitCode).toBe(1);
+    const fullLog = logOutput.join("\n");
+    expect(fullLog).toContain("0/1 skills valid");
+    expect(fullLog).toContain("1 errors");
   });
 });
