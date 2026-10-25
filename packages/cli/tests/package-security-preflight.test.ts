@@ -92,4 +92,30 @@ Target State
     expect(logOutput.join("\n")).toContain("Security pre-flight failed");
     expect(logOutput.join("\n")).toContain("SC2");
   });
+
+  it("REPRODUCE DEFECT: verifies archive integrity and root folder before publishing", () => {
+    const tempBase = mkdtempSync(join(tmpdir(), "omni-test-integrity-"));
+    const skillDir = join(tempBase, "valid-skill");
+    mkdirSync(skillDir);
+    writeFileSync(
+      join(skillDir, "SKILL.md"),
+      `---
+name: valid-skill
+description: A valid skill for packaging.
+---
+# Why This Skill Is Needed
+Target State
+`
+    );
+    const outDir = join(tempBase, "out");
+
+    try {
+      packageSkillCommand(skillDir, { out: outDir });
+    } finally {
+      rmSync(tempBase, { recursive: true });
+    }
+
+    expect(exitCode).toBeNull();
+    expect(logOutput.join("\n")).toContain("Archive integrity verified");
+  });
 });
