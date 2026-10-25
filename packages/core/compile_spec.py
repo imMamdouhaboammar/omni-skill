@@ -180,7 +180,7 @@ def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
         "",
         "## Capability Requirements",
         "",
-        f"- Target Hosts: {', '.join(target_hosts if target_hosts is not None else ['agent-skills', 'chatgpt', 'codex', 'claude-code'])}",
+        f"- Target Hosts: {', '.join(target_hosts if target_hosts else ['agent-skills', 'chatgpt', 'codex', 'claude-code'])}",
         f"- Freedom Level: {freedom_level}",
         ""
     ])
