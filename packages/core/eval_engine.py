@@ -53,7 +53,9 @@ if __name__ == "__main__":
         sys.exit(1)
     try:
         raw_evals = json.loads(eval_file.read_text(encoding="utf-8"))
-        suite = raw_evals.get("evals", raw_evals if isinstance(raw_evals, list) else [])
+        suite = raw_evals if isinstance(raw_evals, list) else raw_evals["evals"]
+        if not isinstance(suite, list):
+            raise ValueError("evals must be a JSON array")
     except Exception as exc:
         print(f"Error: Failed to parse evals JSON: {exc}", file=sys.stderr)
         sys.exit(1)

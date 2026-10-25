@@ -71,19 +71,24 @@ Compiles an OmniSkill JSON specification into a validated, multi-host skill pack
 omni-skill compile ./spec.json -o ./dist/skills
 ```
 
+### `omni-skill package <skill-dir>`
+Validates the skill and creates a distributable ZIP-compatible `.skill` archive. Files that fail validation block packaging, and existing archives are not overwritten.
+
+```bash
+omni-skill package ./skills/my-skill -o ./release
+# Creates ./release/my-skill.skill
+```
+
 ---
 
 ## Programmatic Usage
 
 ```typescript
-import { routeSkillRequest, validateSkillDirectory, classifyIntent } from "@mamdouh-aboammar/omni-skill";
+import { routeRequest, validateSkillDirectory, classifyIntent } from "@mamdouh-aboammar/omni-skill";
 
 // 1. Classify intent and build DAG
-const plan = routeSkillRequest("Audit memory leaks before deploy", {
-  currentHost: "universal",
-  explain: true,
-});
-console.log(plan.executionGraph);
+const plan = routeRequest("Audit memory leaks before deploy", "universal");
+console.log(plan.dag);
 
 // 2. Validate skill package
 const report = validateSkillDirectory("./skills/my-skill");

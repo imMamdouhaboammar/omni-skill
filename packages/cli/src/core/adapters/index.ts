@@ -10,6 +10,7 @@ export interface AdapterResult {
 
 export function generateAdapter(manifest: SkillManifest, target: string, outputDir: string): AdapterResult {
   const t = target.toLowerCase();
+  const pluginVersion = manifest.frontmatter.version || "1.0.0";
   mkdirSync(outputDir, { recursive: true });
   const filesGenerated: string[] = [];
   const notes: string[] = [];
@@ -22,7 +23,7 @@ export function generateAdapter(manifest: SkillManifest, target: string, outputD
       const manifestPath = join(pluginDir, "plugin.json");
       const data = {
         name: manifest.name,
-        version: "6.0.0",
+        version: pluginVersion,
         description: manifest.frontmatter.description,
         skills: "./skills/",
         interface: {
@@ -45,13 +46,13 @@ export function generateAdapter(manifest: SkillManifest, target: string, outputD
       const marketJson = join(claudeDir, "marketplace.json");
       writeFileSync(pluginJson, JSON.stringify({
         name: manifest.name,
-        version: "6.0.0",
+        version: pluginVersion,
         description: manifest.frontmatter.description,
         license: "MIT"
       }, null, 2), "utf-8");
       writeFileSync(marketJson, JSON.stringify({
         name: manifest.name,
-        version: "6.0.0",
+        version: pluginVersion,
         skills: "./skills/"
       }, null, 2), "utf-8");
       filesGenerated.push(pluginJson, marketJson);
@@ -66,7 +67,7 @@ export function generateAdapter(manifest: SkillManifest, target: string, outputD
       const pluginDesc = join(geminiDir, "plugin.json");
       writeFileSync(pluginDesc, JSON.stringify({
         name: manifest.name,
-        version: "6.0.0",
+        version: pluginVersion,
         type: "antigravity-skill-plugin",
         entry: manifest.name
       }, null, 2), "utf-8");

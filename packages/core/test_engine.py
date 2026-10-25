@@ -147,5 +147,9 @@ class TestOmniSkillEngine(unittest.TestCase):
             proc_fail = subprocess.run([sys.executable, str(CORE_DIR / "eval_engine.py"), str(eval_file), "task outcome failed"], capture_output=True, text=True)
             self.assertEqual(proc_fail.returncode, 1)
 
+            eval_file.write_text(json.dumps([{"id": "array-format", "assertions": [{"pattern": "verified", "required": True}]}]), encoding="utf-8")
+            proc_array = subprocess.run([sys.executable, str(CORE_DIR / "eval_engine.py"), str(eval_file), "verified"], capture_output=True, text=True)
+            self.assertEqual(proc_array.returncode, 0, proc_array.stderr)
+
 if __name__ == "__main__":
     unittest.main()

@@ -3,6 +3,7 @@ import { mkdtempSync, rmSync, existsSync, readFileSync, writeFileSync } from "no
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
+import { unzipSync } from "fflate";
 
 const CLI_ENTRY = join(__dirname, "../src/index.ts");
 
@@ -19,6 +20,8 @@ describe("CLI End-to-End Test Suite", () => {
 
   beforeAll(() => {
     tempBase = mkdtempSync(join(tmpdir(), "omni-cli-e2e-"));
+    const fixture = runCli(["init", "weather-reporter", "-o", tempBase]);
+    if (fixture.status !== 0) throw new Error(`Could not initialize fixture: ${fixture.stderr}`);
   });
 
   afterAll(() => {
@@ -176,9 +179,21 @@ describe("CLI End-to-End Test Suite", () => {
     it("should validate and certify a clean skill for distribution", () => {
       const skillDir = join(tempBase, "weather-reporter");
       const outDir = join(tempBase, "package-dist");
+      writeFileSync(join(skillDir, ".env"), "OPENAI_API_KEY=hidden-test-value");
       const res = runCli(["package", skillDir, "-o", outDir]);
       expect(res.status).toBe(0);
       expect(res.stdout).toContain("Package ready for distribution");
+      const archive = join(outDir, "weather-reporter.skill");
+      expect(existsSync(archive)).toBe(true);
+      const archiveData = readFileSync(archive);
+      expect(archiveData.subarray(0, 4).toString("hex")).toBe("504b0304");
+      expect(archiveData.length).toBeGreaterThan(60);
+      const entries = unzipSync(new Uint8Array(archiveData));
+      expect(new TextDecoder().decode(entries["weather-reporter/SKILL.md"])).toContain("name: weather-reporter");
+      expect(entries["weather-reporter/evals/evals.json"]).toBeDefined();
+      expect(entries["weather-reporter/.env"]).toBeUndefined();
+      const repeated = runCli(["package", skillDir, "-o", outDir]);
+      expect(repeated.status).toBe(1);
     });
 
     it("should exit with code 1 when packaging an invalid skill", () => {

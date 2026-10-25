@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { generateAdapter } from "../src/core/adapters";
-import { mkdtempSync, existsSync } from "node:fs";
+import { mkdtempSync, existsSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { SkillManifest } from "../src/core/types";
@@ -74,5 +74,18 @@ describe("generateAdapter", () => {
     const marketPath = join(dir, ".agents", "plugins", "marketplace.json");
     expect(existsSync(marketPath)).toBe(true);
     expect(res.notes).toContain("Generated generic Agent Skills marketplace descriptor");
+  });
+
+  it("uses the skill's own version in generated plugin descriptors", () => {
+    const manifest = { ...dummyManifest, frontmatter: { ...dummyManifest.frontmatter, version: "2.4.7" } };
+    for (const [target, file] of [
+      ["codex", ".codex-plugin/plugin.json"],
+      ["claude", ".claude-plugin/plugin.json"],
+      ["antigravity", ".gemini/plugin.json"]
+    ]) {
+      const dir = mkdtempSync(join(tmpdir(), "adapter-version-test-"));
+      generateAdapter(manifest, target, dir);
+      expect(JSON.parse(readFileSync(join(dir, file), "utf-8")).version).toBe("2.4.7");
+    }
   });
 });
