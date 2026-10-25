@@ -201,6 +201,17 @@ class TestOmniSkillEngine(unittest.TestCase):
             self.assertIn("usage:", proc_help_after.stdout.lower())
             self.assertFalse((Path(tmpdir) / "--help").exists())
 
+            # Adversarial escape attempt via CLI
+            adv_file = Path(tmpdir) / "adv_spec.json"
+            adv_file.write_text(json.dumps({
+                "name": "../adversarial-cli-escape",
+                "description": "Escape test",
+                "job": "Fail"
+            }), encoding="utf-8")
+            proc_adv = subprocess.run([sys.executable, str(CORE_DIR / "compile_spec.py"), str(adv_file), tmpdir], capture_output=True, text=True)
+            self.assertEqual(proc_adv.returncode, 1)
+            self.assertFalse((Path(tmpdir).parent / "adversarial-cli-escape").exists())
+
     def test_eval_engine_cli_end_to_end(self):
         """Test eval_engine.py CLI interface with valid and error states."""
         # Help flag
