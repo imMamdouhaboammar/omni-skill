@@ -159,4 +159,31 @@ Target State
       rmSync(dir, { recursive: true });
     }
   });
+
+  it("safely ignores binary assets (.png, .jpg, .pyc) without throwing UTF-8 read failures", () => {
+    const dir = mkdtempSync(join(tmpdir(), "omni-test-binary-assets-"));
+    writeFileSync(
+      join(dir, "SKILL.md"),
+      `---
+name: binary-assets-skill
+description: Tests binary assets handling.
+---
+# Why This Skill Is Needed
+Target State
+`
+    );
+    // Write arbitrary non-UTF8 binary data
+    const nonUtf8Bytes = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46]);
+    writeFileSync(join(dir, "icon.png"), nonUtf8Bytes);
+    writeFileSync(join(dir, "banner.jpg"), nonUtf8Bytes);
+    writeFileSync(join(dir, "cache.pyc"), nonUtf8Bytes);
+
+    try {
+      const result = validateSkillDirectory(dir);
+      expect(result.pass).toBe(true);
+      expect(result.errors).toBe(0);
+    } finally {
+      rmSync(dir, { recursive: true });
+    }
+  });
 });
