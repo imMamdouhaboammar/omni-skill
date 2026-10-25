@@ -792,6 +792,18 @@ describe("compileOmniSkillSpec Reference Value Validation", () => {
       }).toThrow(/Field 'references\["api-guide"\]' must be a string/);
     }
   });
+
+  it("should not create references directory when references object is empty", () => {
+    const spec = {
+      name: "empty-refs-skill",
+      description: "Valid desc",
+      job: "Valid job",
+      instructions: ["Step 1"],
+      references: {}
+    };
+    const res = compileOmniSkillSpec(spec as any, outDir);
+    expect(existsSync(join(res, "references"))).toBe(false);
+  });
 });
 
 describe("compileOmniSkillSpec Evals Validation", () => {
