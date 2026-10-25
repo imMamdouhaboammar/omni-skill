@@ -43,11 +43,13 @@ def split_held_out(cases: List[Dict[str, Any]], train_ratio: float = 0.7) -> tup
     return shuffled[:cut], shuffled[cut:]
 
 if __name__ == "__main__":
+    import argparse
     import sys
-    if len(sys.argv) < 3 or sys.argv[1] in ("-h", "--help"):
-        print("Usage: eval_engine.py <evals.json> <candidate_response_or_file>")
-        sys.exit(0 if len(sys.argv) >= 2 and sys.argv[1] in ("-h", "--help") else 1)
-    eval_file = Path(sys.argv[1])
+    parser = argparse.ArgumentParser(description="Evaluate a response against BinEval assertions")
+    parser.add_argument("evals", type=Path, help="Evaluation JSON path")
+    parser.add_argument("candidate", help="Candidate response text or path to a response file")
+    args = parser.parse_args()
+    eval_file = args.evals
     if not eval_file.exists():
         print(f"Error: evals file not found: {eval_file}", file=sys.stderr)
         sys.exit(1)
@@ -60,9 +62,13 @@ if __name__ == "__main__":
         print(f"Error: Failed to parse evals JSON: {exc}", file=sys.stderr)
         sys.exit(1)
 
-    cand_arg = sys.argv[2]
+    cand_arg = args.candidate
     cand_path = Path(cand_arg)
-    candidate_text = cand_path.read_text(encoding="utf-8") if cand_path.exists() and cand_path.is_file() else cand_arg
+    try:
+        candidate_is_file = cand_path.is_file()
+    except OSError:
+        candidate_is_file = False
+    candidate_text = cand_path.read_text(encoding="utf-8") if candidate_is_file else cand_arg
 
     outcome = run_bineval(suite, candidate_text)
     print(json.dumps(outcome, indent=2))

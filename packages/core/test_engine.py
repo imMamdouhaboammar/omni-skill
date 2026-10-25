@@ -3,11 +3,15 @@
 
 from __future__ import annotations
 import json
+import io
+import runpy
 import subprocess
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
+from unittest.mock import patch
 
 from compile_spec import compile_spec
 from portability_validator import validate_skill
@@ -101,7 +105,7 @@ class TestOmniSkillEngine(unittest.TestCase):
         # Help flag
         proc_help = subprocess.run([sys.executable, str(CORE_DIR / "compile_spec.py"), "--help"], capture_output=True, text=True)
         self.assertEqual(proc_help.returncode, 0)
-        self.assertIn("Usage:", proc_help.stdout)
+        self.assertIn("usage:", proc_help.stdout.lower())
 
         # Missing file error
         proc_missing = subprocess.run([sys.executable, str(CORE_DIR / "compile_spec.py"), "/non/existent/file.json"], capture_output=True, text=True)
@@ -120,12 +124,20 @@ class TestOmniSkillEngine(unittest.TestCase):
             self.assertEqual(proc_ok.returncode, 0)
             self.assertTrue((Path(tmpdir) / "cli-compiled-tool" / "SKILL.md").exists())
 
+            proc_help_after = subprocess.run(
+                [sys.executable, str(CORE_DIR / "compile_spec.py"), str(spec_file), "--help"],
+                cwd=tmpdir, capture_output=True, text=True
+            )
+            self.assertEqual(proc_help_after.returncode, 0)
+            self.assertIn("usage:", proc_help_after.stdout.lower())
+            self.assertFalse((Path(tmpdir) / "--help").exists())
+
     def test_eval_engine_cli_end_to_end(self):
         """Test eval_engine.py CLI interface with valid and error states."""
         # Help flag
         proc_help = subprocess.run([sys.executable, str(CORE_DIR / "eval_engine.py"), "--help"], capture_output=True, text=True)
         self.assertEqual(proc_help.returncode, 0)
-        self.assertIn("Usage:", proc_help.stdout)
+        self.assertIn("usage:", proc_help.stdout.lower())
 
         # Missing file error
         proc_missing = subprocess.run([sys.executable, str(CORE_DIR / "eval_engine.py"), "/non/existent/evals.json", "candidate response"], capture_output=True, text=True)
@@ -150,6 +162,21 @@ class TestOmniSkillEngine(unittest.TestCase):
             eval_file.write_text(json.dumps([{"id": "array-format", "assertions": [{"pattern": "verified", "required": True}]}]), encoding="utf-8")
             proc_array = subprocess.run([sys.executable, str(CORE_DIR / "eval_engine.py"), str(eval_file), "verified"], capture_output=True, text=True)
             self.assertEqual(proc_array.returncode, 0, proc_array.stderr)
+
+            proc_help_after = subprocess.run(
+                [sys.executable, str(CORE_DIR / "eval_engine.py"), str(eval_file), "--help"],
+                capture_output=True, text=True
+            )
+            self.assertEqual(proc_help_after.returncode, 0)
+            self.assertIn("usage:", proc_help_after.stdout.lower())
+
+            with patch.object(Path, "is_file", side_effect=OSError("candidate path probe failed")):
+                with patch.object(sys, "argv", [str(CORE_DIR / "eval_engine.py"), str(eval_file), "verified"]):
+                    with redirect_stdout(io.StringIO()) as output:
+                        with self.assertRaises(SystemExit) as exit_result:
+                            runpy.run_path(str(CORE_DIR / "eval_engine.py"), run_name="__main__")
+            self.assertEqual(exit_result.exception.code, 0)
+            self.assertEqual(json.loads(output.getvalue())["passed"], 1)
 
 if __name__ == "__main__":
     unittest.main()
