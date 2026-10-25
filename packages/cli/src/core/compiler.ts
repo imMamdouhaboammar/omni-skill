@@ -245,7 +245,7 @@ export function compileOmniSkillSpec(spec: OmniSkillSpec, outputDir: string): st
     "",
     "## Host & Portability Contract",
     "",
-    `- Target Hosts: ${(spec.target_hosts || ["agent-skills", "chatgpt", "codex", "claude-code"]).join(", ")}`,
+    `- Target Hosts: ${(spec.target_hosts && spec.target_hosts.length > 0 ? spec.target_hosts : ["agent-skills", "chatgpt", "codex", "claude-code"]).join(", ")}`,
     `- Freedom Level: ${spec.freedom_level || "medium"}`,
     ""
   );
