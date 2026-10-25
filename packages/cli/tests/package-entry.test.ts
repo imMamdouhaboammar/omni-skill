@@ -24,4 +24,15 @@ console.log("library entry OK");`;
     expect(lib.sanitizeDiagnosticPath("/base", "/base/sub/doc.md")).toBe("sub/doc.md");
     expect(lib.sanitizeFsError({ code: "EACCES" })).toBe("EACCES");
   });
+
+  it("exports security scanning engine and types from the library interface", async () => {
+    const lib = await import("../src/lib");
+    expect(typeof lib.scanSkillDirectory).toBe("function");
+    expect(typeof lib.scanSkillText).toBe("function");
+    expect(typeof lib.computeRiskScore).toBe("function");
+    expect(typeof lib.formatSecurityReportTerminal).toBe("function");
+    expect(typeof lib.formatSecurityReportJson).toBe("function");
+    expect(typeof lib.formatSecurityReportSarif).toBe("function");
+    expect(lib.PatternCategory.PROMPT_INJECTION).toBe("Prompt Injection");
+  });
 });
