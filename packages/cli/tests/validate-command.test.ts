@@ -484,6 +484,36 @@ Target State
     const fullLog = logOutput.join("\n");
     expect(fullLog).toContain("1/2 skills valid");
   });
+
+  it("handles mixed relative and absolute explicit paths sanitizing output correctly", () => {
+    const tempBase = mkdtempSync(join(tmpdir(), "omni-test-mixed-rel-abs-"));
+    const skillA = join(tempBase, "skill-a");
+    mkdirSync(skillA);
+    writeFileSync(
+      join(skillA, "SKILL.md"),
+      `---
+name: skill-a
+description: Skill A.
+---
+# Why This Skill Is Needed
+Target State
+`
+    );
+    const missingRel = "does-not-exist-relative-" + Date.now();
+
+    try {
+      validateSkillCommand([skillA, missingRel]);
+    } catch {
+      // expect exit(1)
+    } finally {
+      rmSync(tempBase, { recursive: true });
+    }
+
+    expect(exitCode).toBe(1);
+    const fullLog = logOutput.join("\n");
+    expect(fullLog).toContain("1/2 skills valid (1 errors, 0 warnings)");
+    expect(fullLog).not.toMatch(/\/Users\/[a-zA-Z0-9_.-]+\//);
+  });
 });
 
 describe("inspectSkillRoot", () => {
