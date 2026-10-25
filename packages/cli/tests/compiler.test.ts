@@ -816,6 +816,18 @@ describe("compileOmniSkillSpec Reference Value Validation", () => {
     const res = compileOmniSkillSpec(spec as any, outDir);
     expect(existsSync(join(res, "references"))).toBe(false);
   });
+
+  it("should accept explicit null for references and create no references directory", () => {
+    const spec = {
+      name: "null-refs-skill",
+      description: "Valid desc",
+      job: "Valid job",
+      instructions: ["Step 1"],
+      references: null
+    };
+    const res = compileOmniSkillSpec(spec as any, outDir);
+    expect(existsSync(join(res, "references"))).toBe(false);
+  });
 });
 
 describe("compileOmniSkillSpec Evals Validation", () => {
@@ -949,6 +961,18 @@ describe("compileOmniSkillSpec Evals Validation", () => {
       job: "Valid job",
       instructions: ["Step 1"],
       evals: []
+    };
+    const res = compileOmniSkillSpec(spec as any, outDir);
+    expect(existsSync(join(res, "evals"))).toBe(false);
+  });
+
+  it("should accept explicit null for evals and create no evals directory", () => {
+    const spec = {
+      name: "null-evals-skill",
+      description: "Valid desc",
+      job: "Valid job",
+      instructions: ["Step 1"],
+      evals: null
     };
     const res = compileOmniSkillSpec(spec as any, outDir);
     expect(existsSync(join(res, "evals"))).toBe(false);
