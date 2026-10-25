@@ -7,8 +7,8 @@ import re
 from pathlib import Path
 from typing import Any, Dict
 
-NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
-REF_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*\Z")
+REF_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*\Z")
 
 def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
     if not isinstance(spec_data, dict):
@@ -35,13 +35,18 @@ def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
     references = spec_data.get("references")
     ref_dir = skill_path / "references"
     resolved_ref_dir = ref_dir.resolve()
+    ref_entries = []
 
     # Preflight validate all references before any filesystem modification
     if references is not None:
         if not isinstance(references, dict):
             raise TypeError("Field 'references' must be a dictionary mapping reference names to markdown content.")
+        if ref_dir.is_symlink():
+            raise ValueError("Path containment violation: 'references' directory is a symbolic link.")
+
         seen_ref_keys = set()
-        for ref_name, ref_content in references.items():
+        ref_entries = list(references.items())
+        for ref_name, ref_content in ref_entries:
             if not isinstance(ref_name, str) or not REF_NAME_RE.match(ref_name):
                 raise ValueError(
                     f"Invalid reference name '{ref_name}'. Must be lowercase kebab-case alphanumeric without file extensions."
@@ -58,6 +63,10 @@ def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
                 raise ValueError(f"Path containment violation: Reference '{ref_name}' escapes references directory.")
             if ref_rel != Path(f"{ref_name}.md"):
                 raise ValueError(f"Path containment violation: Reference '{ref_name}' escapes references directory.")
+
+            target_unresolved = ref_dir / f"{ref_name}.md"
+            if target_unresolved.is_symlink():
+                raise ValueError(f"Path containment violation: Target reference '{ref_name}.md' is a symbolic link.")
 
     description = spec_data.get("description", "").strip()
     job = spec_data.get("job", "")
@@ -96,9 +105,9 @@ def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
     (skill_path / "SKILL.md").write_text("\n".join(lines), encoding="utf-8")
 
     # 2. Generate references
-    if references:
+    if ref_entries:
         ref_dir.mkdir(exist_ok=True)
-        for ref_name, ref_content in references.items():
+        for ref_name, ref_content in ref_entries:
             (ref_dir / f"{ref_name}.md").write_text(str(ref_content), encoding="utf-8")
 
     # 3. Generate evals

@@ -139,7 +139,8 @@ class TestOmniSkillEngine(unittest.TestCase):
                 ("   ", "whitespace key"),
                 ("ApiGuide", "uppercase non-kebab key"),
                 ("ref$name!", "special symbols in key"),
-                ("api_guide", "underscore in key")
+                ("api_guide", "underscore in key"),
+                ("api-guide\n", "trailing newline")
             ]
 
             for payload, label in adversarial_refs:
@@ -198,6 +199,48 @@ class TestOmniSkillEngine(unittest.TestCase):
             if ref_dir.exists():
                 self.assertFalse((ref_dir / "valid-first.md").exists())
                 self.assertFalse((ref_dir / "valid-third.md").exists())
+
+            # Symlinked references directory attack
+            symlink_skill_dir = out_dir / "symlink-ref-skill"
+            symlink_skill_dir.mkdir(parents=True)
+            outside_target = root / "symlink-target-dir"
+            outside_target.mkdir(parents=True)
+            (symlink_skill_dir / "references").symlink_to(outside_target)
+
+            symlink_spec = {
+                "name": "symlink-ref-skill",
+                "description": "Symlink ref dir attack",
+                "job": "Fail",
+                "instructions": ["Step 1"],
+                "references": {
+                    "normal-ref": "SYMLINK CONTENT"
+                }
+            }
+            with self.assertRaises(ValueError):
+                compile_spec(symlink_spec, out_dir)
+            self.assertEqual(hashlib.sha256(sentinel.read_bytes()).hexdigest(), sentinel_hash)
+            self.assertFalse((outside_target / "normal-ref.md").exists())
+
+            # Symlinked target file in references attack
+            file_symlink_skill = out_dir / "file-symlink-skill"
+            file_ref_dir = file_symlink_skill / "references"
+            file_ref_dir.mkdir(parents=True)
+            outside_file = root / "outside-target.md"
+            outside_file.write_text("INITIAL", encoding="utf-8")
+            (file_ref_dir / "attack.md").symlink_to(outside_file)
+
+            file_symlink_spec = {
+                "name": "file-symlink-skill",
+                "description": "File symlink attack",
+                "job": "Fail",
+                "instructions": ["Step 1"],
+                "references": {
+                    "attack": "OVERWRITE TARGET VIA SYMLINK"
+                }
+            }
+            with self.assertRaises(ValueError):
+                compile_spec(file_symlink_spec, out_dir)
+            self.assertEqual(outside_file.read_text(encoding="utf-8"), "INITIAL")
 
     def test_bineval_scoring_table_driven(self):
         """Table-driven test testing assertion permutations and edge cases."""

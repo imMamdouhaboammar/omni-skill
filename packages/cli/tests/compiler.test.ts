@@ -183,7 +183,8 @@ describe("compileOmniSkillSpec Reference Containment (#8)", () => {
     { name: "whitespace key", payload: "   " },
     { name: "uppercase non-kebab key", payload: "ApiGuide" },
     { name: "special symbols in key", payload: "ref$name!" },
-    { name: "underscore in key", payload: "api_guide" }
+    { name: "underscore in key", payload: "api_guide" },
+    { name: "trailing newline", payload: "api-guide\n" }
   ];
 
   for (const tc of adversarialRefCases) {
@@ -259,5 +260,102 @@ describe("compileOmniSkillSpec Reference Containment (#8)", () => {
       expect(existsSync(join(refDir, "valid-first.md"))).toBe(false);
       expect(existsSync(join(refDir, "valid-third.md"))).toBe(false);
     }
+  });
+
+  it("should reject pre-existing symlinks in references directory or reference target", () => {
+    // 1. Symlinked references directory
+    const symlinkSkillDir = join(outDir, "symlink-ref-skill");
+    mkdirSync(symlinkSkillDir, { recursive: true });
+    const outsideTarget = join(rootDir, "outside-ref-target");
+    mkdirSync(outsideTarget, { recursive: true });
+    symlinkSync(outsideTarget, join(symlinkSkillDir, "references"), "dir");
+
+    const spec1 = {
+      name: "symlink-ref-skill",
+      description: "Symlink directory attack",
+      job: "Fail on symlink refDir",
+      instructions: ["Step 1"],
+      references: {
+        "normal-ref": "SYMLINK CONTENT"
+      }
+    };
+
+    expect(() => {
+      compileOmniSkillSpec(spec1 as any, outDir);
+    }).toThrow(/symbolic link/);
+    expect(sha256(sentinelFile)).toBe(sentinelHash);
+    expect(existsSync(join(outsideTarget, "normal-ref.md"))).toBe(false);
+
+    // 2. Symlinked target file in references
+    const fileSymlinkSkill = join(outDir, "file-symlink-skill");
+    const fileRefDir = join(fileSymlinkSkill, "references");
+    mkdirSync(fileRefDir, { recursive: true });
+    const outsideFile = join(rootDir, "outside-target.md");
+    writeFileSync(outsideFile, "INITIAL_CONTENT", "utf-8");
+    symlinkSync(outsideFile, join(fileRefDir, "attack.md"), "file");
+
+    const spec2 = {
+      name: "file-symlink-skill",
+      description: "Symlink file attack",
+      job: "Fail on symlink target file",
+      instructions: ["Step 1"],
+      references: {
+        attack: "OVERWRITE VIA SYMLINK"
+      }
+    };
+
+    expect(() => {
+      compileOmniSkillSpec(spec2 as any, outDir);
+    }).toThrow(/symbolic link/);
+    expect(readFileSync(outsideFile, "utf-8")).toBe("INITIAL_CONTENT");
+    expect(sha256(sentinelFile)).toBe(sentinelHash);
+  });
+
+  it("should reject non-plain-object references like Map or Set", () => {
+    const specMap = {
+      name: "map-ref-skill",
+      description: "Map references",
+      job: "Fail on Map",
+      instructions: ["Step 1"],
+      references: new Map([["api-guide", "Content"]])
+    };
+
+    expect(() => {
+      compileOmniSkillSpec(specMap as any, outDir);
+    }).toThrow(TypeError);
+
+    const specSet = {
+      name: "set-ref-skill",
+      description: "Set references",
+      job: "Fail on Set",
+      instructions: ["Step 1"],
+      references: new Set(["api-guide"])
+    };
+
+    expect(() => {
+      compileOmniSkillSpec(specSet as any, outDir);
+    }).toThrow(TypeError);
+  });
+
+  it("should safely snapshot references to prevent proxy/getter race condition", () => {
+    let callCount = 0;
+    const dynamicRefs = {
+      get "api-guide"() {
+        callCount++;
+        return "Valid Content";
+      }
+    };
+
+    const spec = {
+      name: "proxy-ref-skill",
+      description: "Dynamic references getter",
+      job: "Snapshot test",
+      instructions: ["Step 1"],
+      references: dynamicRefs
+    };
+
+    const compiled = compileOmniSkillSpec(spec as any, outDir);
+    expect(existsSync(join(compiled, "references", "api-guide.md"))).toBe(true);
+    expect(readFileSync(join(compiled, "references", "api-guide.md"), "utf-8")).toBe("Valid Content");
   });
 });
