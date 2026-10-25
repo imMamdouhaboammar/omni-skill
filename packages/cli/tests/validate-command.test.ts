@@ -376,4 +376,30 @@ Target State
     const fullLog = logOutput.join("\n");
     expect(fullLog).toContain("1/1 skills valid (0 errors, 0 warnings)");
   });
+
+  it("passes with exit 0 when skill has warnings but zero errors", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "omni-test-warning-only-"));
+    // Missing why section and target state creates warnings, but no errors
+    writeFileSync(
+      join(tempDir, "SKILL.md"),
+      `---
+name: warning-only-skill
+description: Tests warnings only.
+---
+# Simple Skill
+Instructions here.
+`
+    );
+
+    try {
+      validateSkillCommand(tempDir);
+    } finally {
+      rmSync(tempDir, { recursive: true });
+    }
+
+    expect(exitCode).toBeNull(); // Did not exit 1
+    const fullLog = logOutput.join("\n");
+    expect(fullLog).toContain("Validation PASSED");
+    expect(fullLog).toContain("1/1 skills valid (0 errors, 2 warnings)");
+  });
 });
