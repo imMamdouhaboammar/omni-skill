@@ -45,7 +45,7 @@ export function validateSkillDirectory(
       });
     }
 
-    if (!frontmatter.description || frontmatter.description.trim().length === 0) {
+    if (frontmatter.description.trim().length === 0) {
       findings.push({
         severity: "error",
         code: "EMPTY_DESCRIPTION",
@@ -53,9 +53,10 @@ export function validateSkillDirectory(
       });
     }
   } catch (err: any) {
+    const code = err.code || (err.name === "FrontmatterTypeError" ? "FRONTMATTER_TYPE" : "YAML_PARSE_ERROR");
     findings.push({
       severity: "error",
-      code: "YAML_PARSE_ERROR",
+      code,
       message: err.message
     });
   }

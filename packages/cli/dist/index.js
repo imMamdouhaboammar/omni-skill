@@ -9063,6 +9063,42 @@ var $visitAsync = visit.visitAsync;
 // src/core/parser.ts
 import { existsSync, readFileSync } from "node:fs";
 import { join as join2 } from "node:path";
+
+class FrontmatterTypeError extends Error {
+  code = "FRONTMATTER_TYPE";
+  constructor(message) {
+    super(message);
+    this.name = "FrontmatterTypeError";
+  }
+}
+function validateFrontmatterTypes(data) {
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    throw new FrontmatterTypeError("YAML frontmatter must be a key-value mapping");
+  }
+  const record = data;
+  if (!("name" in record) || record.name === undefined || record.name === null) {
+    throw new FrontmatterTypeError("Frontmatter field 'name' is required");
+  }
+  if (typeof record.name !== "string") {
+    const receivedType = Array.isArray(record.name) ? "array" : typeof record.name;
+    throw new FrontmatterTypeError(`Frontmatter field 'name' must be a string, received ${receivedType}`);
+  }
+  if (!("description" in record) || record.description === undefined || record.description === null) {
+    throw new FrontmatterTypeError("Frontmatter field 'description' is required");
+  }
+  if (typeof record.description !== "string") {
+    const receivedType = Array.isArray(record.description) ? "array" : typeof record.description;
+    throw new FrontmatterTypeError(`Frontmatter field 'description' must be a string, received ${receivedType}`);
+  }
+  if ("version" in record && typeof record.version !== "string") {
+    const receivedType = record.version === null ? "null" : typeof record.version;
+    throw new FrontmatterTypeError(`Frontmatter field 'version' must be a string, received ${receivedType}`);
+  }
+  if ("author" in record && typeof record.author !== "string") {
+    const receivedType = record.author === null ? "null" : typeof record.author;
+    throw new FrontmatterTypeError(`Frontmatter field 'author' must be a string, received ${receivedType}`);
+  }
+}
 function parseSkillMarkdown(content) {
   let normalized = content;
   if (normalized.charCodeAt(0) === 65279) {
@@ -9084,10 +9120,14 @@ function parseSkillMarkdown(content) {
   const rawYaml = normalized.slice(openOffset, rawYamlEnd);
   const bodyStart = openOffset + closingMatch.index + closingMatch[0].length;
   const body = normalized.slice(bodyStart).trim();
-  const frontmatter = $parse(rawYaml);
-  if (!frontmatter || typeof frontmatter !== "object") {
-    throw new Error("Invalid YAML structure in frontmatter");
+  let parsed;
+  try {
+    parsed = $parse(rawYaml);
+  } catch (err) {
+    throw new Error(`YAML syntax error in frontmatter: ${err.message}`);
   }
+  validateFrontmatterTypes(parsed);
+  const frontmatter = parsed;
   return { frontmatter, body };
 }
 function loadSkillDirectory(skillDir) {
@@ -9143,7 +9183,7 @@ function validateSkillDirectory(skillDir, targets = ["agent-skills", "chatgpt", 
         message: `Name "${frontmatter.name}" is invalid. Must be lowercase kebab-case.`
       });
     }
-    if (!frontmatter.description || frontmatter.description.trim().length === 0) {
+    if (frontmatter.description.trim().length === 0) {
       findings.push({
         severity: "error",
         code: "EMPTY_DESCRIPTION",
@@ -9151,9 +9191,10 @@ function validateSkillDirectory(skillDir, targets = ["agent-skills", "chatgpt", 
       });
     }
   } catch (err) {
+    const code = err.code || (err.name === "FrontmatterTypeError" ? "FRONTMATTER_TYPE" : "YAML_PARSE_ERROR");
     findings.push({
       severity: "error",
-      code: "YAML_PARSE_ERROR",
+      code,
       message: err.message
     });
   }

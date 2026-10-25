@@ -91,4 +91,48 @@ TODO: Implement the real logic later.
     expect(report.findings.some(f => f.code === "READ_FAILURE")).toBe(true);
     expect(report.findings.some(f => f.code === "SECRET_LEAK")).toBe(true);
   });
+
+  it("should fail gracefully with FRONTMATTER_TYPE when description is an array", () => {
+    const dir = mkdtempSync(join(tmpdir(), "omni-test-array-desc-"));
+    writeFileSync(
+      join(dir, "SKILL.md"),
+      `---
+name: array-desc-skill
+description:
+  - first bullet
+  - second bullet
+---
+# Skill
+`,
+      "utf-8"
+    );
+
+    const report = validateSkillDirectory(dir);
+    expect(report.pass).toBe(false);
+    expect(report.errors).toBeGreaterThan(0);
+    const typeFinding = report.findings.find(f => f.code === "FRONTMATTER_TYPE");
+    expect(typeFinding).toBeDefined();
+    expect(typeFinding?.message).toContain("description");
+  });
+
+  it("should fail gracefully with FRONTMATTER_TYPE when name is not a string", () => {
+    const dir = mkdtempSync(join(tmpdir(), "omni-test-num-name-"));
+    writeFileSync(
+      join(dir, "SKILL.md"),
+      `---
+name: 12345
+description: Valid description text.
+---
+# Skill
+`,
+      "utf-8"
+    );
+
+    const report = validateSkillDirectory(dir);
+    expect(report.pass).toBe(false);
+    expect(report.errors).toBeGreaterThan(0);
+    const typeFinding = report.findings.find(f => f.code === "FRONTMATTER_TYPE");
+    expect(typeFinding).toBeDefined();
+    expect(typeFinding?.message).toContain("name");
+  });
 });
