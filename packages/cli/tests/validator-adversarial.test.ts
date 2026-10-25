@@ -212,4 +212,30 @@ Target State
       rmSync(dir, { recursive: true });
     }
   });
+
+  it("safely ignores unreadable hidden dotfiles and dotdirectories (e.g. .git)", () => {
+    const dir = mkdtempSync(join(tmpdir(), "omni-test-unreadable-hidden-"));
+    writeFileSync(
+      join(dir, "SKILL.md"),
+      `---
+name: unreadable-hidden-skill
+description: Tests unreadable hidden items.
+---
+# Why This Skill Is Needed
+Target State
+`
+    );
+    const hiddenDir = join(dir, ".git");
+    mkdirSync(hiddenDir);
+    chmodSync(hiddenDir, 0o000);
+
+    try {
+      const result = validateSkillDirectory(dir);
+      expect(result.pass).toBe(true);
+      expect(result.errors).toBe(0);
+    } finally {
+      chmodSync(hiddenDir, 0o755);
+      rmSync(dir, { recursive: true });
+    }
+  });
 });
