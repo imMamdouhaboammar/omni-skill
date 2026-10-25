@@ -141,6 +141,15 @@ describe("CLI End-to-End Test Suite", () => {
       expect(res.stdout).toContain("1/2 skills valid (1 errors, 0 warnings)");
     });
 
+    it("should fail validation and exit 1 when multiple invalid roots are passed", () => {
+      const missing1 = join(tempBase, "missing-1");
+      const missing2 = join(tempBase, "missing-2");
+      const missing3 = join(tempBase, "missing-3");
+      const res = runCli(["validate", missing1, missing2, missing3]);
+      expect(res.status).toBe(1);
+      expect(res.stdout).toContain("0/3 skills valid (3 errors, 0 warnings)");
+    });
+
     it("should not leak user absolute paths in error messages", () => {
       const dir = join(tempBase, "leak-check-skill");
       runCli(["init", "leak-check-skill", "-o", tempBase]);
