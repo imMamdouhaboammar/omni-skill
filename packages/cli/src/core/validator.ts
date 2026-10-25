@@ -144,12 +144,13 @@ export function validateSkillDirectory(
         message: "Frontmatter description cannot be empty."
       });
     }
-  } catch (err: any) {
-    const code = err.code || (err.name === "FrontmatterTypeError" ? "FRONTMATTER_TYPE" : "YAML_PARSE_ERROR");
+  } catch (err: unknown) {
+    const errorObj = err as { code?: string; name?: string; message?: string } | undefined;
+    const code = errorObj?.code || (errorObj?.name === "FrontmatterTypeError" ? "FRONTMATTER_TYPE" : "YAML_PARSE_ERROR");
     findings.push({
       severity: "error",
       code,
-      message: err.message
+      message: errorObj?.message || "Failed to parse frontmatter"
     });
   }
 
