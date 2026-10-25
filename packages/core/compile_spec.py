@@ -101,6 +101,8 @@ def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
                 raise ValueError(
                     f"Invalid reference name '{ref_name}'. Must be lowercase kebab-case alphanumeric without file extensions."
                 )
+            if not isinstance(ref_content, str):
+                raise TypeError(f"Field 'references[\"{ref_name}\"]' must be a string.")
             canonical_ref_key = ref_name.lower()
             if canonical_ref_key in seen_ref_keys:
                 raise ValueError(f"Duplicate reference name detected: '{ref_name}'.")
