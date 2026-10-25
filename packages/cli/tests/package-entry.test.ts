@@ -16,4 +16,12 @@ console.log("library entry OK");`;
     expect(result.status).toBe(0);
     expect(result.stdout.trim()).toBe("library entry OK");
   });
+
+  it("exports diagnostic sanitizers from the library interface", async () => {
+    const lib = await import("../src/lib");
+    expect(typeof lib.sanitizeDiagnosticPath).toBe("function");
+    expect(typeof lib.sanitizeFsError).toBe("function");
+    expect(lib.sanitizeDiagnosticPath("/base", "/base/sub/doc.md")).toBe("sub/doc.md");
+    expect(lib.sanitizeFsError({ code: "EACCES" })).toBe("EACCES");
+  });
 });
