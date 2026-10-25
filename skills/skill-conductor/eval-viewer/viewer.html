@@ -611,10 +611,19 @@
       .toast.visible {
         opacity: 1;
       }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.01ms !important;
+          scroll-behavior: auto !important;
+        }
+      }
     </style>
   </head>
   <body>
-    <div id="app" style="height: 100vh; display: flex; flex-direction: column">
+    <main id="app" style="height: 100vh; display: flex; flex-direction: column">
       <div class="header">
         <div>
           <h1>Eval Review: <span id="skill-name"></span></h1>
@@ -701,14 +710,19 @@
 
           <!-- Feedback -->
           <div class="section">
-            <div class="section-header">Your Feedback</div>
+            <label for="feedback" class="section-header" style="display: block; cursor: pointer;">Your Feedback</label>
             <div class="section-body">
               <textarea
                 class="feedback-textarea"
                 id="feedback"
                 placeholder="What do you think of this output? Any issues, suggestions, or things that look great?"
               ></textarea>
-              <div class="feedback-status" id="feedback-status"></div>
+              <div
+                class="feedback-status"
+                id="feedback-status"
+                role="status"
+                aria-live="polite"
+              ></div>
               <div
                 class="prev-feedback"
                 id="prev-feedback"
@@ -744,7 +758,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </main>
 
     <!-- Done overlay -->
     <div class="done-overlay" id="done-overlay">
