@@ -293,6 +293,13 @@ class TestOmniSkillEngine(unittest.TestCase):
             res_empty = compile_spec(spec_empty, out_dir)
             self.assertFalse((res_empty / "references").exists())
 
+            # Explicit None references should not create references/ dir
+            spec_null_ref = dict(base_spec)
+            spec_null_ref["name"] = "sample-null-refs"
+            spec_null_ref["references"] = None
+            res_null_ref = compile_spec(spec_null_ref, out_dir)
+            self.assertFalse((res_null_ref / "references").exists())
+
     def test_compile_spec_evals_validation(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             out_dir = Path(tmpdir)
@@ -381,6 +388,13 @@ class TestOmniSkillEngine(unittest.TestCase):
             spec_empty["evals"] = []
             res_empty = compile_spec(spec_empty, out_dir)
             self.assertFalse((res_empty / "evals").exists())
+
+            # 6. Explicit None evals list creates no evals dir
+            spec_null_eval = dict(base_spec)
+            spec_null_eval["name"] = "sample-null-evals"
+            spec_null_eval["evals"] = None
+            res_null_eval = compile_spec(spec_null_eval, out_dir)
+            self.assertFalse((res_null_eval / "evals").exists())
 
     def test_compile_spec_zero_filesystem_mutation_on_validation_failure(self):
         import hashlib
