@@ -962,3 +962,103 @@ describe("compileOmniSkillSpec Zero Filesystem Mutation on Validation Failure", 
     });
   }
 });
+
+describe("compileOmniSkillSpec Golden Spec Parity", () => {
+  let rootDir: string;
+  let outDir: string;
+
+  beforeEach(() => {
+    rootDir = mkdtempSync(join(tmpdir(), "omni-compiler-golden-"));
+    outDir = join(rootDir, "output");
+    mkdirSync(outDir, { recursive: true });
+  });
+
+  afterEach(() => {
+    if (existsSync(rootDir)) {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  it("should compile a full golden spec matching contract specifications", () => {
+    const goldenSpec = {
+      name: "golden-skill",
+      description: "A comprehensive production-grade skill specification.",
+      job: "Executes deterministic validation and compilation flows flawlessly.",
+      target_hosts: ["chatgpt", "codex", "claude-code"],
+      freedom_level: "low",
+      instructions: [
+        "Read input parameters carefully.",
+        "Validate preconditions before mutation.",
+        "Emit structured report."
+      ],
+      references: {
+        "architecture-overview": "# Architecture\nLayered system contract.",
+        "api-conventions": "# Conventions\nFollow semver and fail closed."
+      },
+      evals: [
+        {
+          id: "case-preflight-gate",
+          description: "Verify preflight gates fail closed on malformed input",
+          assertions: [
+            { pattern: "FAIL_CLOSED", required: true },
+            { pattern: "BYPASS_UNAUTHORIZED", required: false }
+          ]
+        },
+        {
+          id: "case-success-path",
+          assertions: [
+            { pattern: "COMPILED_SUCCESS", required: true }
+          ]
+        }
+      ]
+    };
+
+    const targetDir = compileOmniSkillSpec(goldenSpec as any, outDir);
+    expect(existsSync(targetDir)).toBe(true);
+
+    const skillMd = readFileSync(join(targetDir, "SKILL.md"), "utf-8");
+    expect(skillMd).toContain("name: golden-skill");
+    expect(skillMd).toContain("A comprehensive production-grade skill specification.");
+    expect(skillMd).toContain("# Golden Skill");
+    expect(skillMd).toContain("> Executes deterministic validation and compilation flows flawlessly.");
+    expect(skillMd).toContain("- Read input parameters carefully.");
+    expect(skillMd).toContain("- Validate preconditions before mutation.");
+    expect(skillMd).toContain("- Emit structured report.");
+    expect(skillMd).toContain("- Target Hosts: chatgpt, codex, claude-code");
+    expect(skillMd).toContain("- Freedom Level: low");
+
+    const ref1 = readFileSync(join(targetDir, "references", "architecture-overview.md"), "utf-8");
+    expect(ref1).toBe("# Architecture\nLayered system contract.");
+    const ref2 = readFileSync(join(targetDir, "references", "api-conventions.md"), "utf-8");
+    expect(ref2).toBe("# Conventions\nFollow semver and fail closed.");
+
+    const evalsContent = JSON.parse(readFileSync(join(targetDir, "evals", "evals.json"), "utf-8"));
+    expect(evalsContent.evals).toHaveLength(2);
+    expect(evalsContent.evals[0].id).toBe("case-preflight-gate");
+    expect(evalsContent.evals[0].description).toBe("Verify preflight gates fail closed on malformed input");
+    expect(evalsContent.evals[0].assertions).toHaveLength(2);
+    expect(evalsContent.evals[0].assertions[0].pattern).toBe("FAIL_CLOSED");
+    expect(evalsContent.evals[0].assertions[0].required).toBe(true);
+    expect(evalsContent.evals[1].id).toBe("case-success-path");
+    expect(evalsContent.evals[1].description).toBeUndefined();
+  });
+
+  it("should compile a minimal valid spec with all optional fields omitted", () => {
+    const minimalSpec = {
+      name: "minimal-skill",
+      description: "Minimal spec description.",
+      job: "Performs minimum actions.",
+      instructions: ["Step 1: Just run."]
+    };
+
+    const targetDir = compileOmniSkillSpec(minimalSpec as any, outDir);
+    expect(existsSync(targetDir)).toBe(true);
+
+    const skillMd = readFileSync(join(targetDir, "SKILL.md"), "utf-8");
+    expect(skillMd).toContain("name: minimal-skill");
+    expect(skillMd).toContain("- Target Hosts: agent-skills, chatgpt, codex, claude-code");
+    expect(skillMd).toContain("- Freedom Level: medium");
+    expect(existsSync(join(targetDir, "references"))).toBe(false);
+    expect(existsSync(join(targetDir, "evals"))).toBe(false);
+  });
+});
