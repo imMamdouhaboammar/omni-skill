@@ -6,7 +6,7 @@ const NAME_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const REF_NAME_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export function compileOmniSkillSpec(spec: OmniSkillSpec, outputDir: string): string {
-  if (!spec || typeof spec !== "object") {
+  if (!spec || typeof spec !== "object" || Array.isArray(spec)) {
     throw new TypeError("Skill specification must be an object.");
   }
 
