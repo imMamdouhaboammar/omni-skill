@@ -209,38 +209,62 @@ export function validateSkillDirectory(
     let entries: string[];
     try {
       entries = readdirSync(dir);
-    } catch (err) {
-      findings.push({ severity: "error", code: "READ_FAILURE", message: `Cannot scan directory ${dir}: ${String(err)}` });
+    } catch (err: unknown) {
+      const relDir = sanitizeDiagnosticPath(skillDir, dir);
+      findings.push({
+        severity: "error",
+        code: "READ_FAILURE",
+        message: `Cannot scan directory "${relDir}": ${sanitizeFsError(err)}`
+      });
       return;
     }
     for (const entry of entries) {
       if (entry.startsWith(".") || entry === "__pycache__" || entry === "node_modules" || entry.startsWith("test_") || entry.endsWith(".test.ts") || entry.endsWith(".test.py")) continue;
       const fullPath = join(dir, entry);
+      const relPath = sanitizeDiagnosticPath(skillDir, fullPath);
       try {
         const stat = lstatSync(fullPath);
         if (stat.isSymbolicLink()) {
-          findings.push({ severity: "error", code: "READ_FAILURE", message: `Cannot safely scan symbolic link: ${fullPath}` });
+          findings.push({
+            severity: "error",
+            code: "READ_FAILURE",
+            message: `Cannot safely scan symbolic link: "${relPath}"`
+          });
         } else if (stat.isDirectory()) {
           walk(fullPath);
         } else if (stat.isFile() && !entry.endsWith(".pyc") && !entry.endsWith(".png") && !entry.endsWith(".jpg")) {
-          const text = readFileSync(fullPath, "utf-8");
+          let text: string;
+          try {
+            text = readFileSync(fullPath, "utf-8");
+          } catch (readErr: unknown) {
+            findings.push({
+              severity: "error",
+              code: "READ_FAILURE",
+              message: `Cannot scan "${relPath}": ${sanitizeFsError(readErr)}`
+            });
+            continue;
+          }
           if (SECRET_REGEX.test(text)) {
             findings.push({
               severity: "error",
               code: "SECRET_LEAK",
-              message: `Possible secret/token leak detected in ${entry}`
+              message: `Possible secret/token leak detected in ${relPath}`
             });
           }
           if (PERSONAL_PATH_REGEX.test(text)) {
             findings.push({
               severity: "warning",
               code: "PERSONAL_PATH",
-              message: `Personal absolute path detected in ${entry}`
+              message: `Personal absolute path detected in ${relPath}`
             });
           }
         }
-      } catch (err) {
-        findings.push({ severity: "error", code: "READ_FAILURE", message: `Cannot scan ${fullPath}: ${String(err)}` });
+      } catch (err: unknown) {
+        findings.push({
+          severity: "error",
+          code: "READ_FAILURE",
+          message: `Cannot scan "${relPath}": ${sanitizeFsError(err)}`
+        });
       }
     }
   }
