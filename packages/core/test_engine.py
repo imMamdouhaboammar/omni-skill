@@ -212,6 +212,49 @@ class TestOmniSkillEngine(unittest.TestCase):
             res1 = compile_spec(spec1, out_dir)
             self.assertIn("- Target Hosts: chatgpt, codex", (res1 / "SKILL.md").read_text(encoding="utf-8"))
 
+    def test_compile_spec_freedom_level_validation(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir)
+            base_spec = {
+                "name": "sample-tool",
+                "description": "Valid description",
+                "job": "Valid job",
+                "instructions": ["Step 1"]
+            }
+
+            # 1. Invalid enum strings
+            for val in ["extreme", "none", "HIGH", "low ", "medium\n", ""]:
+                spec = dict(base_spec)
+                spec["freedom_level"] = val
+                with self.subTest(level=val):
+                    with self.assertRaises(ValueError) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("freedom_level", str(ctx.exception).lower())
+
+            # 2. Non-string types
+            for val in [12345, True, False, ["high"], {"level": "high"}]:
+                spec = dict(base_spec)
+                spec["freedom_level"] = val
+                with self.subTest(level=val):
+                    with self.assertRaises((TypeError, ValueError)) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("freedom_level", str(ctx.exception).lower())
+
+            # 3. Valid values
+            for val in ["high", "medium", "low"]:
+                spec = dict(base_spec)
+                spec["name"] = f"sample-{val}"
+                spec["freedom_level"] = val
+                res = compile_spec(spec, out_dir)
+                self.assertIn(f"- Freedom Level: {val}", (res / "SKILL.md").read_text(encoding="utf-8"))
+
+            # Omitted or None
+            spec_none = dict(base_spec)
+            spec_none["name"] = "sample-none"
+            spec_none["freedom_level"] = None
+            res_none = compile_spec(spec_none, out_dir)
+            self.assertIn("- Freedom Level: medium", (res_none / "SKILL.md").read_text(encoding="utf-8"))
+
     def test_compile_spec_and_validate(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             out_dir = Path(tmpdir)
