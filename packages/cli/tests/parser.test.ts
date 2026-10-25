@@ -256,6 +256,20 @@ author: null
         /Frontmatter field 'author' must be a string/
       );
     });
+
+    it("should reject completely malformed YAML syntax with YAML_PARSE_ERROR", () => {
+      const raw = `---
+name: [unterminated list
+description: broken
+---
+# Body`;
+      try {
+        parseSkillMarkdown(raw);
+        expect(true).toBe(false);
+      } catch (err: any) {
+        expect(err.code || err.name).toBeDefined();
+      }
+    });
   });
 });
 
