@@ -160,6 +160,34 @@ See [Secret Doc](../outside-secret.md)
     }
   });
 
+  it("sanitizes personal path in broken link when link target contains user directory", () => {
+    const dir = mkdtempSync(join(tmpdir(), "omni-test-link-user-dir-"));
+    const skillMd = join(dir, "SKILL.md");
+    writeFileSync(
+      skillMd,
+      `---
+name: link-user-dir
+description: Testing links.
+---
+# Why This Skill Is Needed
+Target State
+
+See [Secret Doc](/Users/john_doe_99/secret.md)
+`
+    );
+
+    try {
+      const result = validateSkillDirectory(dir);
+      expect(result.pass).toBe(false);
+      const linkFinding = result.findings.find((f) => f.code === "BROKEN_RELATIVE_LINK");
+      expect(linkFinding).toBeDefined();
+      expect(linkFinding?.message).not.toContain("john_doe_99");
+      expect(linkFinding?.message).toContain("<user>/secret.md");
+    } finally {
+      rmSync(dir, { recursive: true });
+    }
+  });
+
   it("accumulates errors correctly and ensures pass is false when multiple distinct failures exist", () => {
     const dir = mkdtempSync(join(tmpdir(), "omni-test-multiple-distinct-"));
     const skillMd = join(dir, "SKILL.md");
