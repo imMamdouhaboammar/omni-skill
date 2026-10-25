@@ -303,6 +303,21 @@ class TestOmniSkillEngine(unittest.TestCase):
             self.assertEqual(proc_adv.returncode, 1)
             self.assertFalse((Path(tmpdir).parent / "adversarial-cli-escape").exists())
 
+            # Adversarial reference escape attempt via CLI
+            adv_ref_file = Path(tmpdir) / "adv_ref_spec.json"
+            adv_ref_file.write_text(json.dumps({
+                "name": "cli-valid-tool",
+                "description": "Valid tool",
+                "job": "Escape ref",
+                "references": {
+                    "../escaped-ref": "evil"
+                }
+            }), encoding="utf-8")
+            proc_adv_ref = subprocess.run([sys.executable, str(CORE_DIR / "compile_spec.py"), str(adv_ref_file), tmpdir], capture_output=True, text=True)
+            self.assertEqual(proc_adv_ref.returncode, 1)
+            self.assertFalse((Path(tmpdir) / "escaped-ref.md").exists())
+            self.assertFalse((Path(tmpdir).parent / "escaped-ref.md").exists())
+
     def test_eval_engine_cli_end_to_end(self):
         """Test eval_engine.py CLI interface with valid and error states."""
         # Help flag

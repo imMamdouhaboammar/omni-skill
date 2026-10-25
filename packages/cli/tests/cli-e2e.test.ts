@@ -168,6 +168,28 @@ describe("CLI End-to-End Test Suite", () => {
       expect(res.stdout).toContain("Failed to compile skill");
       expect(existsSync(join(tempBase, "escaped-calc"))).toBe(false);
     });
+
+    it("should exit with code 1 when specification has an adversarial reference name escaping references directory", () => {
+      const escapeRefSpec = join(tempBase, "escape-ref-spec.json");
+      writeFileSync(
+        escapeRefSpec,
+        JSON.stringify({
+          name: "safe-skill-bad-ref",
+          description: "Skill with bad ref",
+          job: "Escape",
+          instructions: ["Step 1"],
+          references: {
+            "../escaped-ref": "evil"
+          }
+        })
+      );
+      const outDir = join(tempBase, "compiled-output");
+      const res = runCli(["compile", escapeRefSpec, "-o", outDir]);
+      expect(res.status).toBe(1);
+      expect(res.stdout).toContain("Failed to compile skill");
+      expect(existsSync(join(outDir, "escaped-ref.md"))).toBe(false);
+      expect(existsSync(join(tempBase, "escaped-ref.md"))).toBe(false);
+    });
   });
 
   describe("omni-skill eval", () => {
