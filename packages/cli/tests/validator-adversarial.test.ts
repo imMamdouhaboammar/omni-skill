@@ -341,4 +341,30 @@ Run the command directly.
       rmSync(dir, { recursive: true });
     }
   });
+
+  it("accepts Japanese section headers for rationale and target state without warnings", () => {
+    const dir = mkdtempSync(join(tmpdir(), "omni-test-japanese-sections-"));
+    writeFileSync(
+      join(dir, "SKILL.md"),
+      `---
+name: japanese-sections-skill
+description: Tests Japanese section headers.
+---
+# 必要な理由
+このスキルは必要です。
+
+# 達成したい状態
+完璧な状態です。
+`
+    );
+
+    try {
+      const result = validateSkillDirectory(dir);
+      expect(result.pass).toBe(true);
+      expect(result.errors).toBe(0);
+      expect(result.warnings).toBe(0);
+    } finally {
+      rmSync(dir, { recursive: true });
+    }
+  });
 });
