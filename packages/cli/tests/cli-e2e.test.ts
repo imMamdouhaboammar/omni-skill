@@ -1,5 +1,5 @@
 import { describe, expect, it, test, afterAll, beforeAll } from "bun:test";
-import { mkdtempSync, rmSync, existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync } from "node:fs";
+import { mkdtempSync, rmSync, existsSync, readFileSync, writeFileSync, chmodSync, symlinkSync, mkdirSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -80,6 +80,97 @@ describe("CLI End-to-End Test Suite", () => {
       const res = runCli(["validate", brokenDir]);
       expect(res.status).toBe(1);
       expect(res.stdout).toContain("INVALID_NAME");
+    });
+
+    it("should exit with code 1 when validating an empty directory", () => {
+      const emptyDir = join(tempBase, "empty-dir-e2e");
+      mkdirSync(emptyDir);
+      const res = runCli(["validate", emptyDir]);
+      expect(res.status).toBe(1);
+      expect(res.stdout).toContain("MISSING_SKILL_MD");
+      expect(res.stdout).toContain("0/1 skills valid (1 errors, 0 warnings)");
+    });
+
+    it("should exit with code 1 when validating a non-existent skill root", () => {
+      const nonExistent = join(tempBase, "does-not-exist-dir");
+      const res = runCli(["validate", nonExistent]);
+      expect(res.status).toBe(1);
+      expect(res.stdout).toContain("INVALID_ROOT");
+      expect(res.stdout).toContain("0/1 skills valid (1 errors, 0 warnings)");
+    });
+
+    it("should exit with code 1 when validating a regular file as skill root", () => {
+      const filePath = join(tempBase, "regular-file.txt");
+      writeFileSync(filePath, "regular file content");
+      const res = runCli(["validate", filePath]);
+      expect(res.status).toBe(1);
+      expect(res.stdout).toContain("INVALID_ROOT");
+      expect(res.stdout).toContain("0/1 skills valid (1 errors, 0 warnings)");
+    });
+
+    it("should exit with code 1 when validating a skill with unreadable SKILL.md", () => {
+      const dir = join(tempBase, "unreadable-md-skill");
+      runCli(["init", "unreadable-md-skill", "-o", tempBase]);
+      const mdPath = join(dir, "SKILL.md");
+      chmodSync(mdPath, 0o000);
+      try {
+        const res = runCli(["validate", dir]);
+        expect(res.status).toBe(1);
+        expect(res.stdout).toContain("READ_FAILURE");
+        expect(res.stdout).toContain("0/1 skills valid (1 errors, 0 warnings)");
+      } finally {
+        chmodSync(mdPath, 0o644);
+      }
+    });
+
+    it("should exit with code 1 when validating a skill with broken symlink", () => {
+      const dir = join(tempBase, "broken-symlink-skill");
+      runCli(["init", "broken-symlink-skill", "-o", tempBase]);
+      symlinkSync("non-existent-target.txt", join(dir, "symlink.txt"));
+      const res = runCli(["validate", dir]);
+      expect(res.status).toBe(1);
+      expect(res.stdout).toContain("READ_FAILURE");
+      expect(res.stdout).toContain("0/1 skills valid");
+    });
+
+    it("should fail validation and exit 1 when multiple roots are passed and one is invalid", () => {
+      const validDir = join(tempBase, "weather-reporter");
+      const missingDir = join(tempBase, "missing-skill-sub");
+      const res = runCli(["validate", validDir, missingDir]);
+      expect(res.status).toBe(1);
+      expect(res.stdout).toContain("1/2 skills valid (1 errors, 0 warnings)");
+    });
+
+    it("should fail validation and exit 1 when multiple invalid roots are passed", () => {
+      const missing1 = join(tempBase, "missing-1");
+      const missing2 = join(tempBase, "missing-2");
+      const missing3 = join(tempBase, "missing-3");
+      const res = runCli(["validate", missing1, missing2, missing3]);
+      expect(res.status).toBe(1);
+      expect(res.stdout).toContain("0/3 skills valid (3 errors, 0 warnings)");
+    });
+
+    it("should fail validation and exit 1 when root contains special characters", () => {
+      const weirdPath = join(tempBase, "weird-path-!@#$%^");
+      const res = runCli(["validate", weirdPath]);
+      expect(res.status).toBe(1);
+      expect(res.stdout).toContain("INVALID_ROOT");
+      expect(res.stdout).toContain("0/1 skills valid (1 errors, 0 warnings)");
+    });
+
+    it("should not leak user absolute paths in error messages", () => {
+      const dir = join(tempBase, "leak-check-skill");
+      runCli(["init", "leak-check-skill", "-o", tempBase]);
+      const unreadFile = join(dir, "secret.md");
+      writeFileSync(unreadFile, "unreadable");
+      chmodSync(unreadFile, 0o000);
+      try {
+        const res = runCli(["validate", dir]);
+        expect(res.status).toBe(1);
+        expect(res.stdout).not.toMatch(/\/Users\/[a-zA-Z0-9_.-]+\//);
+      } finally {
+        chmodSync(unreadFile, 0o644);
+      }
     });
   });
 
@@ -247,6 +338,21 @@ describe("CLI End-to-End Test Suite", () => {
       const res = runCli(["package", brokenDir]);
       expect(res.status).toBe(1);
       expect(res.stdout).toContain("Cannot package skill with validation errors");
+    });
+
+    it("should exit with code 1 when packaging a skill with unreadable SKILL.md without crash", () => {
+      const dir = join(tempBase, "pkg-unreadable-skill");
+      runCli(["init", "pkg-unreadable-skill", "-o", tempBase]);
+      const mdPath = join(dir, "SKILL.md");
+      chmodSync(mdPath, 0o000);
+      try {
+        const res = runCli(["package", dir]);
+        expect(res.status).toBe(1);
+        expect(res.stdout).toContain("Cannot package skill with validation errors");
+        expect(res.stderr).not.toContain("EACCES: permission denied");
+      } finally {
+        chmodSync(mdPath, 0o644);
+      }
     });
   });
 

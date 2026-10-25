@@ -7594,15 +7594,105 @@ function loadSkillDirectory(skillDir) {
 }
 
 // src/core/validator.ts
-import { existsSync as existsSync2, lstatSync, readFileSync as readFileSync2, readdirSync } from "node:fs";
+import { accessSync, constants, existsSync as existsSync2, lstatSync, readFileSync as readFileSync2, readdirSync } from "node:fs";
 import { join as join2, resolve } from "node:path";
+
+// src/core/path-sanitizer.ts
+import { relative } from "node:path";
+var PERSONAL_PATH_REGEX = /(?:\/(?:Users|home)\/(?!(?:<[^>]+>|username|user))[a-zA-Z0-9_.-]+|[A-Za-z]:[/\\]+(?:Users|home)[/\\]+[^\s/\\]+)/g;
+function sanitizeDiagnosticPath(baseDir, targetPath) {
+  if (!targetPath || targetPath.trim().length === 0) {
+    return ".";
+  }
+  try {
+    const rel = relative(baseDir, targetPath);
+    if (!rel.startsWith("..") && !rel.startsWith("/")) {
+      return rel || ".";
+    }
+  } catch {}
+  return targetPath.replace(PERSONAL_PATH_REGEX, "<user>");
+}
+function sanitizeFsError(err) {
+  if (!err)
+    return "READ_ERROR";
+  if (typeof err === "object") {
+    const code = err.code;
+    if (typeof code === "string" && code.trim().length > 0) {
+      return code.trim();
+    }
+  }
+  return "READ_ERROR";
+}
+
+// src/core/validator.ts
 var NAME_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 var SECRET_REGEX = /(sk-[A-Za-z0-9_-]{16,}|ANTHROPIC_API_KEY\s*=|OPENAI_API_KEY\s*=|BEGIN (?:RSA |EC )?PRIVATE KEY)/;
-var PERSONAL_PATH_REGEX = /(?:\/(?:Users|home)\/(?!(?:<[^>]+>|username|user))[a-zA-Z0-9_.-]+|[A-Za-z]:[/\\]+(?:Users|home)[/\\]+[^\s/\\]+)/;
+var PERSONAL_PATH_REGEX2 = /(?:\/(?:Users|home)\/(?!(?:<[^>]+>|username|user))[a-zA-Z0-9_.-]+|[A-Za-z]:[/\\]+(?:Users|home)[/\\]+[^\s/\\]+)/;
 var SLOP_DEV_NOTES_REGEX = /^\s*(TODO:|FIXME:|NOTE:\s*In production|Mock data displayed|Agent notice:)/im;
 var SLOP_CEREMONIAL_PREAMBLE_REGEX = /^\s*(The following (?:table|section|list) (?:outlines|details|describes)|As an AI language model)/im;
 function validateSkillDirectory(skillDir, targets = ["agent-skills", "chatgpt", "codex", "claude-code"]) {
   const findings = [];
+  try {
+    const stat = lstatSync(skillDir);
+    if (stat.isSymbolicLink()) {
+      return {
+        skill: skillDir,
+        targets,
+        errors: 1,
+        warnings: 0,
+        findings: [{
+          severity: "error",
+          code: "READ_FAILURE",
+          message: `Cannot safely scan symbolic link root: "${sanitizeDiagnosticPath(skillDir, skillDir)}"`
+        }],
+        pass: false
+      };
+    }
+    if (!stat.isDirectory()) {
+      return {
+        skill: skillDir,
+        targets,
+        errors: 1,
+        warnings: 0,
+        findings: [{
+          severity: "error",
+          code: "INVALID_ROOT",
+          message: `Root path does not exist or is not a directory: "${sanitizeDiagnosticPath(process.cwd(), skillDir)}"`
+        }],
+        pass: false
+      };
+    }
+    try {
+      accessSync(skillDir, constants.R_OK);
+    } catch (accessErr) {
+      return {
+        skill: skillDir,
+        targets,
+        errors: 1,
+        warnings: 0,
+        findings: [{
+          severity: "error",
+          code: "READ_FAILURE",
+          message: `Cannot access skill root (${sanitizeFsError(accessErr)}): "${sanitizeDiagnosticPath(process.cwd(), skillDir)}"`
+        }],
+        pass: false
+      };
+    }
+  } catch (err) {
+    const isAccess = err?.code === "EACCES" || err?.code === "EPERM";
+    return {
+      skill: skillDir,
+      targets,
+      errors: 1,
+      warnings: 0,
+      findings: [{
+        severity: "error",
+        code: isAccess ? "READ_FAILURE" : "INVALID_ROOT",
+        message: isAccess ? `Cannot access skill root (${sanitizeFsError(err)}): "${sanitizeDiagnosticPath(process.cwd(), skillDir)}"` : `Root path does not exist or is not a directory: "${sanitizeDiagnosticPath(process.cwd(), skillDir)}"`
+      }],
+      pass: false
+    };
+  }
   const skillFile = join2(skillDir, "SKILL.md");
   if (!existsSync2(skillFile)) {
     return {
@@ -7614,7 +7704,23 @@ function validateSkillDirectory(skillDir, targets = ["agent-skills", "chatgpt", 
       pass: false
     };
   }
-  const content = readFileSync2(skillFile, "utf-8");
+  let content;
+  try {
+    content = readFileSync2(skillFile, "utf-8");
+  } catch (err) {
+    return {
+      skill: skillDir,
+      targets,
+      errors: 1,
+      warnings: 0,
+      findings: [{
+        severity: "error",
+        code: "READ_FAILURE",
+        message: `Cannot read SKILL.md: ${sanitizeFsError(err)}`
+      }],
+      pass: false
+    };
+  }
   const lines = content.split(`
 `);
   try {
@@ -7634,11 +7740,12 @@ function validateSkillDirectory(skillDir, targets = ["agent-skills", "chatgpt", 
       });
     }
   } catch (err) {
-    const code = err.code || (err.name === "FrontmatterTypeError" ? "FRONTMATTER_TYPE" : "YAML_PARSE_ERROR");
+    const errorObj = err;
+    const code = errorObj?.code || (errorObj?.name === "FrontmatterTypeError" ? "FRONTMATTER_TYPE" : "YAML_PARSE_ERROR");
     findings.push({
       severity: "error",
       code,
-      message: err.message
+      message: errorObj?.message || "Failed to parse frontmatter"
     });
   }
   const lowerContent = content.toLowerCase();
@@ -7668,7 +7775,7 @@ function validateSkillDirectory(skillDir, targets = ["agent-skills", "chatgpt", 
         findings.push({
           severity: "error",
           code: "BROKEN_RELATIVE_LINK",
-          message: `Referenced file does not exist: "${rawTarget}"`
+          message: `Referenced file does not exist: "${sanitizeDiagnosticPath(skillDir, rawTarget)}"`
         });
       }
     }
@@ -7699,38 +7806,62 @@ function validateSkillDirectory(skillDir, targets = ["agent-skills", "chatgpt", 
     try {
       entries = readdirSync(dir);
     } catch (err) {
-      findings.push({ severity: "error", code: "READ_FAILURE", message: `Cannot scan directory ${dir}: ${String(err)}` });
+      const relDir = sanitizeDiagnosticPath(skillDir, dir);
+      findings.push({
+        severity: "error",
+        code: "READ_FAILURE",
+        message: `Cannot scan directory "${relDir}": ${sanitizeFsError(err)}`
+      });
       return;
     }
     for (const entry of entries) {
       if (entry.startsWith(".") || entry === "__pycache__" || entry === "node_modules" || entry.startsWith("test_") || entry.endsWith(".test.ts") || entry.endsWith(".test.py"))
         continue;
       const fullPath = join2(dir, entry);
+      const relPath = sanitizeDiagnosticPath(skillDir, fullPath);
       try {
         const stat = lstatSync(fullPath);
         if (stat.isSymbolicLink()) {
-          findings.push({ severity: "error", code: "READ_FAILURE", message: `Cannot safely scan symbolic link: ${fullPath}` });
+          findings.push({
+            severity: "error",
+            code: "READ_FAILURE",
+            message: `Cannot safely scan symbolic link: "${relPath}"`
+          });
         } else if (stat.isDirectory()) {
           walk(fullPath);
         } else if (stat.isFile() && !entry.endsWith(".pyc") && !entry.endsWith(".png") && !entry.endsWith(".jpg")) {
-          const text = readFileSync2(fullPath, "utf-8");
+          let text;
+          try {
+            text = readFileSync2(fullPath, "utf-8");
+          } catch (readErr) {
+            findings.push({
+              severity: "error",
+              code: "READ_FAILURE",
+              message: `Cannot scan "${relPath}": ${sanitizeFsError(readErr)}`
+            });
+            continue;
+          }
           if (SECRET_REGEX.test(text)) {
             findings.push({
               severity: "error",
               code: "SECRET_LEAK",
-              message: `Possible secret/token leak detected in ${entry}`
+              message: `Possible secret/token leak detected in ${relPath}`
             });
           }
-          if (PERSONAL_PATH_REGEX.test(text)) {
+          if (PERSONAL_PATH_REGEX2.test(text)) {
             findings.push({
               severity: "warning",
               code: "PERSONAL_PATH",
-              message: `Personal absolute path detected in ${entry}`
+              message: `Personal absolute path detected in ${relPath}`
             });
           }
         }
       } catch (err) {
-        findings.push({ severity: "error", code: "READ_FAILURE", message: `Cannot scan ${fullPath}: ${String(err)}` });
+        findings.push({
+          severity: "error",
+          code: "READ_FAILURE",
+          message: `Cannot scan "${relPath}": ${sanitizeFsError(err)}`
+        });
       }
     }
   }
@@ -7748,7 +7879,7 @@ function validateSkillDirectory(skillDir, targets = ["agent-skills", "chatgpt", 
 }
 // src/core/compiler.ts
 import { existsSync as existsSync3, lstatSync as lstatSync2, mkdirSync, writeFileSync } from "node:fs";
-import { isAbsolute, join as join3, relative, resolve as resolve2 } from "node:path";
+import { isAbsolute, join as join3, relative as relative2, resolve as resolve2 } from "node:path";
 var NAME_REGEX2 = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 var REF_NAME_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 function compileOmniSkillSpec(spec, outputDir) {
@@ -7764,7 +7895,7 @@ function compileOmniSkillSpec(spec, outputDir) {
   }
   const resolvedOutput = resolve2(outputDir);
   const targetDir = resolve2(resolvedOutput, name);
-  const rel = relative(resolvedOutput, targetDir);
+  const rel = relative2(resolvedOutput, targetDir);
   if (rel.startsWith("..") || isAbsolute(rel) || rel === "") {
     throw new Error(`Path containment violation: Skill name "${name}" escapes output directory "${outputDir}".`);
   }
@@ -7826,7 +7957,7 @@ function compileOmniSkillSpec(spec, outputDir) {
       }
       seenRefKeys.add(canonicalRefKey);
       const targetRefFile = resolve2(refDir, `${refName}.md`);
-      const refRel = relative(refDir, targetRefFile);
+      const refRel = relative2(refDir, targetRefFile);
       if (refRel.startsWith("..") || isAbsolute(refRel) || refRel !== `${refName}.md`) {
         throw new Error(`Path containment violation: Reference "${refName}" escapes references/ directory.`);
       }
@@ -8053,5 +8184,7 @@ export {
   loadSkillDirectory,
   parseSkillMarkdown,
   routeRequest,
+  sanitizeDiagnosticPath,
+  sanitizeFsError,
   validateSkillDirectory
 };
