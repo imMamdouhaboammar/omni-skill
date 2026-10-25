@@ -499,3 +499,81 @@ describe("compileOmniSkillSpec Job Validation", () => {
     }
   });
 });
+
+describe("compileOmniSkillSpec Instructions Validation", () => {
+  let rootDir: string;
+  let outDir: string;
+
+  beforeEach(() => {
+    rootDir = mkdtempSync(join(tmpdir(), "omni-compiler-inst-"));
+    outDir = join(rootDir, "output");
+    mkdirSync(outDir, { recursive: true });
+  });
+
+  afterEach(() => {
+    if (existsSync(rootDir)) {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  it("should reject missing or null instructions", () => {
+    const missingSpecs = [
+      { name: "test-skill", description: "Valid desc", job: "Valid job" },
+      { name: "test-skill", description: "Valid desc", job: "Valid job", instructions: null },
+      { name: "test-skill", description: "Valid desc", job: "Valid job", instructions: undefined }
+    ];
+    for (const spec of missingSpecs) {
+      expect(() => {
+        compileOmniSkillSpec(spec as any, outDir);
+      }).toThrow(/Field 'instructions' must be a non-empty array of non-empty strings/);
+    }
+  });
+
+  it("should reject non-array instructions (string, number, boolean, object)", () => {
+    const badTypeSpecs = [
+      { name: "test-skill", description: "Valid desc", job: "Valid job", instructions: "Do step 1" },
+      { name: "test-skill", description: "Valid desc", job: "Valid job", instructions: 12345 },
+      { name: "test-skill", description: "Valid desc", job: "Valid job", instructions: true },
+      { name: "test-skill", description: "Valid desc", job: "Valid job", instructions: { step: 1 } }
+    ];
+    for (const spec of badTypeSpecs) {
+      expect(() => {
+        compileOmniSkillSpec(spec as any, outDir);
+      }).toThrow(/Field 'instructions' must be a non-empty array of non-empty strings/);
+    }
+  });
+
+  it("should reject empty instructions array", () => {
+    const spec = { name: "test-skill", description: "Valid desc", job: "Valid job", instructions: [] };
+    expect(() => {
+      compileOmniSkillSpec(spec as any, outDir);
+    }).toThrow(/Field 'instructions' must be a non-empty array of non-empty strings/);
+  });
+
+  it("should reject non-string elements in instructions array", () => {
+    const badElementSpecs = [
+      { name: "test-skill", description: "Valid desc", job: "Valid job", instructions: [123] },
+      { name: "test-skill", description: "Valid desc", job: "Valid job", instructions: ["Step 1", null] },
+      { name: "test-skill", description: "Valid desc", job: "Valid job", instructions: ["Step 1", false] },
+      { name: "test-skill", description: "Valid desc", job: "Valid job", instructions: ["Step 1", { step: 2 }] }
+    ];
+    for (const spec of badElementSpecs) {
+      expect(() => {
+        compileOmniSkillSpec(spec as any, outDir);
+      }).toThrow(/Field 'instructions\[\d+\]' must be a non-empty string/);
+    }
+  });
+
+  it("should reject empty or whitespace string elements in instructions array", () => {
+    const emptyElementSpecs = [
+      { name: "test-skill", description: "Valid desc", job: "Valid job", instructions: [""] },
+      { name: "test-skill", description: "Valid desc", job: "Valid job", instructions: ["Step 1", "   "] },
+      { name: "test-skill", description: "Valid desc", job: "Valid job", instructions: ["\t\n  \r\n"] }
+    ];
+    for (const spec of emptyElementSpecs) {
+      expect(() => {
+        compileOmniSkillSpec(spec as any, outDir);
+      }).toThrow(/Field 'instructions\[\d+\]' must be a non-empty string/);
+    }
+  });
+});
