@@ -104,7 +104,7 @@ export const PATTERNS_DATABASE: PatternRule[] = [
     severity: "HIGH",
     category: PatternCategory.DATA_EXFILTRATION,
     patterns: [
-      { regex: "\\bcurl\\s+[^|;\\n]*(?:-d|--data|--data-raw|--data-binary)\\s+['\"]?https?://", confidence: 0.8 },
+      { regex: "\\bcurl\\s+[^|;\\n]*(?:-d|--data|--data-raw|--data-binary)\\s+(?:[^|;\\n]*\\s+)?['\"]?https?://", confidence: 0.8 },
       { regex: "\\bwget\\s+[^|;\\n]*--post-(?:data|file)", confidence: 0.8 },
       { regex: "\\b(?:requests|httpx)\\.post\\s*\\([^)]*data\\s*=\\s*os\\.environ", confidence: 0.95 },
     ],
@@ -215,7 +215,7 @@ export const PATTERNS_DATABASE: PatternRule[] = [
     severity: "MEDIUM",
     category: PatternCategory.EXCESSIVE_AGENCY,
     patterns: [
-      { regex: "\\bexecute\\s+(?:destructive|permanent|database|git\\s+push)\\s+operations?\\s+without\\s+(?:asking|confirmation|user\\s+approval)\\b", confidence: 0.85 },
+      { regex: "\\bexecute\\s+(?:(?:destructive|permanent|database|git\\s+push)\\s+)+operations?\\s+without\\s+(?:asking|confirmation|user\\s+approval)\\b", confidence: 0.85 },
       { regex: "\\bauto-confirm\\s+all\\s+(?:actions?|prompts?|steps?)\\b", confidence: 0.8 },
     ],
   },
@@ -226,7 +226,7 @@ export const PATTERNS_DATABASE: PatternRule[] = [
     severity: "HIGH",
     category: PatternCategory.OUTPUT_HANDLING,
     patterns: [
-      { regex: "\\bexecute\\s+(?:the\\s+)?(?:generated|model|llm)\\s+(?:output|response|code)\\s+directly\\s+in\\s+shell\\b", confidence: 0.85 },
+      { regex: "\\bexecute\\s+(?:the\\s+)?(?:(?:generated|model|llm)\\s+)+(?:output|response|code)\\s+directly\\s+in\\s+shell\\b", confidence: 0.85 },
       { regex: "\\bquery\\s*=\\s*f?['\"]SELECT\\s+.*?\\s+WHERE\\s+.*?\\{.*?\\}['\"]", confidence: 0.75 },
     ],
   },
