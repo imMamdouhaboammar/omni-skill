@@ -356,6 +356,49 @@ class TestOmniSkillEngine(unittest.TestCase):
             self.assertEqual(evals_json["evals"][0]["id"], "c1")
             self.assertTrue(evals_json["evals"][0]["assertions"][0]["required"])
 
+    def test_compile_spec_zero_filesystem_mutation_on_validation_failure(self):
+        import hashlib
+
+        failure_scenarios = [
+            ("missing description", {"name": "fail-skill", "job": "Job", "instructions": ["Step 1"]}),
+            ("number description", {"name": "fail-skill", "description": 12345, "job": "Job", "instructions": ["Step 1"]}),
+            ("empty description", {"name": "fail-skill", "description": "   ", "job": "Job", "instructions": ["Step 1"]}),
+            ("missing job", {"name": "fail-skill", "description": "Desc", "instructions": ["Step 1"]}),
+            ("number job", {"name": "fail-skill", "description": "Desc", "job": 12345, "instructions": ["Step 1"]}),
+            ("empty job", {"name": "fail-skill", "description": "Desc", "job": "", "instructions": ["Step 1"]}),
+            ("missing instructions", {"name": "fail-skill", "description": "Desc", "job": "Job"}),
+            ("string instructions", {"name": "fail-skill", "description": "Desc", "job": "Job", "instructions": "Not list"}),
+            ("empty instructions", {"name": "fail-skill", "description": "Desc", "job": "Job", "instructions": []}),
+            ("number in instructions", {"name": "fail-skill", "description": "Desc", "job": "Job", "instructions": [123]}),
+            ("empty step in instructions", {"name": "fail-skill", "description": "Desc", "job": "Job", "instructions": [""]}),
+            ("string target_hosts", {"name": "fail-skill", "description": "Desc", "job": "Job", "instructions": ["Step 1"], "target_hosts": "chatgpt"}),
+            ("number in target_hosts", {"name": "fail-skill", "description": "Desc", "job": "Job", "instructions": ["Step 1"], "target_hosts": [123]}),
+            ("invalid freedom_level", {"name": "fail-skill", "description": "Desc", "job": "Job", "instructions": ["Step 1"], "freedom_level": "extreme"}),
+            ("adversarial reference key", {"name": "fail-skill", "description": "Desc", "job": "Job", "instructions": ["Step 1"], "references": {"../escape": "content"}}),
+            ("number reference value", {"name": "fail-skill", "description": "Desc", "job": "Job", "instructions": ["Step 1"], "references": {"api-guide": 12345}}),
+            ("string evals", {"name": "fail-skill", "description": "Desc", "job": "Job", "instructions": ["Step 1"], "evals": "bad"}),
+            ("eval item missing id", {"name": "fail-skill", "description": "Desc", "job": "Job", "instructions": ["Step 1"], "evals": [{"assertions": [{"pattern": "ok"}]}]}),
+            ("eval assertion missing pattern", {"name": "fail-skill", "description": "Desc", "job": "Job", "instructions": ["Step 1"], "evals": [{"id": "c1", "assertions": [{}]}]}),
+            ("eval assertion non-bool required", {"name": "fail-skill", "description": "Desc", "job": "Job", "instructions": ["Step 1"], "evals": [{"id": "c1", "assertions": [{"pattern": "ok", "required": "yes"}]}]})
+        ]
+
+        for label, spec in failure_scenarios:
+            with self.subTest(scenario=label):
+                with tempfile.TemporaryDirectory() as root_str:
+                    root = Path(root_str)
+                    out_dir = root / "output"
+                    out_dir.mkdir(parents=True, exist_ok=True)
+                    sentinel = root / "sentinel.txt"
+                    sentinel.write_text("TOP-SECRET-SENTINEL-DATA", encoding="utf-8")
+                    sentinel_hash = hashlib.sha256(sentinel.read_bytes()).hexdigest()
+
+                    with self.assertRaises((TypeError, ValueError)):
+                        compile_spec(spec, out_dir)
+
+                    self.assertFalse((out_dir / "fail-skill").exists())
+                    self.assertEqual(len(list(out_dir.iterdir())), 0)
+                    self.assertEqual(hashlib.sha256(sentinel.read_bytes()).hexdigest(), sentinel_hash)
+
     def test_compile_spec_and_validate(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             out_dir = Path(tmpdir)
