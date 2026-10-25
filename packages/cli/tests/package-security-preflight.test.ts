@@ -273,19 +273,25 @@ Target State
     const corruptBytes = new Uint8Array([0x50, 0x4b, 0x03, 0x04, 0x00, 0x00]);
     const resCorrupt = verifyArchiveIntegrity(corruptBytes, "/any", "skill");
     expect(resCorrupt.ok).toBe(false);
-    expect(resCorrupt.reason).toContain("corrupted");
+    if (!resCorrupt.ok) {
+      expect(resCorrupt.reason).toContain("corrupted");
+    }
 
     // Missing root entry
     const noRootZip = zipSync({ "other-root/SKILL.md": new TextEncoder().encode("content") });
     const resNoRoot = verifyArchiveIntegrity(noRootZip, "/any", "my-skill");
     expect(resNoRoot.ok).toBe(false);
-    expect(resNoRoot.reason).toContain("root folder");
+    if (!resNoRoot.ok) {
+      expect(resNoRoot.reason).toContain("root folder");
+    }
 
     // Empty SKILL.md
     const emptyMdZip = zipSync({ "my-skill/SKILL.md": new Uint8Array([]) });
     const resEmptyMd = verifyArchiveIntegrity(emptyMdZip, "/any", "my-skill");
     expect(resEmptyMd.ok).toBe(false);
-    expect(resEmptyMd.reason).toContain("missing or empty");
+    if (!resEmptyMd.ok) {
+      expect(resEmptyMd.reason).toContain("missing or empty");
+    }
   });
 
   it("archive integrity verification detects byte mismatches against disk", () => {
@@ -301,7 +307,9 @@ Target State
 
       const res = verifyArchiveIntegrity(alteredZip, skillDir, "mismatch-skill");
       expect(res.ok).toBe(false);
-      expect(res.reason).toMatch(/mismatch/i);
+      if (!res.ok) {
+        expect(res.reason).toMatch(/mismatch/i);
+      }
 
       // Same length, different byte
       const sameLengthTamperedZip = zipSync({
@@ -309,7 +317,9 @@ Target State
       });
       const resSameLen = verifyArchiveIntegrity(sameLengthTamperedZip, skillDir, "mismatch-skill");
       expect(resSameLen.ok).toBe(false);
-      expect(resSameLen.reason).toContain("Byte content mismatch at offset 9");
+      if (!resSameLen.ok) {
+        expect(resSameLen.reason).toContain("Byte content mismatch at offset 9");
+      }
     } finally {
       rmSync(tempBase, { recursive: true });
     }

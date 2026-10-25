@@ -88,7 +88,9 @@ Target State
 
       const res = verifyArchiveIntegrity(truncatedZip, skillDir, "trunc-skill");
       expect(res.ok).toBe(false);
-      expect(res.reason).toContain("File size mismatch");
+      if (!res.ok) {
+        expect(res.reason).toContain("File size mismatch");
+      }
     } finally {
       rmSync(tempBase, { recursive: true });
     }
@@ -108,7 +110,9 @@ Target State
 
       const res = verifyArchiveIntegrity(zipWithEnv, skillDir, "env-skill");
       expect(res.ok).toBe(false);
-      expect(res.reason).toContain("prohibited");
+      if (!res.ok) {
+        expect(res.reason).toContain("prohibited");
+      }
     } finally {
       rmSync(tempBase, { recursive: true });
     }

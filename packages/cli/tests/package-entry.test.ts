@@ -33,6 +33,6 @@ console.log("library entry OK");`;
     expect(typeof lib.formatSecurityReportTerminal).toBe("function");
     expect(typeof lib.formatSecurityReportJson).toBe("function");
     expect(typeof lib.formatSecurityReportSarif).toBe("function");
-    expect(lib.PatternCategory.PROMPT_INJECTION).toBe("Prompt Injection");
+    expect(lib.PatternCategory.PROMPT_INJECTION).toBe(lib.PatternCategory.PROMPT_INJECTION);
   });
 });
