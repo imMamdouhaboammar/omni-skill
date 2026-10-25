@@ -238,4 +238,31 @@ Target State
       rmSync(dir, { recursive: true });
     }
   });
+
+  it("produces BODY_LARGE warning when SKILL.md exceeds 500 lines without failing", () => {
+    const dir = mkdtempSync(join(tmpdir(), "omni-test-large-skill-"));
+    const lines = [
+      "---",
+      "name: large-skill",
+      "description: Tests large skill file.",
+      "---",
+      "# Why This Skill Is Needed",
+      "Target State"
+    ];
+    for (let i = 0; i < 510; i++) {
+      lines.push(`Line content ${i}`);
+    }
+    writeFileSync(join(dir, "SKILL.md"), lines.join("\n"));
+
+    try {
+      const result = validateSkillDirectory(dir);
+      expect(result.pass).toBe(true);
+      expect(result.errors).toBe(0);
+      expect(result.warnings).toBeGreaterThan(0);
+      const bodyWarn = result.findings.find((f) => f.code === "BODY_LARGE");
+      expect(bodyWarn).toBeDefined();
+    } finally {
+      rmSync(dir, { recursive: true });
+    }
+  });
 });
