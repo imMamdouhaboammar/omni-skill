@@ -111,5 +111,127 @@ description: Never closed.`;
       "Unclosed YAML frontmatter block in SKILL.md"
     );
   });
+
+  describe("runtime frontmatter type validation", () => {
+    it("should reject non-mapping YAML frontmatter (array at root)", () => {
+      const raw = `---
+- item 1
+- item 2
+---
+# Body`;
+      expect(() => parseSkillMarkdown(raw)).toThrow(
+        /YAML frontmatter must be a key-value mapping/
+      );
+    });
+
+    it("should reject frontmatter when required name is missing", () => {
+      const raw = `---
+description: Missing name field.
+---
+# Body`;
+      expect(() => parseSkillMarkdown(raw)).toThrow(
+        /Frontmatter field 'name' is required/
+      );
+    });
+
+    it("should reject frontmatter when name is not a string (number)", () => {
+      const raw = `---
+name: 12345
+description: Numeric name.
+---
+# Body`;
+      expect(() => parseSkillMarkdown(raw)).toThrow(
+        /Frontmatter field 'name' must be a string/
+      );
+    });
+
+    it("should reject frontmatter when name is a boolean", () => {
+      const raw = `---
+name: true
+description: Boolean name.
+---
+# Body`;
+      expect(() => parseSkillMarkdown(raw)).toThrow(
+        /Frontmatter field 'name' must be a string/
+      );
+    });
+
+    it("should reject frontmatter when required description is missing", () => {
+      const raw = `---
+name: missing-desc
+---
+# Body`;
+      expect(() => parseSkillMarkdown(raw)).toThrow(
+        /Frontmatter field 'description' is required/
+      );
+    });
+
+    it("should reject frontmatter when description is an array", () => {
+      const raw = `---
+name: array-desc
+description:
+  - line 1
+  - line 2
+---
+# Body`;
+      expect(() => parseSkillMarkdown(raw)).toThrow(
+        /Frontmatter field 'description' must be a string/
+      );
+    });
+
+    it("should reject frontmatter when description is an object", () => {
+      const raw = `---
+name: object-desc
+description:
+  subfield: value
+---
+# Body`;
+      expect(() => parseSkillMarkdown(raw)).toThrow(
+        /Frontmatter field 'description' must be a string/
+      );
+    });
+
+    it("should reject frontmatter when description is null", () => {
+      const raw = `---
+name: null-desc
+description: null
+---
+# Body`;
+      expect(() => parseSkillMarkdown(raw)).toThrow(
+        /Frontmatter field 'description' is required/
+      );
+    });
+
+    it("should accept valid folded and multiline YAML descriptions", () => {
+      const raw = `---
+name: folded-desc
+description: >
+  This is a multiline
+  folded description that spans
+  several lines cleanly.
+---
+# Body`;
+      const res = parseSkillMarkdown(raw);
+      expect(res.frontmatter.name).toBe("folded-desc");
+      expect(typeof res.frontmatter.description).toBe("string");
+      expect(res.frontmatter.description).toContain("multiline");
+    });
+
+    it("should preserve valid optional metadata fields", () => {
+      const raw = `---
+name: metadata-skill
+description: Skill with metadata.
+version: "1.2.0"
+author: "Test Author"
+license: "MIT"
+---
+# Body`;
+      const res = parseSkillMarkdown(raw);
+      expect(res.frontmatter.name).toBe("metadata-skill");
+      expect(res.frontmatter.version).toBe("1.2.0");
+      expect(res.frontmatter.author).toBe("Test Author");
+      expect((res.frontmatter as any).license).toBe("MIT");
+    });
+  });
 });
 
