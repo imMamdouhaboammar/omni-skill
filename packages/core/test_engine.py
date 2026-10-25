@@ -108,6 +108,97 @@ class TestOmniSkillEngine(unittest.TestCase):
             except OSError:
                 pass
 
+    def test_compile_spec_references_containment_adversarial(self):
+        """Adversarial test suite enforcing reference name containment within references/ (#8)."""
+        import hashlib
+
+        with tempfile.TemporaryDirectory() as root_str:
+            root = Path(root_str)
+            out_dir = root / "output"
+            out_dir.mkdir(parents=True, exist_ok=True)
+
+            sentinel = root / "sentinel.txt"
+            sentinel.write_text("TOP-SECRET-SENTINEL-DATA", encoding="utf-8")
+            sentinel_hash = hashlib.sha256(sentinel.read_bytes()).hexdigest()
+
+            adversarial_refs = [
+                ("../escaped-ref", "parent traversal"),
+                ("../../SKILL", "attempt overwrite SKILL.md"),
+                ("../../../outside-ref", "deep traversal"),
+                ("nested/../../escaped-child", "nested traversal"),
+                ("/etc/passwd", "absolute unix path"),
+                ("C:\\evil\\target", "windows-style absolute path"),
+                ("sub/ref", "forward slash separator"),
+                ("sub\\ref", "backward slash separator"),
+                (".", "dot segment"),
+                ("..", "dot-dot segment"),
+                (".hidden", "hidden file dot prefix"),
+                ("reference.md", "file extension suffix .md"),
+                ("reference.json", "file extension suffix .json"),
+                ("", "empty key"),
+                ("   ", "whitespace key"),
+                ("ApiGuide", "uppercase non-kebab key"),
+                ("ref$name!", "special symbols in key"),
+                ("api_guide", "underscore in key")
+            ]
+
+            for payload, label in adversarial_refs:
+                with self.subTest(label=label):
+                    spec = {
+                        "name": "test-ref-skill",
+                        "description": "Adversarial reference test",
+                        "job": "Attempt ref escape",
+                        "instructions": ["Step 1"],
+                        "references": {
+                            payload: "EVIL CONTENT"
+                        }
+                    }
+                    with self.assertRaises((ValueError, TypeError)):
+                        compile_spec(spec, out_dir)
+
+                    # Sentinel must remain untouched
+                    self.assertEqual(hashlib.sha256(sentinel.read_bytes()).hexdigest(), sentinel_hash)
+                    self.assertFalse((root / "escaped-ref.md").exists())
+                    self.assertFalse((out_dir / "escaped-ref.md").exists())
+                    self.assertFalse((root / "outside-ref.md").exists())
+
+                    # Verify SKILL.md was not overwritten by evil content
+                    skill_md = out_dir / "test-ref-skill" / "SKILL.md"
+                    if skill_md.exists():
+                        self.assertNotIn("EVIL CONTENT", skill_md.read_text(encoding="utf-8"))
+
+            # Non-dict references
+            for bad_ref in [["array-ref"], "string-ref", 12345, True]:
+                spec = {
+                    "name": "test-bad-refs",
+                    "description": "Bad refs type",
+                    "job": "Fail",
+                    "instructions": ["Step 1"],
+                    "references": bad_ref
+                }
+                with self.assertRaises((ValueError, TypeError)):
+                    compile_spec(spec, out_dir)
+
+            # All-or-nothing validation: reject all if one reference key is adversarial
+            all_or_nothing_spec = {
+                "name": "all-or-nothing-skill",
+                "description": "Batch reference validation",
+                "job": "Fail atomically",
+                "instructions": ["Step 1"],
+                "references": {
+                    "valid-first": "# Valid First",
+                    "../evil-second": "EVIL",
+                    "valid-third": "# Valid Third"
+                }
+            }
+            with self.assertRaises((ValueError, TypeError)):
+                compile_spec(all_or_nothing_spec, out_dir)
+
+            ref_dir = out_dir / "all-or-nothing-skill" / "references"
+            if ref_dir.exists():
+                self.assertFalse((ref_dir / "valid-first.md").exists())
+                self.assertFalse((ref_dir / "valid-third.md").exists())
+
     def test_bineval_scoring_table_driven(self):
         """Table-driven test testing assertion permutations and edge cases."""
         test_cases = [
