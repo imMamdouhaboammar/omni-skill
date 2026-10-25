@@ -255,6 +255,25 @@ class TestOmniSkillEngine(unittest.TestCase):
             res_none = compile_spec(spec_none, out_dir)
             self.assertIn("- Freedom Level: medium", (res_none / "SKILL.md").read_text(encoding="utf-8"))
 
+    def test_compile_spec_references_values_validation(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir)
+            base_spec = {
+                "name": "sample-tool",
+                "description": "Valid description",
+                "job": "Valid job",
+                "instructions": ["Step 1"]
+            }
+
+            invalid_vals = [12345, True, False, None, {"nested": "val"}, ["array", "val"]]
+            for val in invalid_vals:
+                spec = dict(base_spec)
+                spec["references"] = {"api-guide": val}
+                with self.subTest(val=val):
+                    with self.assertRaises(TypeError) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("references", str(ctx.exception).lower())
+
     def test_compile_spec_and_validate(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             out_dir = Path(tmpdir)
