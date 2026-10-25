@@ -30,6 +30,47 @@ class TestOmniSkillEngine(unittest.TestCase):
                         compile_spec(root_val, out_dir)
                     self.assertIn("Specification data must be a dictionary", str(ctx.exception))
 
+    def test_compile_spec_description_validation(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir)
+            base_spec = {
+                "name": "sample-tool",
+                "job": "Does tasks",
+                "instructions": ["Step 1"]
+            }
+
+            # 1. Missing or None description
+            for val in [None]:
+                spec = dict(base_spec)
+                spec["description"] = val
+                with self.subTest(desc=val):
+                    with self.assertRaises((TypeError, ValueError)) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("description", str(ctx.exception).lower())
+
+            # Missing key entirely
+            with self.assertRaises((TypeError, ValueError)) as ctx:
+                compile_spec(dict(base_spec), out_dir)
+            self.assertIn("description", str(ctx.exception).lower())
+
+            # 2. Non-string description
+            for val in [12345, True, ["desc"], {"text": "desc"}]:
+                spec = dict(base_spec)
+                spec["description"] = val
+                with self.subTest(desc=val):
+                    with self.assertRaises(TypeError) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("description", str(ctx.exception).lower())
+
+            # 3. Empty or whitespace-only description
+            for val in ["", "   ", "\t\n  \r\n"]:
+                spec = dict(base_spec)
+                spec["description"] = val
+                with self.subTest(desc=val):
+                    with self.assertRaises(ValueError) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("description", str(ctx.exception).lower())
+
     def test_compile_spec_and_validate(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             out_dir = Path(tmpdir)
