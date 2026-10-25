@@ -218,6 +218,12 @@ class TestOmniSkillEngine(unittest.TestCase):
             res_empty = compile_spec(spec_empty, out_dir)
             self.assertIn("- Target Hosts: agent-skills, chatgpt, codex, claude-code", (res_empty / "SKILL.md").read_text(encoding="utf-8"))
 
+            spec_null = dict(base_spec)
+            spec_null["name"] = "sample-null-hosts"
+            spec_null["target_hosts"] = None
+            res_null = compile_spec(spec_null, out_dir)
+            self.assertIn("- Target Hosts: agent-skills, chatgpt, codex, claude-code", (res_null / "SKILL.md").read_text(encoding="utf-8"))
+
     def test_compile_spec_freedom_level_validation(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             out_dir = Path(tmpdir)
