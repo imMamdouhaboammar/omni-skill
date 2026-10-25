@@ -108,6 +108,140 @@ class TestOmniSkillEngine(unittest.TestCase):
             except OSError:
                 pass
 
+    def test_compile_spec_references_containment_adversarial(self):
+        """Adversarial test suite enforcing reference name containment within references/ (#8)."""
+        import hashlib
+
+        with tempfile.TemporaryDirectory() as root_str:
+            root = Path(root_str)
+            out_dir = root / "output"
+            out_dir.mkdir(parents=True, exist_ok=True)
+
+            sentinel = root / "sentinel.txt"
+            sentinel.write_text("TOP-SECRET-SENTINEL-DATA", encoding="utf-8")
+            sentinel_hash = hashlib.sha256(sentinel.read_bytes()).hexdigest()
+
+            adversarial_refs = [
+                ("../escaped-ref", "parent traversal"),
+                ("../../SKILL", "attempt overwrite SKILL.md"),
+                ("../../../outside-ref", "deep traversal"),
+                ("nested/../../escaped-child", "nested traversal"),
+                ("/etc/passwd", "absolute unix path"),
+                ("C:\\evil\\target", "windows-style absolute path"),
+                ("sub/ref", "forward slash separator"),
+                ("sub\\ref", "backward slash separator"),
+                (".", "dot segment"),
+                ("..", "dot-dot segment"),
+                (".hidden", "hidden file dot prefix"),
+                ("reference.md", "file extension suffix .md"),
+                ("reference.json", "file extension suffix .json"),
+                ("", "empty key"),
+                ("   ", "whitespace key"),
+                ("ApiGuide", "uppercase non-kebab key"),
+                ("ref$name!", "special symbols in key"),
+                ("api_guide", "underscore in key"),
+                ("api-guide\n", "trailing newline")
+            ]
+
+            for payload, label in adversarial_refs:
+                with self.subTest(label=label):
+                    spec = {
+                        "name": "test-ref-skill",
+                        "description": "Adversarial reference test",
+                        "job": "Attempt ref escape",
+                        "instructions": ["Step 1"],
+                        "references": {
+                            payload: "EVIL CONTENT"
+                        }
+                    }
+                    with self.assertRaises((ValueError, TypeError)):
+                        compile_spec(spec, out_dir)
+
+                    # Sentinel must remain untouched
+                    self.assertEqual(hashlib.sha256(sentinel.read_bytes()).hexdigest(), sentinel_hash)
+                    self.assertFalse((root / "escaped-ref.md").exists())
+                    self.assertFalse((out_dir / "escaped-ref.md").exists())
+                    self.assertFalse((root / "outside-ref.md").exists())
+
+                    # Verify SKILL.md was not overwritten by evil content
+                    skill_md = out_dir / "test-ref-skill" / "SKILL.md"
+                    if skill_md.exists():
+                        self.assertNotIn("EVIL CONTENT", skill_md.read_text(encoding="utf-8"))
+
+            # Non-dict references
+            for bad_ref in [["array-ref"], "string-ref", 12345, True]:
+                spec = {
+                    "name": "test-bad-refs",
+                    "description": "Bad refs type",
+                    "job": "Fail",
+                    "instructions": ["Step 1"],
+                    "references": bad_ref
+                }
+                with self.assertRaises((ValueError, TypeError)):
+                    compile_spec(spec, out_dir)
+
+            # All-or-nothing validation: reject all if one reference key is adversarial
+            all_or_nothing_spec = {
+                "name": "all-or-nothing-skill",
+                "description": "Batch reference validation",
+                "job": "Fail atomically",
+                "instructions": ["Step 1"],
+                "references": {
+                    "valid-first": "# Valid First",
+                    "../evil-second": "EVIL",
+                    "valid-third": "# Valid Third"
+                }
+            }
+            with self.assertRaises((ValueError, TypeError)):
+                compile_spec(all_or_nothing_spec, out_dir)
+
+            ref_dir = out_dir / "all-or-nothing-skill" / "references"
+            if ref_dir.exists():
+                self.assertFalse((ref_dir / "valid-first.md").exists())
+                self.assertFalse((ref_dir / "valid-third.md").exists())
+
+            # Symlinked references directory attack
+            symlink_skill_dir = out_dir / "symlink-ref-skill"
+            symlink_skill_dir.mkdir(parents=True)
+            outside_target = root / "symlink-target-dir"
+            outside_target.mkdir(parents=True)
+            (symlink_skill_dir / "references").symlink_to(outside_target)
+
+            symlink_spec = {
+                "name": "symlink-ref-skill",
+                "description": "Symlink ref dir attack",
+                "job": "Fail",
+                "instructions": ["Step 1"],
+                "references": {
+                    "normal-ref": "SYMLINK CONTENT"
+                }
+            }
+            with self.assertRaises(ValueError):
+                compile_spec(symlink_spec, out_dir)
+            self.assertEqual(hashlib.sha256(sentinel.read_bytes()).hexdigest(), sentinel_hash)
+            self.assertFalse((outside_target / "normal-ref.md").exists())
+
+            # Symlinked target file in references attack
+            file_symlink_skill = out_dir / "file-symlink-skill"
+            file_ref_dir = file_symlink_skill / "references"
+            file_ref_dir.mkdir(parents=True)
+            outside_file = root / "outside-target.md"
+            outside_file.write_text("INITIAL", encoding="utf-8")
+            (file_ref_dir / "attack.md").symlink_to(outside_file)
+
+            file_symlink_spec = {
+                "name": "file-symlink-skill",
+                "description": "File symlink attack",
+                "job": "Fail",
+                "instructions": ["Step 1"],
+                "references": {
+                    "attack": "OVERWRITE TARGET VIA SYMLINK"
+                }
+            }
+            with self.assertRaises(ValueError):
+                compile_spec(file_symlink_spec, out_dir)
+            self.assertEqual(outside_file.read_text(encoding="utf-8"), "INITIAL")
+
     def test_bineval_scoring_table_driven(self):
         """Table-driven test testing assertion permutations and edge cases."""
         test_cases = [
@@ -211,6 +345,21 @@ class TestOmniSkillEngine(unittest.TestCase):
             proc_adv = subprocess.run([sys.executable, str(CORE_DIR / "compile_spec.py"), str(adv_file), tmpdir], capture_output=True, text=True)
             self.assertEqual(proc_adv.returncode, 1)
             self.assertFalse((Path(tmpdir).parent / "adversarial-cli-escape").exists())
+
+            # Adversarial reference escape attempt via CLI
+            adv_ref_file = Path(tmpdir) / "adv_ref_spec.json"
+            adv_ref_file.write_text(json.dumps({
+                "name": "cli-valid-tool",
+                "description": "Valid tool",
+                "job": "Escape ref",
+                "references": {
+                    "../escaped-ref": "evil"
+                }
+            }), encoding="utf-8")
+            proc_adv_ref = subprocess.run([sys.executable, str(CORE_DIR / "compile_spec.py"), str(adv_ref_file), tmpdir], capture_output=True, text=True)
+            self.assertEqual(proc_adv_ref.returncode, 1)
+            self.assertFalse((Path(tmpdir) / "escaped-ref.md").exists())
+            self.assertFalse((Path(tmpdir).parent / "escaped-ref.md").exists())
 
     def test_eval_engine_cli_end_to_end(self):
         """Test eval_engine.py CLI interface with valid and error states."""

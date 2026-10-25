@@ -9391,13 +9391,14 @@ function validateSkillCommand(pathArg) {
 }
 
 // src/commands/compile.ts
-import { existsSync as existsSync3, readFileSync as readFileSync3 } from "node:fs";
+import { existsSync as existsSync4, readFileSync as readFileSync3 } from "node:fs";
 import { resolve as resolve5 } from "node:path";
 
 // src/core/compiler.ts
-import { mkdirSync as mkdirSync2, writeFileSync as writeFileSync2 } from "node:fs";
+import { existsSync as existsSync3, lstatSync as lstatSync3, mkdirSync as mkdirSync2, writeFileSync as writeFileSync2 } from "node:fs";
 import { isAbsolute, join as join4, relative, resolve as resolve4 } from "node:path";
 var NAME_REGEX3 = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+var REF_NAME_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 function compileOmniSkillSpec(spec, outputDir) {
   if (!spec || typeof spec !== "object") {
     throw new TypeError("Skill specification must be an object.");
@@ -9414,6 +9415,38 @@ function compileOmniSkillSpec(spec, outputDir) {
   const rel = relative(resolvedOutput, targetDir);
   if (rel.startsWith("..") || isAbsolute(rel) || rel === "") {
     throw new Error(`Path containment violation: Skill name "${name}" escapes output directory "${outputDir}".`);
+  }
+  const refDir = join4(targetDir, "references");
+  let validatedReferences = [];
+  if (spec.references !== undefined && spec.references !== null) {
+    if (typeof spec.references !== "object" || Array.isArray(spec.references) || spec.references instanceof Map || spec.references instanceof Set || Object.prototype.toString.call(spec.references) !== "[object Object]") {
+      throw new TypeError("Field 'references' must be a key-value object mapping reference names to markdown content.");
+    }
+    if (existsSync3(refDir) && lstatSync3(refDir).isSymbolicLink()) {
+      throw new Error('Path containment violation: "references" directory is a symbolic link.');
+    }
+    const entries = Object.entries(spec.references).map(([k, v]) => [String(k), String(v)]);
+    const seenRefKeys = new Set;
+    for (const [refName, refContent] of entries) {
+      if (!REF_NAME_REGEX.test(refName)) {
+        throw new Error(`Invalid reference name "${refName}". Reference keys must be lowercase kebab-case alphanumeric without file extensions.`);
+      }
+      const canonicalRefKey = refName.toLowerCase();
+      if (seenRefKeys.has(canonicalRefKey)) {
+        throw new Error(`Duplicate reference name detected: "${refName}".`);
+      }
+      seenRefKeys.add(canonicalRefKey);
+      const targetRefFile = resolve4(refDir, `${refName}.md`);
+      const refRel = relative(refDir, targetRefFile);
+      if (refRel.startsWith("..") || isAbsolute(refRel) || refRel !== `${refName}.md`) {
+        throw new Error(`Path containment violation: Reference "${refName}" escapes references/ directory.`);
+      }
+      const targetPathUnresolved = join4(refDir, `${refName}.md`);
+      if (existsSync3(targetPathUnresolved) && lstatSync3(targetPathUnresolved).isSymbolicLink()) {
+        throw new Error(`Path containment violation: Target reference "${refName}.md" is a symbolic link.`);
+      }
+    }
+    validatedReferences = entries;
   }
   mkdirSync2(targetDir, { recursive: true });
   const skillMdLines = [
@@ -9436,10 +9469,9 @@ function compileOmniSkillSpec(spec, outputDir) {
   skillMdLines.push("", "## Host & Portability Contract", "", `- Target Hosts: ${(spec.target_hosts || ["agent-skills", "chatgpt", "codex", "claude-code"]).join(", ")}`, `- Freedom Level: ${spec.freedom_level || "medium"}`, "");
   writeFileSync2(join4(targetDir, "SKILL.md"), skillMdLines.join(`
 `), "utf-8");
-  if (spec.references) {
-    const refDir = join4(targetDir, "references");
+  if (validatedReferences.length > 0) {
     mkdirSync2(refDir, { recursive: true });
-    for (const [refName, refContent] of Object.entries(spec.references)) {
+    for (const [refName, refContent] of validatedReferences) {
       writeFileSync2(join4(refDir, `${refName}.md`), refContent, "utf-8");
     }
   }
@@ -9455,7 +9487,7 @@ function compileOmniSkillSpec(spec, outputDir) {
 var import_picocolors3 = __toESM(require_picocolors(), 1);
 function compileSkillCommand(specPathArg, options) {
   const specPath = resolve5(process.cwd(), specPathArg);
-  if (!existsSync3(specPath)) {
+  if (!existsSync4(specPath)) {
     console.log(import_picocolors3.default.red(`✖ Specification file not found: ${specPath}`));
     process.exit(1);
   }
@@ -9645,7 +9677,7 @@ function portSkillCommand(skillPathArg, options) {
 
 // src/commands/eval.ts
 var import_picocolors5 = __toESM(require_picocolors(), 1);
-import { existsSync as existsSync4, readFileSync as readFileSync4 } from "node:fs";
+import { existsSync as existsSync5, readFileSync as readFileSync4 } from "node:fs";
 import { join as join6, resolve as resolve7 } from "node:path";
 function evalSkillCommand(skillPathArg) {
   const skillPath = resolve7(process.cwd(), skillPathArg);
@@ -9653,7 +9685,7 @@ function evalSkillCommand(skillPathArg) {
   console.log(import_picocolors5.default.cyan(`
 \uD83E\uDDEA Running BinEval harness on: ${import_picocolors5.default.bold(skillPath)}
 `));
-  if (!existsSync4(evalsPath)) {
+  if (!existsSync5(evalsPath)) {
     console.log(import_picocolors5.default.yellow("⚠ No evals/evals.json found. Generating baseline trigger check..."));
     console.log(import_picocolors5.default.green("✔ Baseline structural test passed."));
     return;
@@ -9677,8 +9709,8 @@ function evalSkillCommand(skillPathArg) {
 
 // src/commands/package.ts
 var import_picocolors6 = __toESM(require_picocolors(), 1);
-import { existsSync as existsSync5, lstatSync as lstatSync3, mkdirSync as mkdirSync4, readFileSync as readFileSync5, readdirSync as readdirSync2, writeFileSync as writeFileSync4 } from "node:fs";
-import { basename, join as join7, resolve as resolve8, sep as sep2 } from "node:path";
+import { existsSync as existsSync6, lstatSync as lstatSync4, mkdirSync as mkdirSync4, readFileSync as readFileSync5, readdirSync as readdirSync2, writeFileSync as writeFileSync4 } from "node:fs";
+import { basename, join as join7, resolve as resolve8, sep } from "node:path";
 
 // ../../../../../../../.bun/install/cache/links/fflate@0.8.2-edd43745f90ceabf/node_modules/fflate/esm/index.mjs
 import { createRequire as createRequire2 } from "module";
@@ -10329,7 +10361,7 @@ function collectSkillFiles(skillDir, name) {
       if (entry.startsWith(".") || entry === "node_modules" || entry === "__pycache__" || entry.startsWith("test_") || entry.endsWith(".test.ts") || entry.endsWith(".test.py"))
         continue;
       const fullPath = join7(directory, entry);
-      const stat = lstatSync3(fullPath);
+      const stat = lstatSync4(fullPath);
       if (stat.isSymbolicLink())
         throw new Error(`Refusing to package symbolic link: ${fullPath}`);
       if (stat.isDirectory())
@@ -10349,12 +10381,12 @@ function packageSkillCommand(skillPathArg, options) {
     process.exit(1);
   }
   const outDir = options?.out ? resolve8(process.cwd(), options.out) : process.cwd();
-  if (outDir === skillPath || outDir.startsWith(`${skillPath}${sep2}`)) {
+  if (outDir === skillPath || outDir.startsWith(`${skillPath}${sep}`)) {
     console.log(import_picocolors6.default.red("✖ Output directory must be outside the skill being packaged."));
     process.exit(1);
   }
   const archivePath = join7(outDir, `${basename(skillPath)}.skill`);
-  if (existsSync5(archivePath)) {
+  if (existsSync6(archivePath)) {
     console.log(import_picocolors6.default.red(`✖ Refusing to overwrite existing package: ${archivePath}`));
     process.exit(1);
   }

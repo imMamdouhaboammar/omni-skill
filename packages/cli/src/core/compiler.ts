@@ -1,8 +1,9 @@
 import { OmniSkillSpec } from "./types";
-import { mkdirSync, writeFileSync } from "node:fs";
-import { isAbsolute, join, relative, resolve, sep } from "node:path";
+import { existsSync, lstatSync, mkdirSync, writeFileSync } from "node:fs";
+import { isAbsolute, join, relative, resolve } from "node:path";
 
 const NAME_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const REF_NAME_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export function compileOmniSkillSpec(spec: OmniSkillSpec, outputDir: string): string {
   if (!spec || typeof spec !== "object") {
@@ -28,6 +29,65 @@ export function compileOmniSkillSpec(spec: OmniSkillSpec, outputDir: string): st
     throw new Error(
       `Path containment violation: Skill name "${name}" escapes output directory "${outputDir}".`
     );
+  }
+
+  const refDir = join(targetDir, "references");
+
+  // Preflight validation for references before creating any directories or writing files
+  let validatedReferences: Array<[string, string]> = [];
+  if (spec.references !== undefined && spec.references !== null) {
+    if (
+      typeof spec.references !== "object" ||
+      Array.isArray(spec.references) ||
+      spec.references instanceof Map ||
+      spec.references instanceof Set ||
+      Object.prototype.toString.call(spec.references) !== "[object Object]"
+    ) {
+      throw new TypeError(
+        "Field 'references' must be a key-value object mapping reference names to markdown content."
+      );
+    }
+
+    if (existsSync(refDir) && lstatSync(refDir).isSymbolicLink()) {
+      throw new Error('Path containment violation: "references" directory is a symbolic link.');
+    }
+
+    // Freeze snapshot so dynamic getter/proxy properties cannot mutate keys between validation and writing
+    const entries = Object.entries(spec.references).map(
+      ([k, v]) => [String(k), String(v)] as [string, string]
+    );
+
+    const seenRefKeys = new Set<string>();
+    for (const [refName, refContent] of entries) {
+      if (!REF_NAME_REGEX.test(refName)) {
+        throw new Error(
+          `Invalid reference name "${refName}". Reference keys must be lowercase kebab-case alphanumeric without file extensions.`
+        );
+      }
+
+      const canonicalRefKey = refName.toLowerCase();
+      if (seenRefKeys.has(canonicalRefKey)) {
+        throw new Error(`Duplicate reference name detected: "${refName}".`);
+      }
+      seenRefKeys.add(canonicalRefKey);
+
+      const targetRefFile = resolve(refDir, `${refName}.md`);
+      const refRel = relative(refDir, targetRefFile);
+      if (refRel.startsWith("..") || isAbsolute(refRel) || refRel !== `${refName}.md`) {
+        throw new Error(
+          `Path containment violation: Reference "${refName}" escapes references/ directory.`
+        );
+      }
+
+      const targetPathUnresolved = join(refDir, `${refName}.md`);
+      if (existsSync(targetPathUnresolved) && lstatSync(targetPathUnresolved).isSymbolicLink()) {
+        throw new Error(
+          `Path containment violation: Target reference "${refName}.md" is a symbolic link.`
+        );
+      }
+    }
+
+    validatedReferences = entries;
   }
 
   mkdirSync(targetDir, { recursive: true });
@@ -62,10 +122,9 @@ export function compileOmniSkillSpec(spec: OmniSkillSpec, outputDir: string): st
 
   writeFileSync(join(targetDir, "SKILL.md"), skillMdLines.join("\n"), "utf-8");
 
-  if (spec.references) {
-    const refDir = join(targetDir, "references");
+  if (validatedReferences.length > 0) {
     mkdirSync(refDir, { recursive: true });
-    for (const [refName, refContent] of Object.entries(spec.references)) {
+    for (const [refName, refContent] of validatedReferences) {
       writeFileSync(join(refDir, `${refName}.md`), refContent, "utf-8");
     }
   }
