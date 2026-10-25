@@ -7,15 +7,36 @@ import re
 from pathlib import Path
 from typing import Any, Dict
 
+NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+
 def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
-    name = spec_data.get("name", "unnamed-skill")
+    if not isinstance(spec_data, dict):
+        raise TypeError("Specification data must be a dictionary.")
+
+    name = spec_data.get("name")
+    if name is None or not isinstance(name, str):
+        raise TypeError(f"Skill name must be a non-empty string, got {type(name).__name__}.")
+
+    if not NAME_RE.match(name):
+        raise ValueError(f"Invalid skill name '{name}'. Must be lowercase kebab-case alphanumeric.")
+
+    resolved_output = output_dir.resolve()
+    skill_path = (output_dir / name).resolve()
+
+    try:
+        skill_path.relative_to(resolved_output)
+    except ValueError:
+        raise ValueError(f"Path containment violation: '{name}' escapes output directory '{output_dir}'.")
+
+    if skill_path == resolved_output:
+        raise ValueError("Skill path cannot be the output root directory.")
+
     description = spec_data.get("description", "").strip()
     job = spec_data.get("job", "")
     instructions = spec_data.get("instructions", [])
     references = spec_data.get("references", {})
     evals = spec_data.get("evals", [])
 
-    skill_path = output_dir / name
     skill_path.mkdir(parents=True, exist_ok=True)
 
     # 1. Generate SKILL.md
@@ -79,5 +100,9 @@ if __name__ == "__main__":
     except Exception as exc:
         print(f"Error: Failed to parse JSON specification: {exc}", file=sys.stderr)
         sys.exit(1)
-    res = compile_spec(data, out)
+    try:
+        res = compile_spec(data, out)
+    except Exception as exc:
+        print(f"Error: Failed to compile specification: {exc}", file=sys.stderr)
+        sys.exit(1)
     print(f"Compiled skill to: {res}")

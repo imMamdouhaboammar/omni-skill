@@ -9392,13 +9392,29 @@ function validateSkillCommand(pathArg) {
 
 // src/commands/compile.ts
 import { existsSync as existsSync3, readFileSync as readFileSync3 } from "node:fs";
-import { resolve as resolve4 } from "node:path";
+import { resolve as resolve5 } from "node:path";
 
 // src/core/compiler.ts
 import { mkdirSync as mkdirSync2, writeFileSync as writeFileSync2 } from "node:fs";
-import { join as join4 } from "node:path";
+import { isAbsolute, join as join4, relative, resolve as resolve4 } from "node:path";
+var NAME_REGEX3 = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 function compileOmniSkillSpec(spec, outputDir) {
-  const targetDir = join4(outputDir, spec.name);
+  if (!spec || typeof spec !== "object") {
+    throw new TypeError("Skill specification must be an object.");
+  }
+  const name = spec.name;
+  if (!name || typeof name !== "string") {
+    throw new TypeError(`Skill name must be a non-empty string. Received: ${typeof name}`);
+  }
+  if (!NAME_REGEX3.test(name)) {
+    throw new Error(`Invalid skill name "${name}". Skill name must be lowercase kebab-case alphanumeric (e.g. "my-skill").`);
+  }
+  const resolvedOutput = resolve4(outputDir);
+  const targetDir = resolve4(resolvedOutput, name);
+  const rel = relative(resolvedOutput, targetDir);
+  if (rel.startsWith("..") || isAbsolute(rel) || rel === "") {
+    throw new Error(`Path containment violation: Skill name "${name}" escapes output directory "${outputDir}".`);
+  }
   mkdirSync2(targetDir, { recursive: true });
   const skillMdLines = [
     "---",
@@ -9438,7 +9454,7 @@ function compileOmniSkillSpec(spec, outputDir) {
 // src/commands/compile.ts
 var import_picocolors3 = __toESM(require_picocolors(), 1);
 function compileSkillCommand(specPathArg, options) {
-  const specPath = resolve4(process.cwd(), specPathArg);
+  const specPath = resolve5(process.cwd(), specPathArg);
   if (!existsSync3(specPath)) {
     console.log(import_picocolors3.default.red(`✖ Specification file not found: ${specPath}`));
     process.exit(1);
@@ -9451,14 +9467,20 @@ function compileSkillCommand(specPathArg, options) {
     console.log(import_picocolors3.default.red(`✖ Failed to parse JSON specification: ${err.message}`));
     process.exit(1);
   }
-  const outDir = options.out ? resolve4(process.cwd(), options.out) : process.cwd();
-  const compiledPath = compileOmniSkillSpec(spec, outDir);
+  const outDir = options.out ? resolve5(process.cwd(), options.out) : process.cwd();
+  let compiledPath;
+  try {
+    compiledPath = compileOmniSkillSpec(spec, outDir);
+  } catch (err) {
+    console.log(import_picocolors3.default.red(`✖ Failed to compile skill: ${err.message}`));
+    process.exit(1);
+  }
   console.log(import_picocolors3.default.green(`✔ Compiled OmniSkillSpec to: `) + import_picocolors3.default.bold(compiledPath));
 }
 
 // src/commands/port.ts
 var import_picocolors4 = __toESM(require_picocolors(), 1);
-import { resolve as resolve5 } from "node:path";
+import { resolve as resolve6 } from "node:path";
 
 // src/core/adapters/index.ts
 import { writeFileSync as writeFileSync3, mkdirSync as mkdirSync3 } from "node:fs";
@@ -9604,8 +9626,8 @@ ${manifest.content}`, "utf-8");
 
 // src/commands/port.ts
 function portSkillCommand(skillPathArg, options) {
-  const skillPath = resolve5(process.cwd(), skillPathArg);
-  const outDir = options.out ? resolve5(process.cwd(), options.out) : process.cwd();
+  const skillPath = resolve6(process.cwd(), skillPathArg);
+  const outDir = options.out ? resolve6(process.cwd(), options.out) : process.cwd();
   const manifest = loadSkillDirectory(skillPath);
   console.log(import_picocolors4.default.cyan(`
 \uD83D\uDCE6 Porting ${import_picocolors4.default.bold(manifest.name)} to target host: ${import_picocolors4.default.bold(options.target)}
@@ -9624,9 +9646,9 @@ function portSkillCommand(skillPathArg, options) {
 // src/commands/eval.ts
 var import_picocolors5 = __toESM(require_picocolors(), 1);
 import { existsSync as existsSync4, readFileSync as readFileSync4 } from "node:fs";
-import { join as join6, resolve as resolve6 } from "node:path";
+import { join as join6, resolve as resolve7 } from "node:path";
 function evalSkillCommand(skillPathArg) {
-  const skillPath = resolve6(process.cwd(), skillPathArg);
+  const skillPath = resolve7(process.cwd(), skillPathArg);
   const evalsPath = join6(skillPath, "evals", "evals.json");
   console.log(import_picocolors5.default.cyan(`
 \uD83E\uDDEA Running BinEval harness on: ${import_picocolors5.default.bold(skillPath)}
@@ -9656,7 +9678,7 @@ function evalSkillCommand(skillPathArg) {
 // src/commands/package.ts
 var import_picocolors6 = __toESM(require_picocolors(), 1);
 import { existsSync as existsSync5, lstatSync as lstatSync3, mkdirSync as mkdirSync4, readFileSync as readFileSync5, readdirSync as readdirSync2, writeFileSync as writeFileSync4 } from "node:fs";
-import { basename, join as join7, resolve as resolve7, sep } from "node:path";
+import { basename, join as join7, resolve as resolve8, sep as sep2 } from "node:path";
 
 // ../../../../../../../.bun/install/cache/links/fflate@0.8.2-edd43745f90ceabf/node_modules/fflate/esm/index.mjs
 import { createRequire as createRequire2 } from "module";
@@ -10320,14 +10342,14 @@ function collectSkillFiles(skillDir, name) {
   return files;
 }
 function packageSkillCommand(skillPathArg, options) {
-  const skillPath = resolve7(process.cwd(), skillPathArg);
+  const skillPath = resolve8(process.cwd(), skillPathArg);
   const val = validateSkillDirectory(skillPath);
   if (!val.pass) {
     console.log(import_picocolors6.default.red(`✖ Cannot package skill with validation errors.`));
     process.exit(1);
   }
-  const outDir = options?.out ? resolve7(process.cwd(), options.out) : process.cwd();
-  if (outDir === skillPath || outDir.startsWith(`${skillPath}${sep}`)) {
+  const outDir = options?.out ? resolve8(process.cwd(), options.out) : process.cwd();
+  if (outDir === skillPath || outDir.startsWith(`${skillPath}${sep2}`)) {
     console.log(import_picocolors6.default.red("✖ Output directory must be outside the skill being packaged."));
     process.exit(1);
   }

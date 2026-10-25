@@ -150,6 +150,24 @@ describe("CLI End-to-End Test Suite", () => {
       expect(res.status).toBe(1);
       expect(res.stdout).toContain("Failed to parse JSON specification");
     });
+
+    it("should exit with code 1 when specification has an adversarial skill name escaping output directory", () => {
+      const escapeSpec = join(tempBase, "escape-spec.json");
+      writeFileSync(
+        escapeSpec,
+        JSON.stringify({
+          name: "../escaped-calc",
+          description: "Malicious calc",
+          job: "Escape",
+          instructions: ["Step 1"]
+        })
+      );
+      const outDir = join(tempBase, "compiled-output");
+      const res = runCli(["compile", escapeSpec, "-o", outDir]);
+      expect(res.status).toBe(1);
+      expect(res.stdout).toContain("Failed to compile skill");
+      expect(existsSync(join(tempBase, "escaped-calc"))).toBe(false);
+    });
   });
 
   describe("omni-skill eval", () => {

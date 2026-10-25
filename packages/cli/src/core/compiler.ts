@@ -1,9 +1,35 @@
 import { OmniSkillSpec } from "./types";
 import { mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { isAbsolute, join, relative, resolve, sep } from "node:path";
+
+const NAME_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export function compileOmniSkillSpec(spec: OmniSkillSpec, outputDir: string): string {
-  const targetDir = join(outputDir, spec.name);
+  if (!spec || typeof spec !== "object") {
+    throw new TypeError("Skill specification must be an object.");
+  }
+
+  const name = spec.name;
+  if (!name || typeof name !== "string") {
+    throw new TypeError(`Skill name must be a non-empty string. Received: ${typeof name}`);
+  }
+
+  if (!NAME_REGEX.test(name)) {
+    throw new Error(
+      `Invalid skill name "${name}". Skill name must be lowercase kebab-case alphanumeric (e.g. "my-skill").`
+    );
+  }
+
+  const resolvedOutput = resolve(outputDir);
+  const targetDir = resolve(resolvedOutput, name);
+  const rel = relative(resolvedOutput, targetDir);
+
+  if (rel.startsWith("..") || isAbsolute(rel) || rel === "") {
+    throw new Error(
+      `Path containment violation: Skill name "${name}" escapes output directory "${outputDir}".`
+    );
+  }
+
   mkdirSync(targetDir, { recursive: true });
 
   const skillMdLines = [
