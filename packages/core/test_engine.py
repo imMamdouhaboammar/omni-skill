@@ -399,6 +399,87 @@ class TestOmniSkillEngine(unittest.TestCase):
                     self.assertEqual(len(list(out_dir.iterdir())), 0)
                     self.assertEqual(hashlib.sha256(sentinel.read_bytes()).hexdigest(), sentinel_hash)
 
+    def test_compile_spec_golden_spec_parity(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir)
+            golden_spec = {
+                "name": "golden-skill",
+                "description": "A comprehensive production-grade skill specification.",
+                "job": "Executes deterministic validation and compilation flows flawlessly.",
+                "target_hosts": ["chatgpt", "codex", "claude-code"],
+                "freedom_level": "low",
+                "instructions": [
+                    "Read input parameters carefully.",
+                    "Validate preconditions before mutation.",
+                    "Emit structured report."
+                ],
+                "references": {
+                    "architecture-overview": "# Architecture\nLayered system contract.",
+                    "api-conventions": "# Conventions\nFollow semver and fail closed."
+                },
+                "evals": [
+                    {
+                        "id": "case-preflight-gate",
+                        "description": "Verify preflight gates fail closed on malformed input",
+                        "assertions": [
+                            {"pattern": "FAIL_CLOSED", "required": True},
+                            {"pattern": "BYPASS_UNAUTHORIZED", "required": False}
+                        ]
+                    },
+                    {
+                        "id": "case-success-path",
+                        "assertions": [
+                            {"pattern": "COMPILED_SUCCESS", "required": True}
+                        ]
+                    }
+                ]
+            }
+
+            res = compile_spec(golden_spec, out_dir)
+            self.assertTrue(res.exists())
+
+            skill_md = (res / "SKILL.md").read_text(encoding="utf-8")
+            self.assertIn("name: golden-skill", skill_md)
+            self.assertIn("A comprehensive production-grade skill specification.", skill_md)
+            self.assertIn("# Golden Skill", skill_md)
+            self.assertIn("> Executes deterministic validation and compilation flows flawlessly.", skill_md)
+            self.assertIn("- Read input parameters carefully.", skill_md)
+            self.assertIn("- Validate preconditions before mutation.", skill_md)
+            self.assertIn("- Emit structured report.", skill_md)
+            self.assertIn("- Target Hosts: chatgpt, codex, claude-code", skill_md)
+            self.assertIn("- Freedom Level: low", skill_md)
+
+            ref1 = (res / "references" / "architecture-overview.md").read_text(encoding="utf-8")
+            self.assertEqual(ref1, "# Architecture\nLayered system contract.")
+            ref2 = (res / "references" / "api-conventions.md").read_text(encoding="utf-8")
+            self.assertEqual(ref2, "# Conventions\nFollow semver and fail closed.")
+
+            evals_data = json.loads((res / "evals" / "evals.json").read_text(encoding="utf-8"))
+            self.assertEqual(len(evals_data["evals"]), 2)
+            self.assertEqual(evals_data["evals"][0]["id"], "case-preflight-gate")
+            self.assertEqual(evals_data["evals"][0]["description"], "Verify preflight gates fail closed on malformed input")
+            self.assertEqual(len(evals_data["evals"][0]["assertions"]), 2)
+            self.assertEqual(evals_data["evals"][0]["assertions"][0]["pattern"], "FAIL_CLOSED")
+            self.assertTrue(evals_data["evals"][0]["assertions"][0]["required"])
+            self.assertEqual(evals_data["evals"][1]["id"], "case-success-path")
+            self.assertNotIn("description", evals_data["evals"][1])
+
+            # Minimal spec
+            minimal_spec = {
+                "name": "minimal-skill",
+                "description": "Minimal spec description.",
+                "job": "Performs minimum actions.",
+                "instructions": ["Step 1: Just run."]
+            }
+            res_min = compile_spec(minimal_spec, out_dir)
+            self.assertTrue(res_min.exists())
+            skill_md_min = (res_min / "SKILL.md").read_text(encoding="utf-8")
+            self.assertIn("name: minimal-skill", skill_md_min)
+            self.assertIn("- Target Hosts: agent-skills, chatgpt, codex, claude-code", skill_md_min)
+            self.assertIn("- Freedom Level: medium", skill_md_min)
+            self.assertFalse((res_min / "references").exists())
+            self.assertFalse((res_min / "evals").exists())
+
     def test_compile_spec_and_validate(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             out_dir = Path(tmpdir)
