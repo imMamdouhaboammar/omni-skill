@@ -1,5 +1,5 @@
 import { describe, expect, it, test, afterAll, beforeAll } from "bun:test";
-import { mkdtempSync, rmSync, existsSync, readFileSync, writeFileSync, chmodSync, symlinkSync } from "node:fs";
+import { mkdtempSync, rmSync, existsSync, readFileSync, writeFileSync, chmodSync, symlinkSync, mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -80,6 +80,15 @@ describe("CLI End-to-End Test Suite", () => {
       const res = runCli(["validate", brokenDir]);
       expect(res.status).toBe(1);
       expect(res.stdout).toContain("INVALID_NAME");
+    });
+
+    it("should exit with code 1 when validating an empty directory", () => {
+      const emptyDir = join(tempBase, "empty-dir-e2e");
+      mkdirSync(emptyDir);
+      const res = runCli(["validate", emptyDir]);
+      expect(res.status).toBe(1);
+      expect(res.stdout).toContain("MISSING_SKILL_MD");
+      expect(res.stdout).toContain("0/1 skills valid (1 errors, 0 warnings)");
     });
 
     it("should exit with code 1 when validating a non-existent skill root", () => {
