@@ -207,6 +207,67 @@ class TestViewerAccessibility(unittest.TestCase):
                     page.close()
             browser.close()
 
+    def test_feedback_form_label_and_status(self):
+        """Feedback textarea must have an explicit <label for='feedback'> and accessible status region."""
+        for viewer_path in VIEWERS:
+            with self.subTest(viewer=viewer_path.relative_to(REPO_ROOT)):
+                content = viewer_path.read_text(encoding="utf-8")
+                # Must have explicit <label for="feedback">
+                label_match = re.search(r'<label[^>]*for=["\']feedback["\'][^>]*>(.*?)</label>', content, re.DOTALL)
+                self.assertIsNotNone(
+                    label_match,
+                    f"{viewer_path} must have an explicit <label for='feedback'> element",
+                )
+                self.assertIn(
+                    "Your Feedback",
+                    label_match.group(1),
+                    f"{viewer_path} <label for='feedback'> must contain 'Your Feedback'",
+                )
+
+                # Feedback status should have role='status' or aria-live='polite'
+                status_match = re.search(r'<div[^>]*id=["\']feedback-status["\'][^>]*>', content)
+                self.assertIsNotNone(status_match, f"{viewer_path} must have feedback-status element")
+                self.assertTrue(
+                    'role="status"' in status_match.group(0) or 'aria-live="polite"' in status_match.group(0),
+                    f"{viewer_path} feedback-status must have role='status' or aria-live='polite': {status_match.group(0)}",
+                )
+
+        if os.path.exists(CHROME_PATH):
+            with sync_playwright() as p:
+                browser = p.chromium.launch(executable_path=CHROME_PATH, headless=True)
+                for viewer_path in VIEWERS:
+                    with self.subTest(viewer_browser=viewer_path.relative_to(REPO_ROOT)):
+                        html_content = viewer_path.read_text(encoding="utf-8")
+                        test_data = {
+                            "skill_name": "test-skill",
+                            "runs": [{"id": "run-1", "eval_id": "e1", "prompt": "P", "outputs": []}],
+                            "previous_feedback": {},
+                            "previous_outputs": {},
+                        }
+                        injected = re.sub(
+                            r"/\*\s*__EMBEDDED_DATA__\s*\*/",
+                            f"const EMBEDDED_DATA = {json.dumps(test_data)};",
+                            html_content,
+                        )
+                        page = browser.new_page()
+                        page.set_content(injected)
+
+                        textarea = page.locator("#feedback")
+                        self.assertTrue(textarea.is_visible())
+
+                        # Check programmatic label association via HTML DOM
+                        label_text = textarea.evaluate("el => el.labels && el.labels[0] ? el.labels[0].textContent.trim() : null")
+                        self.assertEqual(label_text, "Your Feedback", f"{viewer_path} textarea must be associated with 'Your Feedback' label")
+
+                        # Clicking the label must focus the textarea
+                        page.locator("label[for='feedback']").click()
+                        self.assertTrue(
+                            textarea.evaluate("el => document.activeElement === el"),
+                            f"{viewer_path} clicking label must focus textarea",
+                        )
+                        page.close()
+                browser.close()
+
 
 if __name__ == "__main__":
     unittest.main()
