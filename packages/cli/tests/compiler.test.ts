@@ -773,3 +773,128 @@ describe("compileOmniSkillSpec Reference Value Validation", () => {
     }
   });
 });
+
+describe("compileOmniSkillSpec Evals Validation", () => {
+  let rootDir: string;
+  let outDir: string;
+
+  beforeEach(() => {
+    rootDir = mkdtempSync(join(tmpdir(), "omni-compiler-evals-"));
+    outDir = join(rootDir, "output");
+    mkdirSync(outDir, { recursive: true });
+  });
+
+  afterEach(() => {
+    if (existsSync(rootDir)) {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  it("should reject non-array evals (string, number, boolean, object)", () => {
+    const invalidEvals = ["invalid", 12345, true, { id: "case-1" }];
+    for (const val of invalidEvals) {
+      const spec = {
+        name: "test-skill",
+        description: "Valid desc",
+        job: "Valid job",
+        instructions: ["Step 1"],
+        evals: val
+      };
+      expect(() => {
+        compileOmniSkillSpec(spec as any, outDir);
+      }).toThrow(/Field 'evals' must be an array/);
+    }
+  });
+
+  it("should reject invalid eval item structure (non-object, missing/empty/non-string id, non-string description)", () => {
+    const invalidItems = [
+      "not-an-object",
+      12345,
+      null,
+      [],
+      { description: "Missing id", assertions: [{ pattern: "success" }] },
+      { id: "", assertions: [{ pattern: "success" }] },
+      { id: "   ", assertions: [{ pattern: "success" }] },
+      { id: 123, assertions: [{ pattern: "success" }] },
+      { id: "case-1", description: 12345, assertions: [{ pattern: "success" }] },
+      { id: "case-1", description: ["array", "desc"], assertions: [{ pattern: "success" }] }
+    ];
+
+    for (const item of invalidItems) {
+      const spec = {
+        name: "test-skill",
+        description: "Valid desc",
+        job: "Valid job",
+        instructions: ["Step 1"],
+        evals: [item]
+      };
+      expect(() => {
+        compileOmniSkillSpec(spec as any, outDir);
+      }).toThrow(/Field 'evals\[\d+\]/);
+    }
+  });
+
+  it("should reject invalid eval assertions (missing/non-array/empty assertions, non-object assertion, missing/empty/non-string pattern, non-boolean required)", () => {
+    const invalidAssertionSuites = [
+      { id: "c1" }, // missing assertions
+      { id: "c1", assertions: null },
+      { id: "c1", assertions: "not-an-array" },
+      { id: "c1", assertions: [] }, // empty assertions
+      { id: "c1", assertions: ["not-an-object"] },
+      { id: "c1", assertions: [null] },
+      { id: "c1", assertions: [{}] }, // missing pattern
+      { id: "c1", assertions: [{ pattern: "" }] }, // empty pattern
+      { id: "c1", assertions: [{ pattern: "   " }] }, // whitespace pattern
+      { id: "c1", assertions: [{ pattern: 123 }] }, // non-string pattern
+      { id: "c1", assertions: [{ pattern: "ok", required: "yes" }] }, // non-boolean required
+      { id: "c1", assertions: [{ pattern: "ok", required: 1 }] } // non-boolean required
+    ];
+
+    for (const item of invalidAssertionSuites) {
+      const spec = {
+        name: "test-skill",
+        description: "Valid desc",
+        job: "Valid job",
+        instructions: ["Step 1"],
+        evals: [item]
+      };
+      expect(() => {
+        compileOmniSkillSpec(spec as any, outDir);
+      }).toThrow(/Field 'evals\[\d+\]\.assertions/);
+    }
+  });
+
+  it("should accept valid evals structure and preserve all fields", () => {
+    const spec = {
+      name: "test-skill",
+      description: "Valid desc",
+      job: "Valid job",
+      instructions: ["Step 1"],
+      evals: [
+        {
+          id: "case-1",
+          description: "Verify hello pattern",
+          assertions: [
+            { pattern: "hello", required: true },
+            { pattern: "world", required: false }
+          ]
+        },
+        {
+          id: "case-2",
+          assertions: [
+            { pattern: "foo" }
+          ]
+        }
+      ]
+    };
+
+    const res = compileOmniSkillSpec(spec as any, outDir);
+    const evalsJsonPath = join(res, "evals", "evals.json");
+    expect(existsSync(evalsJsonPath)).toBe(true);
+    const parsed = JSON.parse(readFileSync(evalsJsonPath, "utf-8"));
+    expect(parsed.evals).toHaveLength(2);
+    expect(parsed.evals[0].id).toBe("case-1");
+    expect(parsed.evals[0].assertions[0].required).toBe(true);
+    expect(parsed.evals[1].id).toBe("case-2");
+  });
+});
