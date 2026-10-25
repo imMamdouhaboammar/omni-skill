@@ -71,6 +71,47 @@ class TestOmniSkillEngine(unittest.TestCase):
                         compile_spec(spec, out_dir)
                     self.assertIn("description", str(ctx.exception).lower())
 
+    def test_compile_spec_job_validation(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir)
+            base_spec = {
+                "name": "sample-tool",
+                "description": "Valid description",
+                "instructions": ["Step 1"]
+            }
+
+            # 1. Missing or None job
+            for val in [None]:
+                spec = dict(base_spec)
+                spec["job"] = val
+                with self.subTest(job=val):
+                    with self.assertRaises((TypeError, ValueError)) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("job", str(ctx.exception).lower())
+
+            # Missing key entirely
+            with self.assertRaises((TypeError, ValueError)) as ctx:
+                compile_spec(dict(base_spec), out_dir)
+            self.assertIn("job", str(ctx.exception).lower())
+
+            # 2. Non-string job
+            for val in [12345, True, ["job"], {"text": "job"}]:
+                spec = dict(base_spec)
+                spec["job"] = val
+                with self.subTest(job=val):
+                    with self.assertRaises(TypeError) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("job", str(ctx.exception).lower())
+
+            # 3. Empty or whitespace-only job
+            for val in ["", "   ", "\r\n  \t"]:
+                spec = dict(base_spec)
+                spec["job"] = val
+                with self.subTest(job=val):
+                    with self.assertRaises(ValueError) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("job", str(ctx.exception).lower())
+
     def test_compile_spec_and_validate(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             out_dir = Path(tmpdir)
