@@ -929,6 +929,18 @@ describe("compileOmniSkillSpec Evals Validation", () => {
     expect(parsed.evals[0].assertions[0].required).toBe(true);
     expect(parsed.evals[1].id).toBe("case-2");
   });
+
+  it("should not create evals directory when evals array is empty", () => {
+    const spec = {
+      name: "empty-evals-skill",
+      description: "Valid desc",
+      job: "Valid job",
+      instructions: ["Step 1"],
+      evals: []
+    };
+    const res = compileOmniSkillSpec(spec as any, outDir);
+    expect(existsSync(join(res, "evals"))).toBe(false);
+  });
 });
 
 describe("compileOmniSkillSpec Zero Filesystem Mutation on Validation Failure", () => {
