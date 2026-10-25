@@ -5,22 +5,47 @@ var __getProtoOf = Object.getPrototypeOf;
 var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+function __accessProp(key) {
+  return this[key];
+}
+var __toESMCache_node;
+var __toESMCache_esm;
 var __toESM = (mod, isNodeMode, target) => {
+  var canCache = mod != null && typeof mod === "object";
+  if (canCache) {
+    var cache = isNodeMode ? __toESMCache_node ??= new WeakMap : __toESMCache_esm ??= new WeakMap;
+    var cached = cache.get(mod);
+    if (cached)
+      return cached;
+  }
   target = mod != null ? __create(__getProtoOf(mod)) : {};
-  const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
-  for (let key of __getOwnPropNames(mod))
-    if (!__hasOwnProp.call(to, key))
-      __defProp(to, key, {
-        get: () => mod[key],
-        enumerable: true
-      });
+  const to = isNodeMode || !mod || !mod.__esModule || !__hasOwnProp.call(mod, "default") ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
+  if (mod && typeof mod === "object" || typeof mod === "function") {
+    for (let key of __getOwnPropNames(mod))
+      if (!__hasOwnProp.call(to, key))
+        __defProp(to, key, {
+          get: __accessProp.bind(mod, key),
+          enumerable: true
+        });
+  }
+  if (canCache)
+    cache.set(mod, to);
   return to;
 };
 var __commonJS = (cb, mod) => () => (mod || cb((mod = { exports: {} }).exports, mod), mod.exports);
+var __exportCjs = (target, getters, setters) => {
+  for (var name in getters)
+    __defProp(target, name, {
+      get: getters[name],
+      set: setters[name],
+      enumerable: true,
+      configurable: true
+    });
+};
 var __require = /* @__PURE__ */ createRequire(import.meta.url);
 
-// ../../node_modules/.bun/commander@12.1.0/node_modules/commander/lib/error.js
-var require_error = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/commander@12.1.0-0dbc1cbfa6139f1b/node_modules/commander/lib/error.js
+var require_error = __commonJS(function(exports) {
   class CommanderError extends Error {
     constructor(exitCode, code, message) {
       super(message);
@@ -43,8 +68,8 @@ var require_error = __commonJS((exports) => {
   exports.InvalidArgumentError = InvalidArgumentError;
 });
 
-// ../../node_modules/.bun/commander@12.1.0/node_modules/commander/lib/argument.js
-var require_argument = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/commander@12.1.0-0dbc1cbfa6139f1b/node_modules/commander/lib/argument.js
+var require_argument = __commonJS(function(exports) {
   var { InvalidArgumentError } = require_error();
 
   class Argument {
@@ -122,8 +147,8 @@ var require_argument = __commonJS((exports) => {
   exports.humanReadableArgName = humanReadableArgName;
 });
 
-// ../../node_modules/.bun/commander@12.1.0/node_modules/commander/lib/help.js
-var require_help = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/commander@12.1.0-0dbc1cbfa6139f1b/node_modules/commander/lib/help.js
+var require_help = __commonJS(function(exports) {
   var { humanReadableArgName } = require_argument();
 
   class Help {
@@ -134,7 +159,7 @@ var require_help = __commonJS((exports) => {
       this.showGlobalOptions = false;
     }
     visibleCommands(cmd) {
-      const visibleCommands = cmd.commands.filter((cmd2) => !cmd2._hidden);
+      const visibleCommands = cmd.commands.filter((cmd) => !cmd._hidden);
       const helpCommand = cmd._getHelpCommand();
       if (helpCommand && !helpCommand._hidden) {
         visibleCommands.push(helpCommand);
@@ -329,8 +354,8 @@ var require_help = __commonJS((exports) => {
           ]);
         }
       }
-      const commandList = helper.visibleCommands(cmd).map((cmd2) => {
-        return formatItem(helper.subcommandTerm(cmd2), helper.subcommandDescription(cmd2));
+      const commandList = helper.visibleCommands(cmd).map((cmd) => {
+        return formatItem(helper.subcommandTerm(cmd), helper.subcommandDescription(cmd));
       });
       if (commandList.length > 0) {
         output = output.concat(["Commands:", formatList(commandList), ""]);
@@ -371,8 +396,8 @@ var require_help = __commonJS((exports) => {
   exports.Help = Help;
 });
 
-// ../../node_modules/.bun/commander@12.1.0/node_modules/commander/lib/option.js
-var require_option = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/commander@12.1.0-0dbc1cbfa6139f1b/node_modules/commander/lib/option.js
+var require_option = __commonJS(function(exports) {
   var { InvalidArgumentError } = require_error();
 
   class Option {
@@ -501,8 +526,8 @@ var require_option = __commonJS((exports) => {
     }
   }
   function camelcase(str) {
-    return str.split("-").reduce((str2, word) => {
-      return str2 + word[0].toUpperCase() + word.slice(1);
+    return str.split("-").reduce((str, word) => {
+      return str + word[0].toUpperCase() + word.slice(1);
     });
   }
   function splitOptionFlags(flags) {
@@ -522,8 +547,8 @@ var require_option = __commonJS((exports) => {
   exports.DualOptions = DualOptions;
 });
 
-// ../../node_modules/.bun/commander@12.1.0/node_modules/commander/lib/suggestSimilar.js
-var require_suggestSimilar = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/commander@12.1.0-0dbc1cbfa6139f1b/node_modules/commander/lib/suggestSimilar.js
+var require_suggestSimilar = __commonJS(function(exports) {
   var maxDistance = 3;
   function editDistance(a, b) {
     if (Math.abs(a.length - b.length) > maxDistance)
@@ -595,8 +620,8 @@ var require_suggestSimilar = __commonJS((exports) => {
   exports.suggestSimilar = suggestSimilar;
 });
 
-// ../../node_modules/.bun/commander@12.1.0/node_modules/commander/lib/command.js
-var require_command = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/commander@12.1.0-0dbc1cbfa6139f1b/node_modules/commander/lib/command.js
+var require_command = __commonJS(function(exports) {
   var EventEmitter = __require("node:events").EventEmitter;
   var childProcess = __require("node:child_process");
   var path = __require("node:path");
@@ -833,7 +858,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
         this._exitCallback = (err) => {
           if (err.code !== "commander.executeSubCommandAsync") {
             throw err;
-          } else {}
+          }
         };
       }
       return this;
@@ -1031,44 +1056,44 @@ Expecting one of '${allowedValues.join("', '")}'`);
       });
       return source;
     }
-    _prepareUserArgs(argv, parseOptions) {
-      if (argv !== undefined && !Array.isArray(argv)) {
+    _prepareUserArgs(argv2, parseOptions) {
+      if (argv2 !== undefined && !Array.isArray(argv2)) {
         throw new Error("first parameter to parse must be array or undefined");
       }
       parseOptions = parseOptions || {};
-      if (argv === undefined && parseOptions.from === undefined) {
+      if (argv2 === undefined && parseOptions.from === undefined) {
         if (process2.versions?.electron) {
           parseOptions.from = "electron";
         }
-        const execArgv = process2.execArgv ?? [];
-        if (execArgv.includes("-e") || execArgv.includes("--eval") || execArgv.includes("-p") || execArgv.includes("--print")) {
+        const execArgv2 = process2.execArgv ?? [];
+        if (execArgv2.includes("-e") || execArgv2.includes("--eval") || execArgv2.includes("-p") || execArgv2.includes("--print")) {
           parseOptions.from = "eval";
         }
       }
-      if (argv === undefined) {
-        argv = process2.argv;
+      if (argv2 === undefined) {
+        argv2 = process2.argv;
       }
-      this.rawArgs = argv.slice();
+      this.rawArgs = argv2.slice();
       let userArgs;
       switch (parseOptions.from) {
         case undefined:
         case "node":
-          this._scriptPath = argv[1];
-          userArgs = argv.slice(2);
+          this._scriptPath = argv2[1];
+          userArgs = argv2.slice(2);
           break;
         case "electron":
           if (process2.defaultApp) {
-            this._scriptPath = argv[1];
-            userArgs = argv.slice(2);
+            this._scriptPath = argv2[1];
+            userArgs = argv2.slice(2);
           } else {
-            userArgs = argv.slice(1);
+            userArgs = argv2.slice(1);
           }
           break;
         case "user":
-          userArgs = argv.slice(0);
+          userArgs = argv2.slice(0);
           break;
         case "eval":
-          userArgs = argv.slice(1);
+          userArgs = argv2.slice(1);
           break;
         default:
           throw new Error(`unexpected parse option { from: '${parseOptions.from}' }`);
@@ -1556,18 +1581,18 @@ Expecting one of '${allowedValues.join("', '")}'`);
       this.error(message, { code: "commander.missingMandatoryOptionValue" });
     }
     _conflictingOption(option, conflictingOption) {
-      const findBestOptionFromValue = (option2) => {
-        const optionKey = option2.attributeName();
+      const findBestOptionFromValue = (option) => {
+        const optionKey = option.attributeName();
         const optionValue = this.getOptionValue(optionKey);
         const negativeOption = this.options.find((target) => target.negate && optionKey === target.attributeName());
         const positiveOption = this.options.find((target) => !target.negate && optionKey === target.attributeName());
         if (negativeOption && (negativeOption.presetArg === undefined && optionValue === false || negativeOption.presetArg !== undefined && optionValue === negativeOption.presetArg)) {
           return negativeOption;
         }
-        return positiveOption || option2;
+        return positiveOption || option;
       };
-      const getErrorMessage = (option2) => {
-        const bestOption = findBestOptionFromValue(option2);
+      const getErrorMessage = (option) => {
+        const bestOption = findBestOptionFromValue(option);
         const optionKey = bestOption.attributeName();
         const source = this.getOptionValueSource(optionKey);
         if (source === "env") {
@@ -1695,10 +1720,10 @@ Expecting one of '${allowedValues.join("', '")}'`);
       this._name = path.basename(filename, path.extname(filename));
       return this;
     }
-    executableDir(path2) {
-      if (path2 === undefined)
+    executableDir(path) {
+      if (path === undefined)
         return this._executableDir;
-      this._executableDir = path2;
+      this._executableDir = path;
       return this;
     }
     helpInformation(contextOptions) {
@@ -1770,11 +1795,11 @@ Expecting one of '${allowedValues.join("', '")}'`);
     }
     help(contextOptions) {
       this.outputHelp(contextOptions);
-      let exitCode = process2.exitCode || 0;
-      if (exitCode === 0 && contextOptions && typeof contextOptions !== "function" && contextOptions.error) {
-        exitCode = 1;
+      let exitCode2 = process2.exitCode || 0;
+      if (exitCode2 === 0 && contextOptions && typeof contextOptions !== "function" && contextOptions.error) {
+        exitCode2 = 1;
       }
-      this._exit(exitCode, "commander.help", "(outputHelp)");
+      this._exit(exitCode2, "commander.help", "(outputHelp)");
     }
     addHelpText(position, text) {
       const allowedValues = ["beforeAll", "before", "after", "afterAll"];
@@ -1838,28 +1863,8 @@ Expecting one of '${allowedValues.join("', '")}'`);
   exports.Command = Command;
 });
 
-// ../../node_modules/.bun/commander@12.1.0/node_modules/commander/index.js
-var require_commander = __commonJS((exports) => {
-  var { Argument } = require_argument();
-  var { Command } = require_command();
-  var { CommanderError, InvalidArgumentError } = require_error();
-  var { Help } = require_help();
-  var { Option } = require_option();
-  exports.program = new Command;
-  exports.createCommand = (name) => new Command(name);
-  exports.createOption = (flags, description) => new Option(flags, description);
-  exports.createArgument = (name, description) => new Argument(name, description);
-  exports.Command = Command;
-  exports.Option = Option;
-  exports.Argument = Argument;
-  exports.Help = Help;
-  exports.CommanderError = CommanderError;
-  exports.InvalidArgumentError = InvalidArgumentError;
-  exports.InvalidOptionArgumentError = InvalidArgumentError;
-});
-
-// ../../node_modules/.bun/picocolors@1.1.1/node_modules/picocolors/picocolors.js
-var require_picocolors = __commonJS((exports, module) => {
+// ../../../../../.bun/install/cache/links/picocolors@1.1.1-7a85ff629f303704/node_modules/picocolors/picocolors.js
+var require_picocolors = __commonJS(function(exports, module) {
   var p = process || {};
   var argv = p.argv || [];
   var env = p.env || {};
@@ -1928,8 +1933,8 @@ var require_picocolors = __commonJS((exports, module) => {
   module.exports.createColors = createColors;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/nodes/identity.js
-var require_identity = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/nodes/identity.js
+var require_identity = __commonJS(function(exports) {
   var ALIAS = Symbol.for("yaml.alias");
   var DOC = Symbol.for("yaml.document");
   var MAP = Symbol.for("yaml.map");
@@ -1982,8 +1987,8 @@ var require_identity = __commonJS((exports) => {
   exports.isSeq = isSeq;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/visit.js
-var require_visit = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/visit.js
+var require_visit = __commonJS(function(exports) {
   var identity = require_identity();
   var BREAK = Symbol("break visit");
   var SKIP = Symbol("skip children");
@@ -2137,8 +2142,8 @@ var require_visit = __commonJS((exports) => {
   exports.visitAsync = visitAsync;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/doc/directives.js
-var require_directives = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/doc/directives.js
+var require_directives = __commonJS(function(exports) {
   var identity = require_identity();
   var visit = require_visit();
   var escapeChars = {
@@ -2289,8 +2294,8 @@ var require_directives = __commonJS((exports) => {
   exports.Directives = Directives;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/doc/anchors.js
-var require_anchors = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/doc/anchors.js
+var require_anchors = __commonJS(function(exports) {
   var identity = require_identity();
   var visit = require_visit();
   function anchorIsValid(anchor) {
@@ -2351,8 +2356,8 @@ var require_anchors = __commonJS((exports) => {
   exports.findNewAnchor = findNewAnchor;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/doc/applyReviver.js
-var require_applyReviver = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/doc/applyReviver.js
+var require_applyReviver = __commonJS(function(exports) {
   function applyReviver(reviver, obj, key, val) {
     if (val && typeof val === "object") {
       if (Array.isArray(val)) {
@@ -2398,8 +2403,8 @@ var require_applyReviver = __commonJS((exports) => {
   exports.applyReviver = applyReviver;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/nodes/toJS.js
-var require_toJS = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/nodes/toJS.js
+var require_toJS = __commonJS(function(exports) {
   var identity = require_identity();
   function toJS(value, arg, ctx) {
     if (Array.isArray(value))
@@ -2409,8 +2414,8 @@ var require_toJS = __commonJS((exports) => {
         return value.toJSON(arg, ctx);
       const data = { aliasCount: 0, count: 1, res: undefined };
       ctx.anchors.set(value, data);
-      ctx.onCreate = (res2) => {
-        data.res = res2;
+      ctx.onCreate = (res) => {
+        data.res = res;
         delete ctx.onCreate;
       };
       const res = value.toJSON(arg, ctx);
@@ -2425,8 +2430,8 @@ var require_toJS = __commonJS((exports) => {
   exports.toJS = toJS;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/nodes/Node.js
-var require_Node = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/nodes/Node.js
+var require_Node = __commonJS(function(exports) {
   var applyReviver = require_applyReviver();
   var identity = require_identity();
   var toJS = require_toJS();
@@ -2454,16 +2459,16 @@ var require_Node = __commonJS((exports) => {
       };
       const res = toJS.toJS(this, "", ctx);
       if (typeof onAnchor === "function")
-        for (const { count, res: res2 } of ctx.anchors.values())
-          onAnchor(res2, count);
+        for (const { count, res } of ctx.anchors.values())
+          onAnchor(res, count);
       return typeof reviver === "function" ? applyReviver.applyReviver(reviver, { "": res }, "", res) : res;
     }
   }
   exports.NodeBase = NodeBase;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/nodes/Alias.js
-var require_Alias = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/nodes/Alias.js
+var require_Alias = __commonJS(function(exports) {
   var anchors = require_anchors();
   var visit = require_visit();
   var identity = require_identity();
@@ -2509,16 +2514,16 @@ var require_Alias = __commonJS((exports) => {
     toJSON(_arg, ctx) {
       if (!ctx)
         return { source: this.source };
-      const { anchors: anchors2, doc, maxAliasCount } = ctx;
+      const { anchors, doc, maxAliasCount } = ctx;
       const source = this.resolve(doc, ctx);
       if (!source) {
         const msg = `Unresolved alias (the anchor must be set before the alias): ${this.source}`;
         throw new ReferenceError(msg);
       }
-      let data = anchors2.get(source);
+      let data = anchors.get(source);
       if (!data) {
         toJS.toJS(source, null, ctx);
-        data = anchors2.get(source);
+        data = anchors.get(source);
       }
       if (data?.res === undefined) {
         const msg = "This should not happen: Alias anchor was not resolved?";
@@ -2527,7 +2532,7 @@ var require_Alias = __commonJS((exports) => {
       if (maxAliasCount >= 0) {
         data.count += 1;
         if (data.aliasCount === 0)
-          data.aliasCount = getAliasCount(doc, source, anchors2);
+          data.aliasCount = getAliasCount(doc, source, anchors);
         if (data.count * data.aliasCount > maxAliasCount) {
           const msg = "Excessive alias count indicates a resource exhaustion attack";
           throw new ReferenceError(msg);
@@ -2549,22 +2554,22 @@ var require_Alias = __commonJS((exports) => {
       return src;
     }
   }
-  function getAliasCount(doc, node, anchors2) {
+  function getAliasCount(doc, node, anchors) {
     if (identity.isAlias(node)) {
       const source = node.resolve(doc);
-      const anchor = anchors2 && source && anchors2.get(source);
+      const anchor = anchors && source && anchors.get(source);
       return anchor ? anchor.count * anchor.aliasCount : 0;
     } else if (identity.isCollection(node)) {
       let count = 0;
       for (const item of node.items) {
-        const c = getAliasCount(doc, item, anchors2);
+        const c = getAliasCount(doc, item, anchors);
         if (c > count)
           count = c;
       }
       return count;
     } else if (identity.isPair(node)) {
-      const kc = getAliasCount(doc, node.key, anchors2);
-      const vc = getAliasCount(doc, node.value, anchors2);
+      const kc = getAliasCount(doc, node.key, anchors);
+      const vc = getAliasCount(doc, node.value, anchors);
       return Math.max(kc, vc);
     }
     return 1;
@@ -2572,8 +2577,8 @@ var require_Alias = __commonJS((exports) => {
   exports.Alias = Alias;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/nodes/Scalar.js
-var require_Scalar = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/nodes/Scalar.js
+var require_Scalar = __commonJS(function(exports) {
   var identity = require_identity();
   var Node = require_Node();
   var toJS = require_toJS();
@@ -2600,8 +2605,8 @@ var require_Scalar = __commonJS((exports) => {
   exports.isScalarValue = isScalarValue;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/doc/createNode.js
-var require_createNode = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/doc/createNode.js
+var require_createNode = __commonJS(function(exports) {
   var Alias = require_Alias();
   var identity = require_identity();
   var Scalar = require_Scalar();
@@ -2649,10 +2654,10 @@ var require_createNode = __commonJS((exports) => {
         value = value.toJSON();
       }
       if (!value || typeof value !== "object") {
-        const node2 = new Scalar.Scalar(value);
+        const node = new Scalar.Scalar(value);
         if (ref)
-          ref.node = node2;
-        return node2;
+          ref.node = node;
+        return node;
       }
       tagObj = value instanceof Map ? schema[identity.MAP] : (Symbol.iterator in Object(value)) ? schema[identity.SEQ] : schema[identity.MAP];
     }
@@ -2672,8 +2677,8 @@ var require_createNode = __commonJS((exports) => {
   exports.createNode = createNode;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/nodes/Collection.js
-var require_Collection = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/nodes/Collection.js
+var require_Collection = __commonJS(function(exports) {
   var createNode = require_createNode();
   var identity = require_identity();
   var Node = require_Node();
@@ -2787,8 +2792,8 @@ var require_Collection = __commonJS((exports) => {
   exports.isEmptyPath = isEmptyPath;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyComment.js
-var require_stringifyComment = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/stringify/stringifyComment.js
+var require_stringifyComment = __commonJS(function(exports) {
   var stringifyComment = (str) => str.replace(/^(?!$)(?: $)?/gm, "#");
   function indentComment(comment, indent) {
     if (/^\n+$/.test(comment))
@@ -2804,8 +2809,8 @@ var require_stringifyComment = __commonJS((exports) => {
   exports.stringifyComment = stringifyComment;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/stringify/foldFlowLines.js
-var require_foldFlowLines = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/stringify/foldFlowLines.js
+var require_foldFlowLines = __commonJS(function(exports) {
   var FOLD_FLOW = "flow";
   var FOLD_BLOCK = "block";
   var FOLD_QUOTED = "quoted";
@@ -2901,17 +2906,17 @@ var require_foldFlowLines = __commonJS((exports) => {
     if (onFold)
       onFold();
     let res = text.slice(0, folds[0]);
-    for (let i2 = 0;i2 < folds.length; ++i2) {
-      const fold = folds[i2];
-      const end2 = folds[i2 + 1] || text.length;
+    for (let i = 0;i < folds.length; ++i) {
+      const fold = folds[i];
+      const end = folds[i + 1] || text.length;
       if (fold === 0)
         res = `
-${indent}${text.slice(0, end2)}`;
+${indent}${text.slice(0, end)}`;
       else {
         if (mode === FOLD_QUOTED && escapedFolds[fold])
           res += `${text[fold]}\\`;
         res += `
-${indent}${text.slice(fold + 1, end2)}`;
+${indent}${text.slice(fold + 1, end)}`;
       }
     }
     return res;
@@ -2941,8 +2946,8 @@ ${indent}${text.slice(fold + 1, end2)}`;
   exports.foldFlowLines = foldFlowLines;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyString.js
-var require_stringifyString = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/stringify/stringifyString.js
+var require_stringifyString = __commonJS(function(exports) {
   var Scalar = require_Scalar();
   var foldFlowLines = require_foldFlowLines();
   var getFoldOptions = (ctx, isBlock) => ({
@@ -3239,8 +3244,8 @@ ${indent}`);
   exports.stringifyString = stringifyString;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/stringify/stringify.js
-var require_stringify = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/stringify/stringify.js
+var require_stringify = __commonJS(function(exports) {
   var anchors = require_anchors();
   var identity = require_identity();
   var stringifyComment = require_stringifyComment();
@@ -3360,8 +3365,8 @@ ${ctx.indent}${str}`;
   exports.stringify = stringify;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyPair.js
-var require_stringifyPair = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/stringify/stringifyPair.js
+var require_stringifyPair = __commonJS(function(exports) {
   var identity = require_identity();
   var Scalar = require_Scalar();
   var stringify = require_stringify();
@@ -3496,8 +3501,8 @@ ${ctx.indent}`;
   exports.stringifyPair = stringifyPair;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/log.js
-var require_log = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/log.js
+var require_log = __commonJS(function(exports) {
   var node_process = __require("process");
   function debug(logLevel, ...messages) {
     if (logLevel === "debug")
@@ -3515,8 +3520,8 @@ var require_log = __commonJS((exports) => {
   exports.warn = warn;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/merge.js
-var require_merge = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/yaml-1.1/merge.js
+var require_merge = __commonJS(function(exports) {
   var identity = require_identity();
   var Scalar = require_Scalar();
   var MERGE_KEY = "<<";
@@ -3547,15 +3552,15 @@ var require_merge = __commonJS((exports) => {
     if (!identity.isMap(source))
       throw new Error("Merge sources must be maps or map aliases");
     const srcMap = source.toJSON(null, ctx, Map);
-    for (const [key, value2] of srcMap) {
+    for (const [key, value] of srcMap) {
       if (map instanceof Map) {
         if (!map.has(key))
-          map.set(key, value2);
+          map.set(key, value);
       } else if (map instanceof Set) {
         map.add(key);
       } else if (!Object.prototype.hasOwnProperty.call(map, key)) {
         Object.defineProperty(map, key, {
-          value: value2,
+          value,
           writable: true,
           enumerable: true,
           configurable: true
@@ -3572,8 +3577,8 @@ var require_merge = __commonJS((exports) => {
   exports.merge = merge;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/nodes/addPairToJSMap.js
-var require_addPairToJSMap = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/nodes/addPairToJSMap.js
+var require_addPairToJSMap = __commonJS(function(exports) {
   var log = require_log();
   var merge = require_merge();
   var stringify = require_stringify();
@@ -3633,8 +3638,8 @@ var require_addPairToJSMap = __commonJS((exports) => {
   exports.addPairToJSMap = addPairToJSMap;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/nodes/Pair.js
-var require_Pair = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/nodes/Pair.js
+var require_Pair = __commonJS(function(exports) {
   var createNode = require_createNode();
   var stringifyPair = require_stringifyPair();
   var addPairToJSMap = require_addPairToJSMap();
@@ -3671,15 +3676,15 @@ var require_Pair = __commonJS((exports) => {
   exports.createPair = createPair;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyCollection.js
-var require_stringifyCollection = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/stringify/stringifyCollection.js
+var require_stringifyCollection = __commonJS(function(exports) {
   var identity = require_identity();
   var stringify = require_stringify();
   var stringifyComment = require_stringifyComment();
   function stringifyCollection(collection, ctx, options) {
     const flow = ctx.inFlow ?? collection.flow;
-    const stringify2 = flow ? stringifyFlowCollection : stringifyBlockCollection;
-    return stringify2(collection, ctx, options);
+    const stringify = flow ? stringifyFlowCollection : stringifyBlockCollection;
+    return stringify(collection, ctx, options);
   }
   function stringifyBlockCollection({ comment, items }, ctx, { blockItemPrefix, flowChars, itemIndent, onChompKeep, onComment }) {
     const { indent, options: { commentString } } = ctx;
@@ -3688,13 +3693,13 @@ var require_stringifyCollection = __commonJS((exports) => {
     const lines = [];
     for (let i = 0;i < items.length; ++i) {
       const item = items[i];
-      let comment2 = null;
+      let comment = null;
       if (identity.isNode(item)) {
         if (!chompKeep && item.spaceBefore)
           lines.push("");
         addCommentBefore(ctx, lines, item.commentBefore, chompKeep);
         if (item.comment)
-          comment2 = item.comment;
+          comment = item.comment;
       } else if (identity.isPair(item)) {
         const ik = identity.isNode(item.key) ? item.key : null;
         if (ik) {
@@ -3704,12 +3709,12 @@ var require_stringifyCollection = __commonJS((exports) => {
         }
       }
       chompKeep = false;
-      let str2 = stringify.stringify(item, itemCtx, () => comment2 = null, () => chompKeep = true);
-      if (comment2)
-        str2 += stringifyComment.lineComment(str2, itemIndent, commentString(comment2));
-      if (chompKeep && comment2)
+      let str = stringify.stringify(item, itemCtx, () => comment = null, () => chompKeep = true);
+      if (comment)
+        str += stringifyComment.lineComment(str, itemIndent, commentString(comment));
+      if (chompKeep && comment)
         chompKeep = false;
-      lines.push(blockItemPrefix + str2);
+      lines.push(blockItemPrefix + str);
     }
     let str;
     if (lines.length === 0) {
@@ -3823,8 +3828,8 @@ ${indent}${end}`;
   exports.stringifyCollection = stringifyCollection;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/nodes/YAMLMap.js
-var require_YAMLMap = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/nodes/YAMLMap.js
+var require_YAMLMap = __commonJS(function(exports) {
   var stringifyCollection = require_stringifyCollection();
   var addPairToJSMap = require_addPairToJSMap();
   var Collection = require_Collection();
@@ -3950,8 +3955,8 @@ var require_YAMLMap = __commonJS((exports) => {
   exports.findPair = findPair;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/common/map.js
-var require_map = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/common/map.js
+var require_map = __commonJS(function(exports) {
   var identity = require_identity();
   var YAMLMap = require_YAMLMap();
   var map = {
@@ -3959,18 +3964,18 @@ var require_map = __commonJS((exports) => {
     default: true,
     nodeClass: YAMLMap.YAMLMap,
     tag: "tag:yaml.org,2002:map",
-    resolve(map2, onError) {
-      if (!identity.isMap(map2))
+    resolve(map, onError) {
+      if (!identity.isMap(map))
         onError("Expected a mapping for this tag");
-      return map2;
+      return map;
     },
     createNode: (schema, obj, ctx) => YAMLMap.YAMLMap.from(schema, obj, ctx)
   };
   exports.map = map;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/nodes/YAMLSeq.js
-var require_YAMLSeq = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/nodes/YAMLSeq.js
+var require_YAMLSeq = __commonJS(function(exports) {
   var createNode = require_createNode();
   var stringifyCollection = require_stringifyCollection();
   var Collection = require_Collection();
@@ -4062,8 +4067,8 @@ var require_YAMLSeq = __commonJS((exports) => {
   exports.YAMLSeq = YAMLSeq;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/common/seq.js
-var require_seq = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/common/seq.js
+var require_seq = __commonJS(function(exports) {
   var identity = require_identity();
   var YAMLSeq = require_YAMLSeq();
   var seq = {
@@ -4071,18 +4076,18 @@ var require_seq = __commonJS((exports) => {
     default: true,
     nodeClass: YAMLSeq.YAMLSeq,
     tag: "tag:yaml.org,2002:seq",
-    resolve(seq2, onError) {
-      if (!identity.isSeq(seq2))
+    resolve(seq, onError) {
+      if (!identity.isSeq(seq))
         onError("Expected a sequence for this tag");
-      return seq2;
+      return seq;
     },
     createNode: (schema, obj, ctx) => YAMLSeq.YAMLSeq.from(schema, obj, ctx)
   };
   exports.seq = seq;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/common/string.js
-var require_string = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/common/string.js
+var require_string = __commonJS(function(exports) {
   var stringifyString = require_stringifyString();
   var string = {
     identify: (value) => typeof value === "string",
@@ -4097,8 +4102,8 @@ var require_string = __commonJS((exports) => {
   exports.string = string;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/common/null.js
-var require_null = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/common/null.js
+var require_null = __commonJS(function(exports) {
   var Scalar = require_Scalar();
   var nullTag = {
     identify: (value) => value == null,
@@ -4112,8 +4117,8 @@ var require_null = __commonJS((exports) => {
   exports.nullTag = nullTag;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/core/bool.js
-var require_bool = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/core/bool.js
+var require_bool = __commonJS(function(exports) {
   var Scalar = require_Scalar();
   var boolTag = {
     identify: (value) => typeof value === "boolean",
@@ -4133,8 +4138,8 @@ var require_bool = __commonJS((exports) => {
   exports.boolTag = boolTag;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyNumber.js
-var require_stringifyNumber = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/stringify/stringifyNumber.js
+var require_stringifyNumber = __commonJS(function(exports) {
   function stringifyNumber({ format, minFractionDigits, tag, value }) {
     if (typeof value === "bigint")
       return String(value);
@@ -4157,8 +4162,8 @@ var require_stringifyNumber = __commonJS((exports) => {
   exports.stringifyNumber = stringifyNumber;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/core/float.js
-var require_float = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/core/float.js
+var require_float = __commonJS(function(exports) {
   var Scalar = require_Scalar();
   var stringifyNumber = require_stringifyNumber();
   var floatNaN = {
@@ -4200,8 +4205,8 @@ var require_float = __commonJS((exports) => {
   exports.floatNaN = floatNaN;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/core/int.js
-var require_int = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/core/int.js
+var require_int = __commonJS(function(exports) {
   var stringifyNumber = require_stringifyNumber();
   var intIdentify = (value) => typeof value === "bigint" || Number.isInteger(value);
   var intResolve = (str, offset, radix, { intAsBigInt }) => intAsBigInt ? BigInt(str) : parseInt(str.substring(offset), radix);
@@ -4242,8 +4247,8 @@ var require_int = __commonJS((exports) => {
   exports.intOct = intOct;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/core/schema.js
-var require_schema = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/core/schema.js
+var require_schema = __commonJS(function(exports) {
   var map = require_map();
   var _null = require_null();
   var seq = require_seq();
@@ -4267,8 +4272,8 @@ var require_schema = __commonJS((exports) => {
   exports.schema = schema;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/json/schema.js
-var require_schema2 = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/json/schema.js
+var require_schema2 = __commonJS(function(exports) {
   var Scalar = require_Scalar();
   var map = require_map();
   var seq = require_seq();
@@ -4331,8 +4336,8 @@ var require_schema2 = __commonJS((exports) => {
   exports.schema = schema;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/binary.js
-var require_binary = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/yaml-1.1/binary.js
+var require_binary = __commonJS(function(exports) {
   var node_buffer = __require("buffer");
   var Scalar = require_Scalar();
   var stringifyString = require_stringifyString();
@@ -4386,8 +4391,8 @@ var require_binary = __commonJS((exports) => {
   exports.binary = binary;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/pairs.js
-var require_pairs = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/yaml-1.1/pairs.js
+var require_pairs = __commonJS(function(exports) {
   var identity = require_identity();
   var Pair = require_Pair();
   var Scalar = require_Scalar();
@@ -4420,8 +4425,8 @@ ${cn.comment}` : item.comment;
   }
   function createPairs(schema, iterable, ctx) {
     const { replacer } = ctx;
-    const pairs2 = new YAMLSeq.YAMLSeq(schema);
-    pairs2.tag = "tag:yaml.org,2002:pairs";
+    const pairs = new YAMLSeq.YAMLSeq(schema);
+    pairs.tag = "tag:yaml.org,2002:pairs";
     let i = 0;
     if (iterable && Symbol.iterator in Object(iterable))
       for (let it of iterable) {
@@ -4445,9 +4450,9 @@ ${cn.comment}` : item.comment;
         } else {
           key = it;
         }
-        pairs2.items.push(Pair.createPair(key, value, ctx));
+        pairs.items.push(Pair.createPair(key, value, ctx));
       }
-    return pairs2;
+    return pairs;
   }
   var pairs = {
     collection: "seq",
@@ -4461,8 +4466,8 @@ ${cn.comment}` : item.comment;
   exports.resolvePairs = resolvePairs;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/omap.js
-var require_omap = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/yaml-1.1/omap.js
+var require_omap = __commonJS(function(exports) {
   var identity = require_identity();
   var toJS = require_toJS();
   var YAMLMap = require_YAMLMap();
@@ -4501,9 +4506,9 @@ var require_omap = __commonJS((exports) => {
     }
     static from(schema, iterable, ctx) {
       const pairs$1 = pairs.createPairs(schema, iterable, ctx);
-      const omap2 = new this;
-      omap2.items = pairs$1.items;
-      return omap2;
+      const omap = new this;
+      omap.items = pairs$1.items;
+      return omap;
     }
   }
   YAMLOMap.tag = "tag:yaml.org,2002:omap";
@@ -4533,8 +4538,8 @@ var require_omap = __commonJS((exports) => {
   exports.omap = omap;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/bool.js
-var require_bool2 = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/yaml-1.1/bool.js
+var require_bool2 = __commonJS(function(exports) {
   var Scalar = require_Scalar();
   function boolStringify({ value, source }, ctx) {
     const boolObj = value ? trueTag : falseTag;
@@ -4562,8 +4567,8 @@ var require_bool2 = __commonJS((exports) => {
   exports.trueTag = trueTag;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/float.js
-var require_float2 = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/yaml-1.1/float.js
+var require_float2 = __commonJS(function(exports) {
   var Scalar = require_Scalar();
   var stringifyNumber = require_stringifyNumber();
   var floatNaN = {
@@ -4608,8 +4613,8 @@ var require_float2 = __commonJS((exports) => {
   exports.floatNaN = floatNaN;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/int.js
-var require_int2 = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/yaml-1.1/int.js
+var require_int2 = __commonJS(function(exports) {
   var stringifyNumber = require_stringifyNumber();
   var intIdentify = (value) => typeof value === "bigint" || Number.isInteger(value);
   function intResolve(str, offset, radix, { intAsBigInt }) {
@@ -4629,8 +4634,8 @@ var require_int2 = __commonJS((exports) => {
           str = `0x${str}`;
           break;
       }
-      const n2 = BigInt(str);
-      return sign === "-" ? BigInt(-1) * n2 : n2;
+      const n = BigInt(str);
+      return sign === "-" ? BigInt(-1) * n : n;
     }
     const n = parseInt(str, radix);
     return sign === "-" ? -1 * n : n;
@@ -4684,8 +4689,8 @@ var require_int2 = __commonJS((exports) => {
   exports.intOct = intOct;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/set.js
-var require_set = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/yaml-1.1/set.js
+var require_set = __commonJS(function(exports) {
   var identity = require_identity();
   var Pair = require_Pair();
   var YAMLMap = require_YAMLMap();
@@ -4734,14 +4739,14 @@ var require_set = __commonJS((exports) => {
     }
     static from(schema, iterable, ctx) {
       const { replacer } = ctx;
-      const set2 = new this(schema);
+      const set = new this(schema);
       if (iterable && Symbol.iterator in Object(iterable))
         for (let value of iterable) {
           if (typeof replacer === "function")
             value = replacer.call(iterable, value, value);
-          set2.items.push(Pair.createPair(value, null, ctx));
+          set.items.push(Pair.createPair(value, null, ctx));
         }
-      return set2;
+      return set;
     }
   }
   YAMLSet.tag = "tag:yaml.org,2002:set";
@@ -4767,14 +4772,14 @@ var require_set = __commonJS((exports) => {
   exports.set = set;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/timestamp.js
-var require_timestamp = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/yaml-1.1/timestamp.js
+var require_timestamp = __commonJS(function(exports) {
   var stringifyNumber = require_stringifyNumber();
   function parseSexagesimal(str, asBigInt) {
     const sign = str[0];
     const parts = sign === "-" || sign === "+" ? str.substring(1) : str;
     const num = (n) => asBigInt ? BigInt(n) : Number(n);
-    const res = parts.replace(/_/g, "").split(":").reduce((res2, p) => res2 * num(60) + num(p), num(0));
+    const res = parts.replace(/_/g, "").split(":").reduce((res, p) => res * num(60) + num(p), num(0));
     return sign === "-" ? num(-1) * res : res;
   }
   function stringifySexagesimal(node) {
@@ -4849,8 +4854,8 @@ var require_timestamp = __commonJS((exports) => {
   exports.timestamp = timestamp;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/schema.js
-var require_schema3 = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/yaml-1.1/schema.js
+var require_schema3 = __commonJS(function(exports) {
   var map = require_map();
   var _null = require_null();
   var seq = require_seq();
@@ -4890,8 +4895,8 @@ var require_schema3 = __commonJS((exports) => {
   exports.schema = schema;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/tags.js
-var require_tags = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/tags.js
+var require_tags = __commonJS(function(exports) {
   var map = require_map();
   var _null = require_null();
   var seq = require_seq();
@@ -4965,24 +4970,24 @@ var require_tags = __commonJS((exports) => {
     }
     if (addMergeTag)
       tags = tags.concat(merge.merge);
-    return tags.reduce((tags2, tag) => {
+    return tags.reduce((tags, tag) => {
       const tagObj = typeof tag === "string" ? tagsByName[tag] : tag;
       if (!tagObj) {
         const tagName = JSON.stringify(tag);
         const keys = Object.keys(tagsByName).map((key) => JSON.stringify(key)).join(", ");
         throw new Error(`Unknown custom tag ${tagName}; use one of ${keys}`);
       }
-      if (!tags2.includes(tagObj))
-        tags2.push(tagObj);
-      return tags2;
+      if (!tags.includes(tagObj))
+        tags.push(tagObj);
+      return tags;
     }, []);
   }
   exports.coreKnownTags = coreKnownTags;
   exports.getTags = getTags;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/Schema.js
-var require_Schema = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/Schema.js
+var require_Schema = __commonJS(function(exports) {
   var identity = require_identity();
   var map = require_map();
   var seq = require_seq();
@@ -5011,8 +5016,8 @@ var require_Schema = __commonJS((exports) => {
   exports.Schema = Schema;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyDocument.js
-var require_stringifyDocument = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/stringify/stringifyDocument.js
+var require_stringifyDocument = __commonJS(function(exports) {
   var identity = require_identity();
   var stringify = require_stringify();
   var stringifyComment = require_stringifyComment();
@@ -5091,8 +5096,8 @@ var require_stringifyDocument = __commonJS((exports) => {
   exports.stringifyDocument = stringifyDocument;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/doc/Document.js
-var require_Document = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/doc/Document.js
+var require_Document = __commonJS(function(exports) {
   var Alias = require_Alias();
   var Collection = require_Collection();
   var identity = require_identity();
@@ -5301,8 +5306,8 @@ var require_Document = __commonJS((exports) => {
       };
       const res = toJS.toJS(this.contents, jsonArg ?? "", ctx);
       if (typeof onAnchor === "function")
-        for (const { count, res: res2 } of ctx.anchors.values())
-          onAnchor(res2, count);
+        for (const { count, res } of ctx.anchors.values())
+          onAnchor(res, count);
       return typeof reviver === "function" ? applyReviver.applyReviver(reviver, { "": res }, "", res) : res;
     }
     toJSON(jsonArg, onAnchor) {
@@ -5326,8 +5331,8 @@ var require_Document = __commonJS((exports) => {
   exports.Document = Document;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/errors.js
-var require_errors = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/errors.js
+var require_errors = __commonJS(function(exports) {
   class YAMLError extends Error {
     constructor(name, pos, code, message) {
       super();
@@ -5391,8 +5396,8 @@ ${pointer}
   exports.prettifyError = prettifyError;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-props.js
-var require_resolve_props = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/resolve-props.js
+var require_resolve_props = __commonJS(function(exports) {
   function resolveProps(tokens, { flow, indicator, next, offset, onError, parentIndent, startOnNewline }) {
     let spaceBefore = false;
     let atNewline = startOnNewline;
@@ -5521,8 +5526,8 @@ var require_resolve_props = __commonJS((exports) => {
   exports.resolveProps = resolveProps;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/util-contains-newline.js
-var require_util_contains_newline = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/util-contains-newline.js
+var require_util_contains_newline = __commonJS(function(exports) {
   function containsNewline(key) {
     if (!key)
       return null;
@@ -5561,8 +5566,8 @@ var require_util_contains_newline = __commonJS((exports) => {
   exports.containsNewline = containsNewline;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/util-flow-indent-check.js
-var require_util_flow_indent_check = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/util-flow-indent-check.js
+var require_util_flow_indent_check = __commonJS(function(exports) {
   var utilContainsNewline = require_util_contains_newline();
   function flowIndentCheck(indent, fc, onError) {
     if (fc?.type === "flow-collection") {
@@ -5576,8 +5581,8 @@ var require_util_flow_indent_check = __commonJS((exports) => {
   exports.flowIndentCheck = flowIndentCheck;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/util-map-includes.js
-var require_util_map_includes = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/util-map-includes.js
+var require_util_map_includes = __commonJS(function(exports) {
   var identity = require_identity();
   function mapIncludes(ctx, items, search) {
     const { uniqueKeys } = ctx.options;
@@ -5589,8 +5594,8 @@ var require_util_map_includes = __commonJS((exports) => {
   exports.mapIncludes = mapIncludes;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-map.js
-var require_resolve_block_map = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/resolve-block-map.js
+var require_resolve_block_map = __commonJS(function(exports) {
   var Pair = require_Pair();
   var YAMLMap = require_YAMLMap();
   var resolveProps = require_resolve_props();
@@ -5696,8 +5701,8 @@ var require_resolve_block_map = __commonJS((exports) => {
   exports.resolveBlockMap = resolveBlockMap;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-seq.js
-var require_resolve_block_seq = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/resolve-block-seq.js
+var require_resolve_block_seq = __commonJS(function(exports) {
   var YAMLSeq = require_YAMLSeq();
   var resolveProps = require_resolve_props();
   var utilFlowIndentCheck = require_util_flow_indent_check();
@@ -5744,8 +5749,8 @@ var require_resolve_block_seq = __commonJS((exports) => {
   exports.resolveBlockSeq = resolveBlockSeq;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-end.js
-var require_resolve_end = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/resolve-end.js
+var require_resolve_end = __commonJS(function(exports) {
   function resolveEnd(end, offset, reqSpace, onError) {
     let comment = "";
     if (end) {
@@ -5784,8 +5789,8 @@ var require_resolve_end = __commonJS((exports) => {
   exports.resolveEnd = resolveEnd;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-collection.js
-var require_resolve_flow_collection = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/resolve-flow-collection.js
+var require_resolve_flow_collection = __commonJS(function(exports) {
   var identity = require_identity();
   var Pair = require_Pair();
   var YAMLMap = require_YAMLMap();
@@ -5975,8 +5980,8 @@ var require_resolve_flow_collection = __commonJS((exports) => {
   exports.resolveFlowCollection = resolveFlowCollection;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/compose-collection.js
-var require_compose_collection = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/compose-collection.js
+var require_compose_collection = __commonJS(function(exports) {
   var identity = require_identity();
   var Scalar = require_Scalar();
   var YAMLMap = require_YAMLMap();
@@ -6037,8 +6042,8 @@ var require_compose_collection = __commonJS((exports) => {
   exports.composeCollection = composeCollection;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-scalar.js
-var require_resolve_block_scalar = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/resolve-block-scalar.js
+var require_resolve_block_scalar = __commonJS(function(exports) {
   var Scalar = require_Scalar();
   function resolveBlockScalar(ctx, scalar, onError) {
     const start = scalar.offset;
@@ -6056,12 +6061,12 @@ var require_resolve_block_scalar = __commonJS((exports) => {
         break;
     }
     if (chompStart === 0) {
-      const value2 = header.chomp === "+" && lines.length > 0 ? `
+      const value = header.chomp === "+" && lines.length > 0 ? `
 `.repeat(Math.max(1, lines.length - 1)) : "";
-      let end2 = start + header.length;
+      let end = start + header.length;
       if (scalar.source)
-        end2 += scalar.source.length;
-      return { value: value2, type, comment: header.comment, range: [start, end2, end2] };
+        end += scalar.source.length;
+      return { value, type, comment: header.comment, range: [start, end, end] };
     }
     let trimIndent = scalar.indent + header.indent;
     let offset = scalar.offset + header.length;
@@ -6230,8 +6235,8 @@ var require_resolve_block_scalar = __commonJS((exports) => {
   exports.resolveBlockScalar = resolveBlockScalar;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-scalar.js
-var require_resolve_flow_scalar = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/resolve-flow-scalar.js
+var require_resolve_flow_scalar = __commonJS(function(exports) {
   var Scalar = require_Scalar();
   var resolveEnd = require_resolve_end();
   function resolveFlowScalar(scalar, strict, onError) {
@@ -6447,8 +6452,8 @@ var require_resolve_flow_scalar = __commonJS((exports) => {
   exports.resolveFlowScalar = resolveFlowScalar;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/compose-scalar.js
-var require_compose_scalar = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/compose-scalar.js
+var require_compose_scalar = __commonJS(function(exports) {
   var identity = require_identity();
   var Scalar = require_Scalar();
   var resolveBlockScalar = require_resolve_block_scalar();
@@ -6510,9 +6515,9 @@ var require_compose_scalar = __commonJS((exports) => {
     return schema[identity.SCALAR];
   }
   function findScalarTagByTest({ atKey, directives, schema }, value, token, onError) {
-    const tag = schema.tags.find((tag2) => (tag2.default === true || atKey && tag2.default === "key") && tag2.test?.test(value)) || schema[identity.SCALAR];
+    const tag = schema.tags.find((tag) => (tag.default === true || atKey && tag.default === "key") && tag.test?.test(value)) || schema[identity.SCALAR];
     if (schema.compat) {
-      const compat = schema.compat.find((tag2) => tag2.default && tag2.test?.test(value)) ?? schema[identity.SCALAR];
+      const compat = schema.compat.find((tag) => tag.default && tag.test?.test(value)) ?? schema[identity.SCALAR];
       if (tag.tag !== compat.tag) {
         const ts = directives.tagString(tag.tag);
         const cs = directives.tagString(compat.tag);
@@ -6525,8 +6530,8 @@ var require_compose_scalar = __commonJS((exports) => {
   exports.composeScalar = composeScalar;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/util-empty-scalar-position.js
-var require_util_empty_scalar_position = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/util-empty-scalar-position.js
+var require_util_empty_scalar_position = __commonJS(function(exports) {
   function emptyScalarPosition(offset, before, pos) {
     if (before) {
       pos ?? (pos = before.length);
@@ -6552,8 +6557,8 @@ var require_util_empty_scalar_position = __commonJS((exports) => {
   exports.emptyScalarPosition = emptyScalarPosition;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/compose-node.js
-var require_compose_node = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/compose-node.js
+var require_compose_node = __commonJS(function(exports) {
   var Alias = require_Alias();
   var identity = require_identity();
   var composeCollection = require_compose_collection();
@@ -6655,8 +6660,8 @@ var require_compose_node = __commonJS((exports) => {
   exports.composeNode = composeNode;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/compose-doc.js
-var require_compose_doc = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/compose-doc.js
+var require_compose_doc = __commonJS(function(exports) {
   var Document = require_Document();
   var composeNode = require_compose_node();
   var resolveEnd = require_resolve_end();
@@ -6695,8 +6700,8 @@ var require_compose_doc = __commonJS((exports) => {
   exports.composeDoc = composeDoc;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/composer.js
-var require_composer = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/composer.js
+var require_composer = __commonJS(function(exports) {
   var node_process = __require("process");
   var directives = require_directives();
   var Document = require_Document();
@@ -6886,8 +6891,8 @@ ${end.comment}` : end.comment;
   exports.Composer = Composer;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/parse/cst-scalar.js
-var require_cst_scalar = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/parse/cst-scalar.js
+var require_cst_scalar = __commonJS(function(exports) {
   var resolveBlockScalar = require_resolve_block_scalar();
   var resolveFlowScalar = require_resolve_flow_scalar();
   var errors = require_errors();
@@ -7076,8 +7081,8 @@ var require_cst_scalar = __commonJS((exports) => {
   exports.setScalarValue = setScalarValue;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/parse/cst-stringify.js
-var require_cst_stringify = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/parse/cst-stringify.js
+var require_cst_stringify = __commonJS(function(exports) {
   var stringify = (cst) => ("type" in cst) ? stringifyToken(cst) : stringifyItem(cst);
   function stringifyToken(token) {
     switch (token.type) {
@@ -7134,8 +7139,8 @@ var require_cst_stringify = __commonJS((exports) => {
   exports.stringify = stringify;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/parse/cst-visit.js
-var require_cst_visit = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/parse/cst-visit.js
+var require_cst_visit = __commonJS(function(exports) {
   var BREAK = Symbol("break visit");
   var SKIP = Symbol("skip children");
   var REMOVE = Symbol("remove item");
@@ -7193,8 +7198,8 @@ var require_cst_visit = __commonJS((exports) => {
   exports.visit = visit;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/parse/cst.js
-var require_cst = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/parse/cst.js
+var require_cst = __commonJS(function(exports) {
   var cstScalar = require_cst_scalar();
   var cstStringify = require_cst_stringify();
   var cstVisit = require_cst_visit();
@@ -7294,8 +7299,8 @@ var require_cst = __commonJS((exports) => {
   exports.tokenType = tokenType;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/parse/lexer.js
-var require_lexer = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/parse/lexer.js
+var require_lexer = __commonJS(function(exports) {
   var cst = require_cst();
   function isEmpty(ch) {
     switch (ch) {
@@ -7668,18 +7673,18 @@ var require_lexer = __commonJS((exports) => {
       let indent = 0;
       let ch;
       loop:
-        for (let i2 = this.pos;ch = this.buffer[i2]; ++i2) {
+        for (let i = this.pos;ch = this.buffer[i]; ++i) {
           switch (ch) {
             case " ":
               indent += 1;
               break;
             case `
 `:
-              nl = i2;
+              nl = i;
               indent = 0;
               break;
             case "\r": {
-              const next = this.buffer[i2 + 1];
+              const next = this.buffer[i + 1];
               if (!next && !this.atEnd)
                 return this.setNext("block-scalar");
               if (next === `
@@ -7722,16 +7727,16 @@ var require_lexer = __commonJS((exports) => {
         nl = i - 1;
       } else if (!this.blockScalarKeep) {
         do {
-          let i2 = nl - 1;
-          let ch2 = this.buffer[i2];
-          if (ch2 === "\r")
-            ch2 = this.buffer[--i2];
-          const lastChar = i2;
-          while (ch2 === " ")
-            ch2 = this.buffer[--i2];
-          if (ch2 === `
-` && i2 >= this.pos && i2 + 1 + indent > lastChar)
-            nl = i2;
+          let i = nl - 1;
+          let ch = this.buffer[i];
+          if (ch === "\r")
+            ch = this.buffer[--i];
+          const lastChar = i;
+          while (ch === " ")
+            ch = this.buffer[--i];
+          if (ch === `
+` && i >= this.pos && i + 1 + indent > lastChar)
+            nl = i;
           else
             break;
         } while (true);
@@ -7891,8 +7896,8 @@ var require_lexer = __commonJS((exports) => {
   exports.Lexer = Lexer;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/parse/line-counter.js
-var require_line_counter = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/parse/line-counter.js
+var require_line_counter = __commonJS(function(exports) {
   class LineCounter {
     constructor() {
       this.lineStarts = [];
@@ -7919,8 +7924,8 @@ var require_line_counter = __commonJS((exports) => {
   exports.LineCounter = LineCounter;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/parse/parser.js
-var require_parser = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/parse/parser.js
+var require_parser = __commonJS(function(exports) {
   var node_process = __require("process");
   var cst = require_cst();
   var lexer = require_lexer();
@@ -8418,12 +8423,12 @@ var require_parser = __commonJS((exports) => {
                 if (includesToken(it.start, "newline")) {
                   Object.assign(it, { key: null, sep: [this.sourceToken] });
                 } else {
-                  const start2 = getFirstKeyStartProps(it.start);
+                  const start = getFirstKeyStartProps(it.start);
                   this.stack.push({
                     type: "block-map",
                     offset: this.offset,
                     indent: this.indent,
-                    items: [{ start: start2, key: null, sep: [this.sourceToken] }]
+                    items: [{ start, key: null, sep: [this.sourceToken] }]
                   });
                 }
               } else if (it.value) {
@@ -8436,7 +8441,7 @@ var require_parser = __commonJS((exports) => {
                   items: [{ start, key: null, sep: [this.sourceToken] }]
                 });
               } else if (isFlowToken(it.key) && !includesToken(it.sep, "newline")) {
-                const start2 = getFirstKeyStartProps(it.start);
+                const start = getFirstKeyStartProps(it.start);
                 const key = it.key;
                 const sep = it.sep;
                 sep.push(this.sourceToken);
@@ -8446,7 +8451,7 @@ var require_parser = __commonJS((exports) => {
                   type: "block-map",
                   offset: this.offset,
                   indent: this.indent,
-                  items: [{ start: start2, key, sep }]
+                  items: [{ start, key, sep }]
                 });
               } else if (start.length > 0) {
                 it.sep = it.sep.concat(start, this.sourceToken);
@@ -8775,8 +8780,8 @@ var require_parser = __commonJS((exports) => {
   exports.Parser = Parser;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/public-api.js
-var require_public_api = __commonJS((exports) => {
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/public-api.js
+var require_public_api = __commonJS(function(exports) {
   var composer = require_composer();
   var Document = require_Document();
   var errors = require_errors();
@@ -8790,22 +8795,22 @@ var require_public_api = __commonJS((exports) => {
     return { lineCounter: lineCounter$1, prettyErrors };
   }
   function parseAllDocuments(source, options = {}) {
-    const { lineCounter: lineCounter2, prettyErrors } = parseOptions(options);
-    const parser$1 = new parser.Parser(lineCounter2?.addNewLine);
+    const { lineCounter, prettyErrors } = parseOptions(options);
+    const parser$1 = new parser.Parser(lineCounter?.addNewLine);
     const composer$1 = new composer.Composer(options);
     const docs = Array.from(composer$1.compose(parser$1.parse(source)));
-    if (prettyErrors && lineCounter2)
+    if (prettyErrors && lineCounter)
       for (const doc of docs) {
-        doc.errors.forEach(errors.prettifyError(source, lineCounter2));
-        doc.warnings.forEach(errors.prettifyError(source, lineCounter2));
+        doc.errors.forEach(errors.prettifyError(source, lineCounter));
+        doc.warnings.forEach(errors.prettifyError(source, lineCounter));
       }
     if (docs.length > 0)
       return docs;
     return Object.assign([], { empty: true }, composer$1.streamInfo());
   }
   function parseDocument(source, options = {}) {
-    const { lineCounter: lineCounter2, prettyErrors } = parseOptions(options);
-    const parser$1 = new parser.Parser(lineCounter2?.addNewLine);
+    const { lineCounter, prettyErrors } = parseOptions(options);
+    const parser$1 = new parser.Parser(lineCounter?.addNewLine);
     const composer$1 = new composer.Composer(options);
     let doc = null;
     for (const _doc of composer$1.compose(parser$1.parse(source), true, source.length)) {
@@ -8816,9 +8821,9 @@ var require_public_api = __commonJS((exports) => {
         break;
       }
     }
-    if (prettyErrors && lineCounter2) {
-      doc.errors.forEach(errors.prettifyError(source, lineCounter2));
-      doc.warnings.forEach(errors.prettifyError(source, lineCounter2));
+    if (prettyErrors && lineCounter) {
+      doc.errors.forEach(errors.prettifyError(source, lineCounter));
+      doc.warnings.forEach(errors.prettifyError(source, lineCounter));
     }
     return doc;
   }
@@ -8869,21 +8874,64 @@ var require_public_api = __commonJS((exports) => {
   exports.stringify = stringify;
 });
 
-// ../../node_modules/.bun/commander@12.1.0/node_modules/commander/esm.mjs
-var import__ = __toESM(require_commander(), 1);
+// ../../../../../.bun/install/cache/links/commander@12.1.0-0dbc1cbfa6139f1b/node_modules/commander/index.js
+var exports_commander = {};
+__exportCjs(exports_commander, {
+  program: () => $program,
+  createCommand: () => $createCommand,
+  createOption: () => $createOption,
+  createArgument: () => $createArgument,
+  Command: () => $Command,
+  Option: () => $Option,
+  Argument: () => $Argument,
+  Help: () => $Help,
+  CommanderError: () => $CommanderError,
+  InvalidArgumentError: () => $InvalidArgumentError,
+  InvalidOptionArgumentError: () => $InvalidOptionArgumentError
+}, {
+  program: (value) => $program = value,
+  createCommand: (value) => $createCommand = value,
+  createOption: (value) => $createOption = value,
+  createArgument: (value) => $createArgument = value,
+  Command: (value) => $Command = value,
+  Option: (value) => $Option = value,
+  Argument: (value) => $Argument = value,
+  Help: (value) => $Help = value,
+  CommanderError: (value) => $CommanderError = value,
+  InvalidArgumentError: (value) => $InvalidArgumentError = value,
+  InvalidOptionArgumentError: (value) => $InvalidOptionArgumentError = value
+});
+var { Argument } = require_argument();
+var { Command } = require_command();
+var { CommanderError, InvalidArgumentError } = require_error();
+var { Help } = require_help();
+var { Option } = require_option();
+var $program = new Command;
+var $createCommand = (name) => new Command(name);
+var $createOption = (flags, description) => new Option(flags, description);
+var $createArgument = (name, description) => new Argument(name, description);
+var $Command = Command;
+var $Option = Option;
+var $Argument = Argument;
+var $Help = Help;
+var $CommanderError = CommanderError;
+var $InvalidArgumentError = InvalidArgumentError;
+var $InvalidOptionArgumentError = InvalidArgumentError;
+
+// ../../../../../.bun/install/cache/links/commander@12.1.0-0dbc1cbfa6139f1b/node_modules/commander/esm.mjs
 var {
   program,
   createCommand,
   createArgument,
   createOption,
-  CommanderError,
-  InvalidArgumentError,
+  CommanderError: CommanderError2,
+  InvalidArgumentError: InvalidArgumentError2,
   InvalidOptionArgumentError,
-  Command,
-  Argument,
-  Option,
-  Help
-} = import__.default;
+  Command: Command2,
+  Argument: Argument2,
+  Option: Option2,
+  Help: Help2
+} = exports_commander;
 
 // src/commands/init.ts
 var import_picocolors = __toESM(require_picocolors(), 1);
@@ -8966,7 +9014,7 @@ Technical schemas, invariants, and domain error definitions for ${kebabName}.
   console.log(import_picocolors.default.green(`✔ Created OmniSkill package at: `) + import_picocolors.default.bold(targetDir));
 }
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/index.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/index.js
 var composer = require_composer();
 var Document = require_Document();
 var Schema = require_Schema();
@@ -9016,18 +9064,26 @@ var $visitAsync = visit.visitAsync;
 import { existsSync, readFileSync } from "node:fs";
 import { join as join2 } from "node:path";
 function parseSkillMarkdown(content) {
-  if (!content.startsWith(`---
-`) && !content.startsWith(`---\r
+  let normalized = content;
+  if (normalized.charCodeAt(0) === 65279) {
+    normalized = normalized.slice(1);
+  }
+  if (!normalized.startsWith(`---
+`) && !normalized.startsWith(`---\r
 `)) {
     throw new Error("Missing YAML frontmatter delimiters at the start of SKILL.md");
   }
-  const endIndex = content.indexOf(`
----`, 4);
-  if (endIndex === -1) {
+  const openOffset = normalized.startsWith(`---\r
+`) ? 5 : 4;
+  const rest = normalized.slice(openOffset);
+  const closingMatch = rest.match(/(?:^|\r?\n)---(?:\r?\n|$)/);
+  if (!closingMatch || closingMatch.index === undefined) {
     throw new Error("Unclosed YAML frontmatter block in SKILL.md");
   }
-  const rawYaml = content.slice(4, endIndex);
-  const body = content.slice(endIndex + 4).trim();
+  const rawYamlEnd = openOffset + closingMatch.index;
+  const rawYaml = normalized.slice(openOffset, rawYamlEnd);
+  const bodyStart = openOffset + closingMatch.index + closingMatch[0].length;
+  const body = normalized.slice(bodyStart).trim();
   const frontmatter = $parse(rawYaml);
   if (!frontmatter || typeof frontmatter !== "object") {
     throw new Error("Invalid YAML structure in frontmatter");
@@ -9195,15 +9251,15 @@ function validateSkillDirectory(skillDir, targets = ["agent-skills", "chatgpt", 
     }
   }
   walk(skillDir);
-  const errors2 = findings.filter((f) => f.severity === "error").length;
+  const errors = findings.filter((f) => f.severity === "error").length;
   const warnings = findings.filter((f) => f.severity === "warning").length;
   return {
     skill: skillDir,
     targets,
-    errors: errors2,
+    errors,
     warnings,
     findings,
-    pass: errors2 === 0
+    pass: errors === 0
   };
 }
 
@@ -9527,7 +9583,7 @@ var import_picocolors6 = __toESM(require_picocolors(), 1);
 import { existsSync as existsSync5, lstatSync as lstatSync2, mkdirSync as mkdirSync4, readFileSync as readFileSync5, readdirSync as readdirSync2, writeFileSync as writeFileSync4 } from "node:fs";
 import { basename, join as join7, resolve as resolve7, sep } from "node:path";
 
-// ../../node_modules/.bun/fflate@0.8.2/node_modules/fflate/esm/index.mjs
+// ../../../../../.bun/install/cache/links/fflate@0.8.2-edd43745f90ceabf/node_modules/fflate/esm/index.mjs
 import { createRequire as createRequire2 } from "module";
 var require2 = createRequire2("/");
 var Worker;
@@ -9571,25 +9627,25 @@ var x;
 var i;
 var hMap = function(cd, mb, r) {
   var s = cd.length;
-  var i2 = 0;
+  var i = 0;
   var l = new u16(mb);
-  for (;i2 < s; ++i2) {
-    if (cd[i2])
-      ++l[cd[i2] - 1];
+  for (;i < s; ++i) {
+    if (cd[i])
+      ++l[cd[i] - 1];
   }
   var le = new u16(mb);
-  for (i2 = 1;i2 < mb; ++i2) {
-    le[i2] = le[i2 - 1] + l[i2 - 1] << 1;
+  for (i = 1;i < mb; ++i) {
+    le[i] = le[i - 1] + l[i - 1] << 1;
   }
   var co;
   if (r) {
     co = new u16(1 << mb);
     var rvb = 15 - mb;
-    for (i2 = 0;i2 < s; ++i2) {
-      if (cd[i2]) {
-        var sv = i2 << 4 | cd[i2];
-        var r_1 = mb - cd[i2];
-        var v = le[cd[i2] - 1]++ << r_1;
+    for (i = 0;i < s; ++i) {
+      if (cd[i]) {
+        var sv = i << 4 | cd[i];
+        var r_1 = mb - cd[i];
+        var v = le[cd[i] - 1]++ << r_1;
         for (var m = v | (1 << r_1) - 1;v <= m; ++v) {
           co[rev[v] >> rvb] = sv;
         }
@@ -9597,9 +9653,9 @@ var hMap = function(cd, mb, r) {
     }
   } else {
     co = new u16(s);
-    for (i2 = 0;i2 < s; ++i2) {
-      if (cd[i2]) {
-        co[i2] = rev[le[cd[i2] - 1]++] >> 15 - cd[i2];
+    for (i = 0;i < s; ++i) {
+      if (cd[i]) {
+        co[i] = rev[le[cd[i] - 1]++] >> 15 - cd[i];
       }
     }
   }
@@ -9674,9 +9730,9 @@ var wbits16 = function(d, p, v) {
 };
 var hTree = function(d, mb) {
   var t = [];
-  for (var i2 = 0;i2 < d.length; ++i2) {
-    if (d[i2])
-      t.push({ s: i2, f: d[i2] });
+  for (var i = 0;i < d.length; ++i) {
+    if (d[i])
+      t.push({ s: i, f: d[i] });
   }
   var s = t.length;
   var t2 = t.slice();
@@ -9691,44 +9747,44 @@ var hTree = function(d, mb) {
     return a.f - b.f;
   });
   t.push({ s: -1, f: 25001 });
-  var l = t[0], r = t[1], i0 = 0, i1 = 1, i22 = 2;
+  var l = t[0], r = t[1], i0 = 0, i1 = 1, i2 = 2;
   t[0] = { s: -1, f: l.f + r.f, l, r };
   while (i1 != s - 1) {
-    l = t[t[i0].f < t[i22].f ? i0++ : i22++];
-    r = t[i0 != i1 && t[i0].f < t[i22].f ? i0++ : i22++];
+    l = t[t[i0].f < t[i2].f ? i0++ : i2++];
+    r = t[i0 != i1 && t[i0].f < t[i2].f ? i0++ : i2++];
     t[i1++] = { s: -1, f: l.f + r.f, l, r };
   }
   var maxSym = t2[0].s;
-  for (var i2 = 1;i2 < s; ++i2) {
-    if (t2[i2].s > maxSym)
-      maxSym = t2[i2].s;
+  for (var i = 1;i < s; ++i) {
+    if (t2[i].s > maxSym)
+      maxSym = t2[i].s;
   }
   var tr = new u16(maxSym + 1);
   var mbt = ln(t[i1 - 1], tr, 0);
   if (mbt > mb) {
-    var i2 = 0, dt = 0;
-    var lft = mbt - mb, cst2 = 1 << lft;
+    var i = 0, dt = 0;
+    var lft = mbt - mb, cst = 1 << lft;
     t2.sort(function(a, b) {
       return tr[b.s] - tr[a.s] || a.f - b.f;
     });
-    for (;i2 < s; ++i2) {
-      var i2_1 = t2[i2].s;
+    for (;i < s; ++i) {
+      var i2_1 = t2[i].s;
       if (tr[i2_1] > mb) {
-        dt += cst2 - (1 << mbt - tr[i2_1]);
+        dt += cst - (1 << mbt - tr[i2_1]);
         tr[i2_1] = mb;
       } else
         break;
     }
     dt >>= lft;
     while (dt > 0) {
-      var i2_2 = t2[i2].s;
+      var i2_2 = t2[i].s;
       if (tr[i2_2] < mb)
         dt -= 1 << mb - tr[i2_2]++ - 1;
       else
-        ++i2;
+        ++i;
     }
-    for (;i2 >= 0 && dt; --i2) {
-      var i2_3 = t2[i2].s;
+    for (;i >= 0 && dt; --i) {
+      var i2_3 = t2[i].s;
       if (tr[i2_3] == mb) {
         --tr[i2_3];
         ++dt;
@@ -9750,8 +9806,8 @@ var lc = function(c) {
   var w = function(v) {
     cl[cli++] = v;
   };
-  for (var i2 = 1;i2 <= s; ++i2) {
-    if (c[i2] == cln && i2 != s)
+  for (var i = 1;i <= s; ++i) {
+    if (c[i] == cln && i != s)
       ++cls;
     else {
       if (!cln && cls > 2) {
@@ -9771,15 +9827,15 @@ var lc = function(c) {
       while (cls--)
         w(cln);
       cls = 1;
-      cln = c[i2];
+      cln = c[i];
     }
   }
   return { c: cl.subarray(0, cli), n: s };
 };
 var clen = function(cf, cl) {
   var l = 0;
-  for (var i2 = 0;i2 < cl.length; ++i2)
-    l += cf[i2] * cl[i2];
+  for (var i = 0;i < cl.length; ++i)
+    l += cf[i] * cl[i];
   return l;
 };
 var wfblk = function(out, pos, dat) {
@@ -9789,23 +9845,23 @@ var wfblk = function(out, pos, dat) {
   out[o + 1] = s >> 8;
   out[o + 2] = out[o] ^ 255;
   out[o + 3] = out[o + 1] ^ 255;
-  for (var i2 = 0;i2 < s; ++i2)
-    out[o + i2 + 4] = dat[i2];
+  for (var i = 0;i < s; ++i)
+    out[o + i + 4] = dat[i];
   return (o + 4 + s) * 8;
 };
 var wblk = function(dat, out, final, syms, lf, df, eb, li, bs, bl, p) {
   wbits(out, p++, final);
   ++lf[256];
-  var _a2 = hTree(lf, 15), dlt = _a2.t, mlb = _a2.l;
-  var _b2 = hTree(df, 15), ddt = _b2.t, mdb = _b2.l;
-  var _c = lc(dlt), lclt = _c.c, nlc = _c.n;
-  var _d = lc(ddt), lcdt = _d.c, ndc = _d.n;
+  var _a = hTree(lf, 15), { t: dlt, l: mlb } = _a;
+  var _b = hTree(df, 15), { t: ddt, l: mdb } = _b;
+  var _c = lc(dlt), { c: lclt, n: nlc } = _c;
+  var _d = lc(ddt), { c: lcdt, n: ndc } = _d;
   var lcfreq = new u16(19);
-  for (var i2 = 0;i2 < lclt.length; ++i2)
-    ++lcfreq[lclt[i2] & 31];
-  for (var i2 = 0;i2 < lcdt.length; ++i2)
-    ++lcfreq[lcdt[i2] & 31];
-  var _e = hTree(lcfreq, 7), lct = _e.t, mlcb = _e.l;
+  for (var i = 0;i < lclt.length; ++i)
+    ++lcfreq[lclt[i] & 31];
+  for (var i = 0;i < lcdt.length; ++i)
+    ++lcfreq[lcdt[i] & 31];
+  var _e = hTree(lcfreq, 7), { t: lct, l: mlcb } = _e;
   var nlcc = 19;
   for (;nlcc > 4 && !lct[clim[nlcc - 1]]; --nlcc)
     ;
@@ -9823,24 +9879,24 @@ var wblk = function(dat, out, final, syms, lf, df, eb, li, bs, bl, p) {
     wbits(out, p + 5, ndc - 1);
     wbits(out, p + 10, nlcc - 4);
     p += 14;
-    for (var i2 = 0;i2 < nlcc; ++i2)
-      wbits(out, p + 3 * i2, lct[clim[i2]]);
+    for (var i = 0;i < nlcc; ++i)
+      wbits(out, p + 3 * i, lct[clim[i]]);
     p += 3 * nlcc;
     var lcts = [lclt, lcdt];
     for (var it = 0;it < 2; ++it) {
       var clct = lcts[it];
-      for (var i2 = 0;i2 < clct.length; ++i2) {
-        var len = clct[i2] & 31;
+      for (var i = 0;i < clct.length; ++i) {
+        var len = clct[i] & 31;
         wbits(out, p, llm[len]), p += lct[len];
         if (len > 15)
-          wbits(out, p, clct[i2] >> 5 & 127), p += clct[i2] >> 12;
+          wbits(out, p, clct[i] >> 5 & 127), p += clct[i] >> 12;
       }
     }
   } else {
     lm = flm, ll = flt, dm = fdm, dl = fdt;
   }
-  for (var i2 = 0;i2 < li; ++i2) {
-    var sym = syms[i2];
+  for (var i = 0;i < li; ++i) {
+    var sym = syms[i];
     if (sym > 255) {
       var len = sym >> 18 & 31;
       wbits16(out, p, lm[len + 257]), p += ll[len + 257];
@@ -9873,36 +9929,36 @@ var dflt = function(dat, lvl, plvl, pre, post, st) {
     var msk_1 = (1 << plvl) - 1;
     var prev = st.p || new u16(32768), head = st.h || new u16(msk_1 + 1);
     var bs1_1 = Math.ceil(plvl / 3), bs2_1 = 2 * bs1_1;
-    var hsh = function(i3) {
-      return (dat[i3] ^ dat[i3 + 1] << bs1_1 ^ dat[i3 + 2] << bs2_1) & msk_1;
+    var hsh = function(i) {
+      return (dat[i] ^ dat[i + 1] << bs1_1 ^ dat[i + 2] << bs2_1) & msk_1;
     };
     var syms = new i32(25000);
     var lf = new u16(288), df = new u16(32);
-    var lc_1 = 0, eb = 0, i2 = st.i || 0, li = 0, wi = st.w || 0, bs = 0;
-    for (;i2 + 2 < s; ++i2) {
-      var hv = hsh(i2);
-      var imod = i2 & 32767, pimod = head[hv];
+    var lc_1 = 0, eb = 0, i = st.i || 0, li = 0, wi = st.w || 0, bs = 0;
+    for (;i + 2 < s; ++i) {
+      var hv = hsh(i);
+      var imod = i & 32767, pimod = head[hv];
       prev[imod] = pimod;
       head[hv] = imod;
-      if (wi <= i2) {
-        var rem = s - i2;
+      if (wi <= i) {
+        var rem = s - i;
         if ((lc_1 > 7000 || li > 24576) && (rem > 423 || !lst)) {
-          pos = wblk(dat, w, 0, syms, lf, df, eb, li, bs, i2 - bs, pos);
-          li = lc_1 = eb = 0, bs = i2;
+          pos = wblk(dat, w, 0, syms, lf, df, eb, li, bs, i - bs, pos);
+          li = lc_1 = eb = 0, bs = i;
           for (var j = 0;j < 286; ++j)
             lf[j] = 0;
           for (var j = 0;j < 30; ++j)
             df[j] = 0;
         }
         var l = 2, d = 0, ch_1 = c, dif = imod - pimod & 32767;
-        if (rem > 2 && hv == hsh(i2 - dif)) {
+        if (rem > 2 && hv == hsh(i - dif)) {
           var maxn = Math.min(n, rem) - 1;
-          var maxd = Math.min(32767, i2);
+          var maxd = Math.min(32767, i);
           var ml = Math.min(258, rem);
           while (dif <= maxd && --ch_1 && imod != pimod) {
-            if (dat[i2 + l] == dat[i2 + l - dif]) {
+            if (dat[i + l] == dat[i + l - dif]) {
               var nl = 0;
-              for (;nl < ml && dat[i2 + nl] == dat[i2 + nl - dif]; ++nl)
+              for (;nl < ml && dat[i + nl] == dat[i + nl - dif]; ++nl)
                 ;
               if (nl > l) {
                 l = nl, d = dif;
@@ -9911,7 +9967,7 @@ var dflt = function(dat, lvl, plvl, pre, post, st) {
                 var mmd = Math.min(dif, nl - 2);
                 var md = 0;
                 for (var j = 0;j < mmd; ++j) {
-                  var ti = i2 - dif + j & 32767;
+                  var ti = i - dif + j & 32767;
                   var pti = prev[ti];
                   var cd = ti - pti & 32767;
                   if (cd > md)
@@ -9929,32 +9985,32 @@ var dflt = function(dat, lvl, plvl, pre, post, st) {
           eb += fleb[lin] + fdeb[din];
           ++lf[257 + lin];
           ++df[din];
-          wi = i2 + l;
+          wi = i + l;
           ++lc_1;
         } else {
-          syms[li++] = dat[i2];
-          ++lf[dat[i2]];
+          syms[li++] = dat[i];
+          ++lf[dat[i]];
         }
       }
     }
-    for (i2 = Math.max(i2, wi);i2 < s; ++i2) {
-      syms[li++] = dat[i2];
-      ++lf[dat[i2]];
+    for (i = Math.max(i, wi);i < s; ++i) {
+      syms[li++] = dat[i];
+      ++lf[dat[i]];
     }
-    pos = wblk(dat, w, lst, syms, lf, df, eb, li, bs, i2 - bs, pos);
+    pos = wblk(dat, w, lst, syms, lf, df, eb, li, bs, i - bs, pos);
     if (!lst) {
       st.r = pos & 7 | w[pos / 8 | 0] << 3;
       pos -= 7;
-      st.h = head, st.p = prev, st.i = i2, st.w = wi;
+      st.h = head, st.p = prev, st.i = i, st.w = wi;
     }
   } else {
-    for (var i2 = st.w || 0;i2 < s + lst; i2 += 65535) {
-      var e = i2 + 65535;
+    for (var i = st.w || 0;i < s + lst; i += 65535) {
+      var e = i + 65535;
       if (e >= s) {
         w[pos / 8 | 0] = lst;
         e = s;
       }
-      pos = wfblk(w, pos + 1, dat.subarray(i2, e));
+      pos = wfblk(w, pos + 1, dat.subarray(i, e));
     }
     st.i = s;
   }
@@ -9962,11 +10018,11 @@ var dflt = function(dat, lvl, plvl, pre, post, st) {
 };
 var crct = /* @__PURE__ */ function() {
   var t = new Int32Array(256);
-  for (var i2 = 0;i2 < 256; ++i2) {
-    var c = i2, k = 9;
+  for (var i = 0;i < 256; ++i) {
+    var c = i, k = 9;
     while (--k)
       c = (c & 1 && -306674912) ^ c >>> 1;
-    t[i2] = c;
+    t[i] = c;
   }
   return t;
 }();
@@ -9975,8 +10031,8 @@ var crc = function() {
   return {
     p: function(d) {
       var cr = c;
-      for (var i2 = 0;i2 < d.length; ++i2)
-        cr = crct[cr & 255 ^ d[i2]] ^ cr >>> 8;
+      for (var i = 0;i < d.length; ++i)
+        cr = crct[cr & 255 ^ d[i]] ^ cr >>> 8;
       c = cr;
     },
     d: function() {
@@ -10036,8 +10092,8 @@ try {
 function strToU8(str, latin1) {
   if (latin1) {
     var ar_1 = new u8(str.length);
-    for (var i2 = 0;i2 < str.length; ++i2)
-      ar_1[i2] = str.charCodeAt(i2);
+    for (var i = 0;i < str.length; ++i)
+      ar_1[i] = str.charCodeAt(i);
     return ar_1;
   }
   if (te)
@@ -10048,19 +10104,19 @@ function strToU8(str, latin1) {
   var w = function(v) {
     ar[ai++] = v;
   };
-  for (var i2 = 0;i2 < l; ++i2) {
+  for (var i = 0;i < l; ++i) {
     if (ai + 5 > ar.length) {
-      var n = new u8(ai + 8 + (l - i2 << 1));
+      var n = new u8(ai + 8 + (l - i << 1));
       n.set(ar);
       ar = n;
     }
-    var c = str.charCodeAt(i2);
+    var c = str.charCodeAt(i);
     if (c < 128 || latin1)
       w(c);
     else if (c < 2048)
       w(192 | c >> 6), w(128 | c & 63);
     else if (c > 55295 && c < 57344)
-      c = 65536 + (c & 1023 << 10) | str.charCodeAt(++i2) & 1023, w(240 | c >> 18), w(128 | c >> 12 & 63), w(128 | c >> 6 & 63), w(128 | c & 63);
+      c = 65536 + (c & 1023 << 10) | str.charCodeAt(++i) & 1023, w(240 | c >> 18), w(128 | c >> 12 & 63), w(128 | c >> 6 & 63), w(128 | c & 63);
     else
       w(224 | c >> 12), w(128 | c >> 6 & 63), w(128 | c & 63);
   }
@@ -10079,7 +10135,7 @@ var exfl = function(ex) {
   return le;
 };
 var wzh = function(d, b, f, fn, u, c, ce, co) {
-  var fl2 = fn.length, ex = f.extra, col = co && co.length;
+  var fl = fn.length, ex = f.extra, col = co && co.length;
   var exl = exfl(ex);
   wbytes(d, b, ce != null ? 33639248 : 67324752), b += 4;
   if (ce != null)
@@ -10096,7 +10152,7 @@ var wzh = function(d, b, f, fn, u, c, ce, co) {
     wbytes(d, b + 4, c < 0 ? -c - 2 : c);
     wbytes(d, b + 8, f.size);
   }
-  wbytes(d, b + 12, fl2);
+  wbytes(d, b + 12, fl);
   wbytes(d, b + 14, exl), b += 16;
   if (ce != null) {
     wbytes(d, b, col);
@@ -10104,7 +10160,7 @@ var wzh = function(d, b, f, fn, u, c, ce, co) {
     wbytes(d, b + 10, ce), b += 14;
   }
   d.set(fn, b);
-  b += fl2;
+  b += fl;
   if (exl) {
     for (var k in ex) {
       var exf = ex[k], l = exf.length;
@@ -10133,7 +10189,7 @@ function zipSync(data, opts) {
   var o = 0;
   var tot = 0;
   for (var fn in r) {
-    var _a2 = r[fn], file = _a2[0], p = _a2[1];
+    var _a = r[fn], file = _a[0], p = _a[1];
     var compression = p.level == 0 ? 0 : 8;
     var f = strToU8(fn), s = f.length;
     var com = p.comment, m = com && strToU8(com), ms = m && m.length;
@@ -10157,8 +10213,8 @@ function zipSync(data, opts) {
     tot += 76 + 2 * (s + exl) + (ms || 0) + l;
   }
   var out = new u8(tot + 22), oe = o, cdl = tot - o;
-  for (var i2 = 0;i2 < files.length; ++i2) {
-    var f = files[i2];
+  for (var i = 0;i < files.length; ++i) {
+    var f = files[i];
     wzh(out, f.o, f, f.f, f.u, f.c.length);
     var badd = 30 + f.f.length + exfl(f.extra);
     out.set(f.c, f.o + badd);
@@ -10743,7 +10799,7 @@ function routeCommand(prompt, options) {
 }
 
 // src/index.ts
-var program2 = new Command;
+var program2 = new Command2;
 program2.name("omni-skill").description("Universal Cross-Host Agent Skill Engine & Compiler").version("6.0.1");
 program2.command("route <prompt>").description("Dynamic and smart agentic router: analyze prompt and generate optimal execution DAG").option("-h, --host <host>", "Target host agent (claude, antigravity, cursor, codex, windsurf)").option("-j, --json", "Output JSON execution graph").option("-e, --explain", "Explain router decision and rationale").action((prompt, options) => {
   routeCommand(prompt, options);
