@@ -1,20 +1,60 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import { lstatSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import pc from "picocolors";
 
+const NAME_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 export function initSkillCommand(name: string, options: { description?: string; out?: string }) {
-  const kebabName = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  const trimmed = (name ?? "").trim();
+  if (!trimmed) {
+    console.error(pc.red("✖ Skill name cannot be empty."));
+    process.exit(1);
+  }
+
+  const kebabName = trimmed
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  if (!kebabName || !NAME_REGEX.test(kebabName)) {
+    console.error(
+      pc.red(`✖ Invalid skill name "${name}". Normalized name "${kebabName}" must be lowercase alphanumeric with single hyphens.`)
+    );
+    process.exit(1);
+  }
+
   const baseDir = options.out ? resolve(process.cwd(), options.out) : process.cwd();
   const targetDir = join(baseDir, kebabName);
-  mkdirSync(targetDir, { recursive: true });
-  mkdirSync(join(targetDir, "usecases"), { recursive: true });
-  mkdirSync(join(targetDir, "references"), { recursive: true });
-  mkdirSync(join(targetDir, "scripts"), { recursive: true });
-  mkdirSync(join(targetDir, "evals"), { recursive: true });
 
-  const desc = options.description || `Autonomous skill for ${kebabName}. Use when the agent needs repeatable, deterministic actions.`;
+  try {
+    lstatSync(targetDir);
+    console.error(pc.red(`✖ Destination path already exists: ${targetDir}. Refusing to overwrite existing skill.`));
+    process.exit(1);
+  } catch (err: any) {
+    if (err.code !== "ENOENT") {
+      console.error(pc.red(`✖ Cannot access destination path ${targetDir}: ${err.message}`));
+      process.exit(1);
+    }
+  }
 
-  const skillContent = `---
+  mkdirSync(baseDir, { recursive: true });
+
+  try {
+    mkdirSync(targetDir);
+  } catch (err: any) {
+    console.error(pc.red(`✖ Failed to create directory exclusively at ${targetDir}: ${err.message}`));
+    process.exit(1);
+  }
+
+  try {
+    mkdirSync(join(targetDir, "usecases"), { recursive: true });
+    mkdirSync(join(targetDir, "references"), { recursive: true });
+    mkdirSync(join(targetDir, "scripts"), { recursive: true });
+    mkdirSync(join(targetDir, "evals"), { recursive: true });
+
+    const desc = options.description || `Autonomous skill for ${kebabName}. Use when the agent needs repeatable, deterministic actions.`;
+
+    const skillContent = `---
 name: ${kebabName}
 description: >
   ${desc}
@@ -49,9 +89,9 @@ description: >
 - \`poteto-principles\`: Adhere to the 24 battle-tested engineering principles.
 `;
 
-  writeFileSync(join(targetDir, "SKILL.md"), skillContent, "utf-8");
+    writeFileSync(join(targetDir, "SKILL.md"), skillContent, "utf-8");
 
-  const runUsecase = `# Run ${kebabName}
+    const runUsecase = `# Run ${kebabName}
 
 Operational procedure for executing ${kebabName}.
 
@@ -59,30 +99,37 @@ Operational procedure for executing ${kebabName}.
 2. **Execute Core Operation**: Perform the bounded task following the invariant rules.
 3. **Validate Outcome**: Prove the result satisfies the completion criteria with independent evidence.
 `;
-  writeFileSync(join(targetDir, "usecases", "run.md"), runUsecase, "utf-8");
+    writeFileSync(join(targetDir, "usecases", "run.md"), runUsecase, "utf-8");
 
-  const specRef = `# ${kebabName} Specification
+    const specRef = `# ${kebabName} Specification
 
 Technical schemas, invariants, and domain error definitions for ${kebabName}.
 `;
-  writeFileSync(join(targetDir, "references", "spec.md"), specRef, "utf-8");
+    writeFileSync(join(targetDir, "references", "spec.md"), specRef, "utf-8");
 
-  const sampleEval = {
-    evals: [
-      {
-        id: "trigger-positive-1",
-        prompt: `Run ${kebabName} for me`,
-        assertions: [{ pattern: kebabName, required: true }]
-      },
-      {
-        id: "negative-collision-1",
-        prompt: "Tell me a generic joke",
-        assertions: [{ pattern: kebabName, required: false }]
-      }
-    ]
-  };
+    const sampleEval = {
+      evals: [
+        {
+          id: "trigger-positive-1",
+          prompt: `Run ${kebabName} for me`,
+          assertions: [{ pattern: kebabName, required: true }]
+        },
+        {
+          id: "negative-collision-1",
+          prompt: "Tell me a generic joke",
+          assertions: [{ pattern: kebabName, required: false }]
+        }
+      ]
+    };
 
-  writeFileSync(join(targetDir, "evals", "evals.json"), JSON.stringify(sampleEval, null, 2), "utf-8");
+    writeFileSync(join(targetDir, "evals", "evals.json"), JSON.stringify(sampleEval, null, 2), "utf-8");
+  } catch (err: any) {
+    try {
+      rmSync(targetDir, { recursive: true, force: true });
+    } catch {}
+    console.error(pc.red(`✖ Failed to write skill scaffold: ${err.message}`));
+    process.exit(1);
+  }
 
   console.log(pc.green(`✔ Created OmniSkill package at: `) + pc.bold(targetDir));
 }

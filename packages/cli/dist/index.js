@@ -8935,19 +8935,46 @@ var {
 
 // src/commands/init.ts
 var import_picocolors = __toESM(require_picocolors(), 1);
-import { mkdirSync, writeFileSync } from "node:fs";
+import { lstatSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
+var NAME_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 function initSkillCommand(name, options) {
-  const kebabName = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  const trimmed = (name ?? "").trim();
+  if (!trimmed) {
+    console.error(import_picocolors.default.red("✖ Skill name cannot be empty."));
+    process.exit(1);
+  }
+  const kebabName = trimmed.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  if (!kebabName || !NAME_REGEX.test(kebabName)) {
+    console.error(import_picocolors.default.red(`✖ Invalid skill name "${name}". Normalized name "${kebabName}" must be lowercase alphanumeric with single hyphens.`));
+    process.exit(1);
+  }
   const baseDir = options.out ? resolve(process.cwd(), options.out) : process.cwd();
   const targetDir = join(baseDir, kebabName);
-  mkdirSync(targetDir, { recursive: true });
-  mkdirSync(join(targetDir, "usecases"), { recursive: true });
-  mkdirSync(join(targetDir, "references"), { recursive: true });
-  mkdirSync(join(targetDir, "scripts"), { recursive: true });
-  mkdirSync(join(targetDir, "evals"), { recursive: true });
-  const desc = options.description || `Autonomous skill for ${kebabName}. Use when the agent needs repeatable, deterministic actions.`;
-  const skillContent = `---
+  try {
+    lstatSync(targetDir);
+    console.error(import_picocolors.default.red(`✖ Destination path already exists: ${targetDir}. Refusing to overwrite existing skill.`));
+    process.exit(1);
+  } catch (err) {
+    if (err.code !== "ENOENT") {
+      console.error(import_picocolors.default.red(`✖ Cannot access destination path ${targetDir}: ${err.message}`));
+      process.exit(1);
+    }
+  }
+  mkdirSync(baseDir, { recursive: true });
+  try {
+    mkdirSync(targetDir);
+  } catch (err) {
+    console.error(import_picocolors.default.red(`✖ Failed to create directory exclusively at ${targetDir}: ${err.message}`));
+    process.exit(1);
+  }
+  try {
+    mkdirSync(join(targetDir, "usecases"), { recursive: true });
+    mkdirSync(join(targetDir, "references"), { recursive: true });
+    mkdirSync(join(targetDir, "scripts"), { recursive: true });
+    mkdirSync(join(targetDir, "evals"), { recursive: true });
+    const desc = options.description || `Autonomous skill for ${kebabName}. Use when the agent needs repeatable, deterministic actions.`;
+    const skillContent = `---
 name: ${kebabName}
 description: >
   ${desc}
@@ -8981,8 +9008,8 @@ description: >
 
 - \`poteto-principles\`: Adhere to the 24 battle-tested engineering principles.
 `;
-  writeFileSync(join(targetDir, "SKILL.md"), skillContent, "utf-8");
-  const runUsecase = `# Run ${kebabName}
+    writeFileSync(join(targetDir, "SKILL.md"), skillContent, "utf-8");
+    const runUsecase = `# Run ${kebabName}
 
 Operational procedure for executing ${kebabName}.
 
@@ -8990,27 +9017,34 @@ Operational procedure for executing ${kebabName}.
 2. **Execute Core Operation**: Perform the bounded task following the invariant rules.
 3. **Validate Outcome**: Prove the result satisfies the completion criteria with independent evidence.
 `;
-  writeFileSync(join(targetDir, "usecases", "run.md"), runUsecase, "utf-8");
-  const specRef = `# ${kebabName} Specification
+    writeFileSync(join(targetDir, "usecases", "run.md"), runUsecase, "utf-8");
+    const specRef = `# ${kebabName} Specification
 
 Technical schemas, invariants, and domain error definitions for ${kebabName}.
 `;
-  writeFileSync(join(targetDir, "references", "spec.md"), specRef, "utf-8");
-  const sampleEval = {
-    evals: [
-      {
-        id: "trigger-positive-1",
-        prompt: `Run ${kebabName} for me`,
-        assertions: [{ pattern: kebabName, required: true }]
-      },
-      {
-        id: "negative-collision-1",
-        prompt: "Tell me a generic joke",
-        assertions: [{ pattern: kebabName, required: false }]
-      }
-    ]
-  };
-  writeFileSync(join(targetDir, "evals", "evals.json"), JSON.stringify(sampleEval, null, 2), "utf-8");
+    writeFileSync(join(targetDir, "references", "spec.md"), specRef, "utf-8");
+    const sampleEval = {
+      evals: [
+        {
+          id: "trigger-positive-1",
+          prompt: `Run ${kebabName} for me`,
+          assertions: [{ pattern: kebabName, required: true }]
+        },
+        {
+          id: "negative-collision-1",
+          prompt: "Tell me a generic joke",
+          assertions: [{ pattern: kebabName, required: false }]
+        }
+      ]
+    };
+    writeFileSync(join(targetDir, "evals", "evals.json"), JSON.stringify(sampleEval, null, 2), "utf-8");
+  } catch (err) {
+    try {
+      rmSync(targetDir, { recursive: true, force: true });
+    } catch {}
+    console.error(import_picocolors.default.red(`✖ Failed to write skill scaffold: ${err.message}`));
+    process.exit(1);
+  }
   console.log(import_picocolors.default.green(`✔ Created OmniSkill package at: `) + import_picocolors.default.bold(targetDir));
 }
 
@@ -9151,9 +9185,9 @@ function loadSkillDirectory(skillDir) {
 }
 
 // src/core/validator.ts
-import { existsSync as existsSync2, lstatSync, readFileSync as readFileSync2, readdirSync } from "node:fs";
+import { existsSync as existsSync2, lstatSync as lstatSync2, readFileSync as readFileSync2, readdirSync } from "node:fs";
 import { join as join3, resolve as resolve2 } from "node:path";
-var NAME_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+var NAME_REGEX2 = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 var SECRET_REGEX = /(sk-[A-Za-z0-9_-]{16,}|ANTHROPIC_API_KEY\s*=|OPENAI_API_KEY\s*=|BEGIN (?:RSA |EC )?PRIVATE KEY)/;
 var PERSONAL_PATH_REGEX = /(?:\/(?:Users|home)\/(?!(?:<[^>]+>|username|user))[a-zA-Z0-9_.-]+|[A-Za-z]:[/\\]+(?:Users|home)[/\\]+[^\s/\\]+)/;
 var SLOP_DEV_NOTES_REGEX = /^\s*(TODO:|FIXME:|NOTE:\s*In production|Mock data displayed|Agent notice:)/im;
@@ -9176,7 +9210,7 @@ function validateSkillDirectory(skillDir, targets = ["agent-skills", "chatgpt", 
 `);
   try {
     const { frontmatter } = parseSkillMarkdown(content);
-    if (!frontmatter.name || !NAME_REGEX.test(frontmatter.name)) {
+    if (!frontmatter.name || !NAME_REGEX2.test(frontmatter.name)) {
       findings.push({
         severity: "error",
         code: "INVALID_NAME",
@@ -9264,7 +9298,7 @@ function validateSkillDirectory(skillDir, targets = ["agent-skills", "chatgpt", 
         continue;
       const fullPath = join3(dir, entry);
       try {
-        const stat = lstatSync(fullPath);
+        const stat = lstatSync2(fullPath);
         if (stat.isSymbolicLink()) {
           findings.push({ severity: "error", code: "READ_FAILURE", message: `Cannot safely scan symbolic link: ${fullPath}` });
         } else if (stat.isDirectory()) {
@@ -9363,7 +9397,7 @@ import { resolve as resolve5 } from "node:path";
 // src/core/compiler.ts
 import { mkdirSync as mkdirSync2, writeFileSync as writeFileSync2 } from "node:fs";
 import { isAbsolute, join as join4, relative, resolve as resolve4 } from "node:path";
-var NAME_REGEX2 = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+var NAME_REGEX3 = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 function compileOmniSkillSpec(spec, outputDir) {
   if (!spec || typeof spec !== "object") {
     throw new TypeError("Skill specification must be an object.");
@@ -9372,7 +9406,7 @@ function compileOmniSkillSpec(spec, outputDir) {
   if (!name || typeof name !== "string") {
     throw new TypeError(`Skill name must be a non-empty string. Received: ${typeof name}`);
   }
-  if (!NAME_REGEX2.test(name)) {
+  if (!NAME_REGEX3.test(name)) {
     throw new Error(`Invalid skill name "${name}". Skill name must be lowercase kebab-case alphanumeric (e.g. "my-skill").`);
   }
   const resolvedOutput = resolve4(outputDir);
@@ -9643,7 +9677,7 @@ function evalSkillCommand(skillPathArg) {
 
 // src/commands/package.ts
 var import_picocolors6 = __toESM(require_picocolors(), 1);
-import { existsSync as existsSync5, lstatSync as lstatSync2, mkdirSync as mkdirSync4, readFileSync as readFileSync5, readdirSync as readdirSync2, writeFileSync as writeFileSync4 } from "node:fs";
+import { existsSync as existsSync5, lstatSync as lstatSync3, mkdirSync as mkdirSync4, readFileSync as readFileSync5, readdirSync as readdirSync2, writeFileSync as writeFileSync4 } from "node:fs";
 import { basename, join as join7, resolve as resolve8, sep as sep2 } from "node:path";
 
 // ../../../../../../../.bun/install/cache/links/fflate@0.8.2-edd43745f90ceabf/node_modules/fflate/esm/index.mjs
@@ -10295,7 +10329,7 @@ function collectSkillFiles(skillDir, name) {
       if (entry.startsWith(".") || entry === "node_modules" || entry === "__pycache__" || entry.startsWith("test_") || entry.endsWith(".test.ts") || entry.endsWith(".test.py"))
         continue;
       const fullPath = join7(directory, entry);
-      const stat = lstatSync2(fullPath);
+      const stat = lstatSync3(fullPath);
       if (stat.isSymbolicLink())
         throw new Error(`Refusing to package symbolic link: ${fullPath}`);
       if (stat.isDirectory())
