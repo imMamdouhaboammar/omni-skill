@@ -169,6 +169,49 @@ class TestOmniSkillEngine(unittest.TestCase):
                         compile_spec(spec, out_dir)
                     self.assertIn("instructions", str(ctx.exception).lower())
 
+    def test_compile_spec_target_hosts_validation(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir)
+            base_spec = {
+                "name": "sample-tool",
+                "description": "Valid description",
+                "job": "Valid job",
+                "instructions": ["Step 1"]
+            }
+
+            # 1. Non-list target_hosts
+            for val in ["chatgpt", 12345, True, {"host": "codex"}]:
+                spec = dict(base_spec)
+                spec["target_hosts"] = val
+                with self.subTest(hosts=val):
+                    with self.assertRaises(TypeError) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("target_hosts", str(ctx.exception).lower())
+
+            # 2. Non-string elements in target_hosts
+            for val in [[123], ["chatgpt", None], ["chatgpt", False], [{}]]:
+                spec = dict(base_spec)
+                spec["target_hosts"] = val
+                with self.subTest(hosts=val):
+                    with self.assertRaises(TypeError) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("target_hosts", str(ctx.exception).lower())
+
+            # 3. Empty or whitespace elements in target_hosts
+            for val in [[""], ["chatgpt", "   "], ["\t\n  \r\n"]]:
+                spec = dict(base_spec)
+                spec["target_hosts"] = val
+                with self.subTest(hosts=val):
+                    with self.assertRaises(ValueError) as ctx:
+                        compile_spec(spec, out_dir)
+                    self.assertIn("target_hosts", str(ctx.exception).lower())
+
+            # 4. Valid target_hosts or omitted
+            spec1 = dict(base_spec)
+            spec1["target_hosts"] = ["chatgpt", "codex"]
+            res1 = compile_spec(spec1, out_dir)
+            self.assertIn("- Target Hosts: chatgpt, codex", (res1 / "SKILL.md").read_text(encoding="utf-8"))
+
     def test_compile_spec_and_validate(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             out_dir = Path(tmpdir)
