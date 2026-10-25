@@ -120,7 +120,41 @@ def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
             if target_unresolved.is_symlink():
                 raise ValueError(f"Path containment violation: Target reference '{ref_name}.md' is a symbolic link.")
 
-    evals = spec_data.get("evals", [])
+    evals = None
+    if "evals" in spec_data and spec_data["evals"] is not None:
+        raw_evals = spec_data["evals"]
+        if not isinstance(raw_evals, list):
+            raise TypeError("Field 'evals' must be an array of evaluation items.")
+        evals = []
+        for i, item in enumerate(raw_evals):
+            if not isinstance(item, dict):
+                raise TypeError(f"Field 'evals[{i}]' must be an object.")
+            eval_id = item.get("id")
+            if not isinstance(eval_id, str):
+                raise TypeError(f"Field 'evals[{i}].id' must be a non-empty string.")
+            if len(eval_id.strip()) == 0:
+                raise ValueError(f"Field 'evals[{i}].id' must be a non-empty string.")
+
+            if "description" in item and item["description"] is not None and not isinstance(item["description"], str):
+                raise TypeError(f"Field 'evals[{i}].description' must be a string.")
+
+            raw_assertions = item.get("assertions")
+            if not isinstance(raw_assertions, list):
+                raise TypeError(f"Field 'evals[{i}].assertions' must be a non-empty array of assertion objects.")
+            if len(raw_assertions) == 0:
+                raise ValueError(f"Field 'evals[{i}].assertions' must be a non-empty array of assertion objects.")
+
+            for j, assertion in enumerate(raw_assertions):
+                if not isinstance(assertion, dict):
+                    raise TypeError(f"Field 'evals[{i}].assertions[{j}]' must be an object.")
+                pattern = assertion.get("pattern")
+                if not isinstance(pattern, str):
+                    raise TypeError(f"Field 'evals[{i}].assertions[{j}].pattern' must be a non-empty string.")
+                if len(pattern.strip()) == 0:
+                    raise ValueError(f"Field 'evals[{i}].assertions[{j}].pattern' must be a non-empty string.")
+                if "required" in assertion and assertion["required"] is not None and not isinstance(assertion["required"], bool):
+                    raise TypeError(f"Field 'evals[{i}].assertions[{j}].required' must be a boolean.")
+            evals.append(item)
 
     skill_path.mkdir(parents=True, exist_ok=True)
 
