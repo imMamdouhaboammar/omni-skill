@@ -1,5 +1,5 @@
 import { describe, expect, it, test, afterAll, beforeAll } from "bun:test";
-import { mkdtempSync, rmSync, existsSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -282,6 +282,148 @@ describe("CLI End-to-End Test Suite", () => {
       const res = runCli(["route", "measure latency and benchmark", "-e"]);
       expect(res.status).toBe(0);
       expect(res.stdout).toContain("Router Rationale:");
+    });
+  });
+
+  describe("omni-skill compile", () => {
+    let compileBase: string;
+
+    beforeAll(() => {
+      compileBase = mkdtempSync(join(tmpdir(), "omni-cli-compile-e2e-"));
+    });
+
+    afterAll(() => {
+      if (existsSync(compileBase)) {
+        rmSync(compileBase, { recursive: true, force: true });
+      }
+    });
+
+    it("should compile a valid OmniSkillSpec into target directory and exit with code 0", () => {
+      const specPath = join(compileBase, "valid-spec.json");
+      writeFileSync(
+        specPath,
+        JSON.stringify({
+          name: "valid-cli-skill",
+          description: "A valid CLI compiled skill",
+          job: "Execute CLI actions cleanly",
+          instructions: ["Step 1: Check environment", "Step 2: Run task"],
+          target_hosts: ["chatgpt", "claude-code"],
+          freedom_level: "low",
+          references: {
+            "api-ref": "# API Reference\nDetails."
+          },
+          evals: [
+            {
+              id: "case-1",
+              assertions: [{ pattern: "success", required: true }]
+            }
+          ]
+        })
+      );
+
+      const outDir = join(compileBase, "valid-out");
+      mkdirSync(outDir, { recursive: true });
+      const res = runCli(["compile", specPath, "-o", outDir]);
+      expect(res.status).toBe(0);
+      expect(res.stdout).toContain("Compiled OmniSkillSpec to:");
+      expect(existsSync(join(outDir, "valid-cli-skill", "SKILL.md"))).toBe(true);
+      expect(existsSync(join(outDir, "valid-cli-skill", "references", "api-ref.md"))).toBe(true);
+      expect(existsSync(join(outDir, "valid-cli-skill", "evals", "evals.json"))).toBe(true);
+    });
+
+    it("should reject missing specification file and exit with code 1", () => {
+      const res = runCli(["compile", "/non/existent/spec.json"]);
+      expect(res.status).toBe(1);
+      expect(res.stdout + res.stderr).toContain("Specification file not found");
+    });
+
+    it("should reject invalid JSON file and exit with code 1", () => {
+      const badJsonPath = join(compileBase, "bad.json");
+      writeFileSync(badJsonPath, "{ malformed json");
+      const res = runCli(["compile", badJsonPath]);
+      expect(res.status).toBe(1);
+      expect(res.stdout + res.stderr).toContain("Failed to parse JSON specification");
+    });
+
+    it("should reject invalid spec with missing description and exit with code 1 without mutating filesystem", () => {
+      const badSpecPath = join(compileBase, "no-desc.json");
+      writeFileSync(
+        badSpecPath,
+        JSON.stringify({
+          name: "no-desc-skill",
+          job: "Job",
+          instructions: ["Step 1"]
+        })
+      );
+      const outDir = join(compileBase, "no-desc-out");
+      mkdirSync(outDir, { recursive: true });
+
+      const res = runCli(["compile", badSpecPath, "-o", outDir]);
+      expect(res.status).toBe(1);
+      expect(res.stdout + res.stderr).toContain("Field 'description' must be a non-empty string");
+      expect(readdirSync(outDir)).toHaveLength(0);
+    });
+
+    it("should reject invalid spec with invalid instructions and exit with code 1 without mutating filesystem", () => {
+      const badSpecPath = join(compileBase, "bad-inst.json");
+      writeFileSync(
+        badSpecPath,
+        JSON.stringify({
+          name: "bad-inst-skill",
+          description: "Desc",
+          job: "Job",
+          instructions: []
+        })
+      );
+      const outDir = join(compileBase, "bad-inst-out");
+      mkdirSync(outDir, { recursive: true });
+
+      const res = runCli(["compile", badSpecPath, "-o", outDir]);
+      expect(res.status).toBe(1);
+      expect(res.stdout + res.stderr).toContain("Field 'instructions' must be a non-empty array");
+      expect(readdirSync(outDir)).toHaveLength(0);
+    });
+
+    it("should reject invalid spec with invalid freedom_level and exit with code 1 without mutating filesystem", () => {
+      const badSpecPath = join(compileBase, "bad-freedom.json");
+      writeFileSync(
+        badSpecPath,
+        JSON.stringify({
+          name: "bad-freedom-skill",
+          description: "Desc",
+          job: "Job",
+          instructions: ["Step 1"],
+          freedom_level: "extreme"
+        })
+      );
+      const outDir = join(compileBase, "bad-freedom-out");
+      mkdirSync(outDir, { recursive: true });
+
+      const res = runCli(["compile", badSpecPath, "-o", outDir]);
+      expect(res.status).toBe(1);
+      expect(res.stdout + res.stderr).toContain("Field 'freedom_level' must be one of 'high', 'medium', 'low'");
+      expect(readdirSync(outDir)).toHaveLength(0);
+    });
+
+    it("should reject invalid spec with invalid evals assertions and exit with code 1 without mutating filesystem", () => {
+      const badSpecPath = join(compileBase, "bad-evals.json");
+      writeFileSync(
+        badSpecPath,
+        JSON.stringify({
+          name: "bad-evals-skill",
+          description: "Desc",
+          job: "Job",
+          instructions: ["Step 1"],
+          evals: [{ id: "c1", assertions: [] }]
+        })
+      );
+      const outDir = join(compileBase, "bad-evals-out");
+      mkdirSync(outDir, { recursive: true });
+
+      const res = runCli(["compile", badSpecPath, "-o", outDir]);
+      expect(res.status).toBe(1);
+      expect(res.stdout + res.stderr).toContain("Field 'evals[0].assertions' must be a non-empty array");
+      expect(readdirSync(outDir)).toHaveLength(0);
     });
   });
 });
