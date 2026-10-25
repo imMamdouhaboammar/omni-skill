@@ -20,6 +20,16 @@ from eval_engine import run_bineval, split_held_out
 CORE_DIR = Path(__file__).parent
 
 class TestOmniSkillEngine(unittest.TestCase):
+    def test_compile_spec_root_validation(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir)
+            invalid_roots = [None, "invalid", 12345, True, False, ["list"]]
+            for root_val in invalid_roots:
+                with self.subTest(root=root_val):
+                    with self.assertRaises(TypeError) as ctx:
+                        compile_spec(root_val, out_dir)
+                    self.assertIn("Specification data must be a dictionary", str(ctx.exception))
+
     def test_compile_spec_and_validate(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             out_dir = Path(tmpdir)
