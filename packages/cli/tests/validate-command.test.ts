@@ -1,5 +1,5 @@
 import { describe, expect, it, spyOn, beforeEach, afterEach } from "bun:test";
-import { validateSkillCommand } from "../src/commands/validate";
+import { inspectSkillRoot, validateSkillCommand } from "../src/commands/validate";
 import { chmodSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -429,5 +429,51 @@ Target State
     const fullLog = logOutput.join("\n");
     expect(fullLog).toContain("SECRET_LEAK");
     expect(fullLog).toContain("0/1 skills valid (1 errors, 0 warnings)");
+  });
+});
+
+describe("inspectSkillRoot", () => {
+  it("returns ok: false with INVALID_ROOT for empty string", () => {
+    const res = inspectSkillRoot("");
+    expect(res.ok).toBe(false);
+    if (!res.ok) {
+      expect(res.code).toBe("INVALID_ROOT");
+    }
+  });
+
+  it("returns ok: false with INVALID_ROOT for non-existent path", () => {
+    const res = inspectSkillRoot("definitely-does-not-exist-" + Date.now());
+    expect(res.ok).toBe(false);
+    if (!res.ok) {
+      expect(res.code).toBe("INVALID_ROOT");
+    }
+  });
+
+  it("returns ok: false with INVALID_ROOT for regular file", () => {
+    const dir = mkdtempSync(join(tmpdir(), "omni-test-inspect-file-"));
+    const file = join(dir, "doc.txt");
+    writeFileSync(file, "hello");
+    try {
+      const res = inspectSkillRoot(file);
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.code).toBe("INVALID_ROOT");
+      }
+    } finally {
+      rmSync(dir, { recursive: true });
+    }
+  });
+
+  it("returns ok: true for existing directory", () => {
+    const dir = mkdtempSync(join(tmpdir(), "omni-test-inspect-ok-"));
+    try {
+      const res = inspectSkillRoot(dir);
+      expect(res.ok).toBe(true);
+      if (res.ok) {
+        expect(res.skillPath).toBe(dir);
+      }
+    } finally {
+      rmSync(dir, { recursive: true });
+    }
   });
 });
