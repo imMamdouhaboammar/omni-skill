@@ -14,6 +14,15 @@ export function validateSkillCommand(pathArg: string | string[]) {
   let totalEvaluated = 0;
 
   for (const p of paths) {
+    if (!p || p.trim().length === 0) {
+      totalEvaluated++;
+      totalErrors++;
+      console.log(pc.cyan(`\n🔍 Validating Skill: ${pc.bold('""')}`));
+      console.log(pc.red(`  ✖ [ERROR] (INVALID_ROOT) Root path does not exist or is not a directory: ""`));
+      console.log(pc.red(`  ✖ Validation FAILED with 1 errors.`));
+      continue;
+    }
+
     const skillPath = resolve(process.cwd(), p);
     const safeDisplay = sanitizeDiagnosticPath(process.cwd(), skillPath);
 
