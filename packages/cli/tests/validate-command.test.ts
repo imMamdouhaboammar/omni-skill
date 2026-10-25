@@ -146,4 +146,107 @@ Target State
     const fullLog = logOutput.join("\n");
     expect(fullLog).toContain("2/2 skills valid (0 errors, 0 warnings)");
   });
+
+  it("handles duplicate root paths accurately without corrupting totals", () => {
+    const validDir = mkdtempSync(join(tmpdir(), "omni-test-duplicate-root-"));
+    writeFileSync(
+      join(validDir, "SKILL.md"),
+      `---
+name: duplicate-skill
+description: Tests duplicate root invocation.
+---
+# Why This Skill Is Needed
+Target State
+`
+    );
+
+    try {
+      validateSkillCommand([validDir, validDir]);
+    } finally {
+      rmSync(validDir, { recursive: true });
+    }
+
+    expect(exitCode).toBeNull();
+    const fullLog = logOutput.join("\n");
+    expect(fullLog).toContain("2/2 skills valid (0 errors, 0 warnings)");
+  });
+
+  it("evaluates mixed valid and invalid roots accurately", () => {
+    const validDir1 = mkdtempSync(join(tmpdir(), "omni-test-mixed-valid1-"));
+    writeFileSync(
+      join(validDir1, "SKILL.md"),
+      `---
+name: mixed-valid-one
+description: First valid.
+---
+# Why This Skill Is Needed
+Target State
+`
+    );
+    const validDir2 = mkdtempSync(join(tmpdir(), "omni-test-mixed-valid2-"));
+    writeFileSync(
+      join(validDir2, "SKILL.md"),
+      `---
+name: mixed-valid-two
+description: Second valid.
+---
+# Why This Skill Is Needed
+Target State
+`
+    );
+    const tempBase = mkdtempSync(join(tmpdir(), "omni-test-mixed-base-"));
+    const fileRoot = join(tempBase, "a-file.txt");
+    writeFileSync(fileRoot, "not a directory");
+    const missingRoot = join(tempBase, "missing-dir");
+
+    try {
+      validateSkillCommand([validDir1, fileRoot, missingRoot, validDir2]);
+    } catch {
+      // expect exit(1)
+    } finally {
+      rmSync(validDir1, { recursive: true });
+      rmSync(validDir2, { recursive: true });
+      rmSync(tempBase, { recursive: true });
+    }
+
+    expect(exitCode).toBe(1);
+    const fullLog = logOutput.join("\n");
+    expect(fullLog).toContain("2/4 skills valid (2 errors, 0 warnings)");
+  });
+
+  it("supports single string argument invocation", () => {
+    const nonExistent = join(tmpdir(), "omni-single-string-missing-" + Date.now());
+    try {
+      validateSkillCommand(nonExistent);
+    } catch {
+      // expect exit(1)
+    }
+    expect(exitCode).toBe(1);
+    const fullLog = logOutput.join("\n");
+    expect(fullLog).toContain("0/1 skills valid (1 errors, 0 warnings)");
+  });
+
+  it("supports root directory with trailing slash", () => {
+    const validDir = mkdtempSync(join(tmpdir(), "omni-test-trailing-slash-"));
+    writeFileSync(
+      join(validDir, "SKILL.md"),
+      `---
+name: trailing-slash-skill
+description: Tests trailing slash.
+---
+# Why This Skill Is Needed
+Target State
+`
+    );
+
+    try {
+      validateSkillCommand(validDir + "/");
+    } finally {
+      rmSync(validDir, { recursive: true });
+    }
+
+    expect(exitCode).toBeNull();
+    const fullLog = logOutput.join("\n");
+    expect(fullLog).toContain("1/1 skills valid (0 errors, 0 warnings)");
+  });
 });
