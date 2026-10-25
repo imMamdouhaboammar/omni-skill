@@ -265,4 +265,30 @@ Target State
       rmSync(dir, { recursive: true });
     }
   });
+
+  it("produces ANTI_SLOP_DEV_NOTES warning when internal developer notes are found", () => {
+    const dir = mkdtempSync(join(tmpdir(), "omni-test-anti-slop-"));
+    writeFileSync(
+      join(dir, "SKILL.md"),
+      `---
+name: anti-slop-skill
+description: Tests anti-slop detection.
+---
+# Why This Skill Is Needed
+Target State
+
+TODO: finish the actual instructions.
+`
+    );
+
+    try {
+      const result = validateSkillDirectory(dir);
+      expect(result.pass).toBe(true);
+      expect(result.errors).toBe(0);
+      const slopWarn = result.findings.find((f) => f.code === "ANTI_SLOP_DEV_NOTES");
+      expect(slopWarn).toBeDefined();
+    } finally {
+      rmSync(dir, { recursive: true });
+    }
+  });
 });
