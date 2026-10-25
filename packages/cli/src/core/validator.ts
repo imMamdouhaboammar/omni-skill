@@ -2,6 +2,7 @@ import { ValidationFinding, ValidationResult } from "./types";
 import { parseSkillMarkdown } from "./parser";
 import { existsSync, lstatSync, readFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { sanitizeDiagnosticPath, sanitizeFsError } from "./path-sanitizer";
 
 const NAME_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const SECRET_REGEX = /(sk-[A-Za-z0-9_-]{16,}|ANTHROPIC_API_KEY\s*=|OPENAI_API_KEY\s*=|BEGIN (?:RSA |EC )?PRIVATE KEY)/;
@@ -31,7 +32,23 @@ export function validateSkillDirectory(
     };
   }
 
-  const content = readFileSync(skillFile, "utf-8");
+  let content: string;
+  try {
+    content = readFileSync(skillFile, "utf-8");
+  } catch (err: unknown) {
+    return {
+      skill: skillDir,
+      targets,
+      errors: 1,
+      warnings: 0,
+      findings: [{
+        severity: "error",
+        code: "READ_FAILURE",
+        message: `Cannot read SKILL.md: ${sanitizeFsError(err)}`
+      }],
+      pass: false
+    };
+  }
   const lines = content.split("\n");
 
   // Pass 1: Frontmatter Schema & Identity
