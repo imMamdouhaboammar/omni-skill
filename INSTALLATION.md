@@ -50,13 +50,13 @@ Install globally or run ad-hoc:
 
 ```bash
 # Run ad-hoc via Bunx
-bunx @omni-skill/cli --help
+bunx @mamdouh-aboammar/omni-skill --help
 
 # Install globally via Bun
-bun add -g @omni-skill/cli
+bun add -g @mamdouh-aboammar/omni-skill
 
 # Run ad-hoc via npx
-npx @omni-skill/cli --help
+npx @mamdouh-aboammar/omni-skill --help
 ```
 
 ---

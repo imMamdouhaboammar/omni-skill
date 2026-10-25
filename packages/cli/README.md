@@ -1,8 +1,8 @@
-# @omni-skill/cli
+# @mamdouh-aboammar/omni-skill
 
 > Universal Cross-Host Agent Skill Engine & Compiler. Build deeply engineered skills once, validate across 7 strict static gates, and distribute seamlessly across Claude Code, Cursor, Codex, ChatGPT, and Antigravity.
 
-[![npm version](https://img.shields.io/npm/v/@omni-skill/cli.svg?style=flat-square)](https://www.npmjs.com/package/@omni-skill/cli)
+[![npm version](https://img.shields.io/npm/v/@mamdouh-aboammar/omni-skill.svg?style=flat-square)](https://www.npmjs.com/package/@mamdouh-aboammar/omni-skill)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 [![Runtime: Bun & Node](https://img.shields.io/badge/Runtime-Bun%20%7C%20Node.js-black?style=flat-square)](https://bun.sh)
 
@@ -14,20 +14,20 @@
 
 ```bash
 # Using Bun (Recommended)
-bunx @omni-skill/cli route "profile latency with py-spy before optimizing"
+bunx @mamdouh-aboammar/omni-skill route "profile latency with py-spy before optimizing"
 
 # Using Node.js (npx)
-npx @omni-skill/cli route "profile latency with py-spy before optimizing"
+npx @mamdouh-aboammar/omni-skill route "profile latency with py-spy before optimizing"
 ```
 
 ### Global Installation
 
 ```bash
 # Using Bun
-bun add -g @omni-skill/cli
+bun add -g @mamdouh-aboammar/omni-skill
 
 # Using npm
-npm install -g @omni-skill/cli
+npm install -g @mamdouh-aboammar/omni-skill
 ```
 
 ---
@@ -71,19 +71,24 @@ Compiles an OmniSkill JSON specification into a validated, multi-host skill pack
 omni-skill compile ./spec.json -o ./dist/skills
 ```
 
+### `omni-skill package <skill-dir>`
+Validates the skill and creates a distributable ZIP-compatible `.skill` archive. Files that fail validation block packaging, and existing archives are not overwritten.
+
+```bash
+omni-skill package ./skills/my-skill -o ./release
+# Creates ./release/my-skill.skill
+```
+
 ---
 
 ## Programmatic Usage
 
 ```typescript
-import { routeSkillRequest, validateSkillDirectory, classifyIntent } from "@omni-skill/cli";
+import { routeRequest, validateSkillDirectory, classifyIntent } from "@mamdouh-aboammar/omni-skill";
 
 // 1. Classify intent and build DAG
-const plan = routeSkillRequest("Audit memory leaks before deploy", {
-  currentHost: "universal",
-  explain: true,
-});
-console.log(plan.executionGraph);
+const plan = routeRequest("Audit memory leaks before deploy", "universal");
+console.log(plan.dag);
 
 // 2. Validate skill package
 const report = validateSkillDirectory("./skills/my-skill");

@@ -81,9 +81,9 @@ brew install omni-skill
 
 ### 4. Global Bun / npm CLI
 ```bash
-bun add -g @omni-skill/cli
+bun add -g @mamdouh-aboammar/omni-skill
 # Or run ad-hoc
-bunx @omni-skill/cli --help
+bunx @mamdouh-aboammar/omni-skill --help
 ```
 
 ---

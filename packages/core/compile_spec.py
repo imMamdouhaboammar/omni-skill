@@ -63,12 +63,21 @@ def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
     return skill_path
 
 if __name__ == "__main__":
+    import argparse
     import sys
-    if len(sys.argv) < 2:
-        print("Usage: compile_spec.py <spec.json> [output_dir]")
+    parser = argparse.ArgumentParser(description="Compile an OmniSkill JSON specification")
+    parser.add_argument("spec", type=Path, help="Specification JSON path")
+    parser.add_argument("output_dir", nargs="?", type=Path, default=Path("."), help="Destination directory")
+    args = parser.parse_args()
+    spec_file = args.spec
+    if not spec_file.exists():
+        print(f"Error: Specification file not found: {spec_file}", file=sys.stderr)
         sys.exit(1)
-    spec_file = Path(sys.argv[1])
-    out = Path(sys.argv[2]) if len(sys.argv) > 2 else Path(".")
-    data = json.loads(spec_file.read_text(encoding="utf-8"))
+    out = args.output_dir
+    try:
+        data = json.loads(spec_file.read_text(encoding="utf-8"))
+    except Exception as exc:
+        print(f"Error: Failed to parse JSON specification: {exc}", file=sys.stderr)
+        sys.exit(1)
     res = compile_spec(data, out)
     print(f"Compiled skill to: {res}")

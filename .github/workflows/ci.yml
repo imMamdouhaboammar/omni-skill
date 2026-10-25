@@ -35,7 +35,7 @@ jobs:
       - name: Run TypeScript Tests & Typechecks
         run: |
           bun test
-          bun run --filter "@omni-skill/cli" build
+          bun run --filter "@mamdouh-aboammar/omni-skill" build
 
       - name: Run Python Deterministic Engine Tests
         run: |

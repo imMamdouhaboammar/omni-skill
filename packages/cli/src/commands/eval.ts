@@ -14,9 +14,15 @@ export function evalSkillCommand(skillPathArg: string) {
     return;
   }
 
-  const raw = readFileSync(evalsPath, "utf-8");
-  const data = JSON.parse(raw);
-  const cases = data.evals || [];
+  let cases: any[] = [];
+  try {
+    const raw = readFileSync(evalsPath, "utf-8");
+    const data = JSON.parse(raw);
+    cases = data.evals || [];
+  } catch (err: any) {
+    console.log(pc.red(`✖ Failed to parse evals.json: ${err.message}`));
+    process.exit(1);
+  }
 
   console.log(`  Found ${cases.length} evaluation cases.`);
   for (const c of cases) {

@@ -1,6 +1,6 @@
 import { ValidationFinding, ValidationResult } from "./types";
 import { parseSkillMarkdown } from "./parser";
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, lstatSync, readFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 const NAME_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -123,36 +123,46 @@ export function validateSkillDirectory(
 
   // Pass 6 & 7: Recursive Secret and Personal Path Walk
   function walk(dir: string) {
-    const entries = readdirSync(dir);
+    let entries: string[];
+    try {
+      entries = readdirSync(dir);
+    } catch (err) {
+      findings.push({ severity: "error", code: "READ_FAILURE", message: `Cannot scan directory ${dir}: ${String(err)}` });
+      return;
+    }
     for (const entry of entries) {
       if (entry.startsWith(".") || entry === "__pycache__" || entry === "node_modules" || entry.startsWith("test_") || entry.endsWith(".test.ts") || entry.endsWith(".test.py")) continue;
       const fullPath = join(dir, entry);
-      const stat = statSync(fullPath);
-      if (stat.isDirectory()) {
-        walk(fullPath);
-      } else if (stat.isFile() && !entry.endsWith(".pyc") && !entry.endsWith(".png") && !entry.endsWith(".jpg")) {
-        const text = readFileSync(fullPath, "utf-8");
-        if (SECRET_REGEX.test(text)) {
-          findings.push({
-            severity: "error",
-            code: "SECRET_LEAK",
-            message: `Possible secret/token leak detected in ${entry}`
-          });
+      try {
+        const stat = lstatSync(fullPath);
+        if (stat.isSymbolicLink()) {
+          findings.push({ severity: "error", code: "READ_FAILURE", message: `Cannot safely scan symbolic link: ${fullPath}` });
+        } else if (stat.isDirectory()) {
+          walk(fullPath);
+        } else if (stat.isFile() && !entry.endsWith(".pyc") && !entry.endsWith(".png") && !entry.endsWith(".jpg")) {
+          const text = readFileSync(fullPath, "utf-8");
+          if (SECRET_REGEX.test(text)) {
+            findings.push({
+              severity: "error",
+              code: "SECRET_LEAK",
+              message: `Possible secret/token leak detected in ${entry}`
+            });
+          }
+          if (PERSONAL_PATH_REGEX.test(text)) {
+            findings.push({
+              severity: "warning",
+              code: "PERSONAL_PATH",
+              message: `Personal absolute path detected in ${entry}`
+            });
+          }
         }
-        if (PERSONAL_PATH_REGEX.test(text)) {
-          findings.push({
-            severity: "warning",
-            code: "PERSONAL_PATH",
-            message: `Personal absolute path detected in ${entry}`
-          });
-        }
+      } catch (err) {
+        findings.push({ severity: "error", code: "READ_FAILURE", message: `Cannot scan ${fullPath}: ${String(err)}` });
       }
     }
   }
 
-  try {
-    walk(skillDir);
-  } catch {}
+  walk(skillDir);
 
   const errors = findings.filter((f) => f.severity === "error").length;
   const warnings = findings.filter((f) => f.severity === "warning").length;

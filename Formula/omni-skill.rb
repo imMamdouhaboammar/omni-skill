@@ -13,7 +13,7 @@ class OmniSkill < Formula
   def install
     if which("bun")
       system "bun", "install", "--frozen-lockfile" rescue system "bun", "install"
-      system "bun", "run", "--filter", "@omni-skill/cli", "build"
+      system "bun", "run", "--filter", "@mamdouh-aboammar/omni-skill", "build"
     else
       system "npm", "install"
       system "npm", "run", "build", "--workspaces"

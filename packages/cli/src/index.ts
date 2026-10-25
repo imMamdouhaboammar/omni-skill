@@ -13,7 +13,7 @@ const program = new Command();
 program
   .name("omni-skill")
   .description("Universal Cross-Host Agent Skill Engine & Compiler")
-  .version("6.0.0");
+  .version("6.0.1");
 
 program
   .command("route <prompt>")
@@ -29,6 +29,7 @@ program
   .command("init <name>")
   .description("Initialize a new production-grade OmniSkill package")
   .option("-d, --description <desc>", "Skill description")
+  .option("-o, --out <dir>", "Output directory")
   .action((name, options) => {
     initSkillCommand(name, options);
   });
@@ -52,6 +53,7 @@ program
   .command("port <path>")
   .description("Port a skill to a specific agent host (chatgpt, codex, claude, antigravity)")
   .requiredOption("-t, --target <host>", "Target host")
+  .option("-o, --out <dir>", "Output directory")
   .action((path, options) => {
     portSkillCommand(path, options);
   });
@@ -66,8 +68,9 @@ program
 program
   .command("package <path>")
   .description("Validate and package a skill for release")
-  .action((path) => {
-    packageSkillCommand(path);
+  .option("-o, --out <dir>", "Output directory")
+  .action((path, options) => {
+    packageSkillCommand(path, options);
   });
 
 program.parse(process.argv);

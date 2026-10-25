@@ -235,11 +235,13 @@ export function classifyIntent(prompt: string): { intent: SkillMode; confidence:
   // 10. Validation & Quality Check
   if (
     p.includes("validate") ||
+    p.includes("audit") ||
     p.includes("lint") ||
     p.includes("check structure") ||
     p.includes("frontmatter check") ||
     p.includes("فحص") ||
-    p.includes("تحقق")
+    p.includes("تحقق") ||
+    p.includes("تدقيق")
   ) {
     return { intent: "VALIDATE", confidence: 0.88, targetHosts, skillName };
   }

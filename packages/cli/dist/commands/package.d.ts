@@ -1,1 +1,3 @@
-export declare function packageSkillCommand(skillPathArg: string): void;
+export declare function packageSkillCommand(skillPathArg: string, options?: {
+    out?: string;
+}): void;

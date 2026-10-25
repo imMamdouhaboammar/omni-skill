@@ -41,3 +41,35 @@ def split_held_out(cases: List[Dict[str, Any]], train_ratio: float = 0.7) -> tup
     random.shuffle(shuffled)
     cut = int(len(shuffled) * train_ratio)
     return shuffled[:cut], shuffled[cut:]
+
+if __name__ == "__main__":
+    import argparse
+    import sys
+    parser = argparse.ArgumentParser(description="Evaluate a response against BinEval assertions")
+    parser.add_argument("evals", type=Path, help="Evaluation JSON path")
+    parser.add_argument("candidate", help="Candidate response text or path to a response file")
+    args = parser.parse_args()
+    eval_file = args.evals
+    if not eval_file.exists():
+        print(f"Error: evals file not found: {eval_file}", file=sys.stderr)
+        sys.exit(1)
+    try:
+        raw_evals = json.loads(eval_file.read_text(encoding="utf-8"))
+        suite = raw_evals if isinstance(raw_evals, list) else raw_evals["evals"]
+        if not isinstance(suite, list):
+            raise ValueError("evals must be a JSON array")
+    except Exception as exc:
+        print(f"Error: Failed to parse evals JSON: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+    cand_arg = args.candidate
+    cand_path = Path(cand_arg)
+    try:
+        candidate_is_file = cand_path.is_file()
+    except OSError:
+        candidate_is_file = False
+    candidate_text = cand_path.read_text(encoding="utf-8") if candidate_is_file else cand_arg
+
+    outcome = run_bineval(suite, candidate_text)
+    print(json.dumps(outcome, indent=2))
+    sys.exit(0 if outcome["passed"] == outcome["total"] else 1)
