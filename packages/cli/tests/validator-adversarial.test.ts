@@ -186,4 +186,30 @@ Target State
       rmSync(dir, { recursive: true });
     }
   });
+
+  it("inspects extensionless text files (e.g. CREDENTIALS) for secrets", () => {
+    const dir = mkdtempSync(join(tmpdir(), "omni-test-extensionless-"));
+    writeFileSync(
+      join(dir, "SKILL.md"),
+      `---
+name: extensionless-skill
+description: Tests extensionless text files.
+---
+# Why This Skill Is Needed
+Target State
+`
+    );
+    writeFileSync(join(dir, "CREDENTIALS"), "ANTHROPIC_API_KEY = sk-ant-api03-1234567890123456");
+
+    try {
+      const result = validateSkillDirectory(dir);
+      expect(result.pass).toBe(false);
+      expect(result.errors).toBe(1);
+      const leak = result.findings.find((f) => f.code === "SECRET_LEAK");
+      expect(leak).toBeDefined();
+      expect(leak?.message).toContain("CREDENTIALS");
+    } finally {
+      rmSync(dir, { recursive: true });
+    }
+  });
 });
