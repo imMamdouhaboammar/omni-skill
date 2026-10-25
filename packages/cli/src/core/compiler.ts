@@ -31,6 +31,17 @@ export function compileOmniSkillSpec(spec: OmniSkillSpec, outputDir: string): st
     );
   }
 
+  if (
+    spec.description === undefined ||
+    spec.description === null ||
+    typeof spec.description !== "string" ||
+    spec.description.trim().length === 0
+  ) {
+    throw new (typeof spec.description !== "string" ? TypeError : Error)(
+      "Field 'description' must be a non-empty string."
+    );
+  }
+
   const refDir = join(targetDir, "references");
 
   // Preflight validation for references before creating any directories or writing files
