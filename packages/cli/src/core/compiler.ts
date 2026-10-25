@@ -115,8 +115,14 @@ export function compileOmniSkillSpec(spec: OmniSkillSpec, outputDir: string): st
     }
 
     // Freeze snapshot so dynamic getter/proxy properties cannot mutate keys between validation and writing
-    const entries = Object.entries(spec.references).map(
-      ([k, v]) => [String(k), String(v)] as [string, string]
+    const rawEntries = Object.entries(spec.references);
+    for (const [refKey, refVal] of rawEntries) {
+      if (typeof refVal !== "string") {
+        throw new TypeError(`Field 'references["${refKey}"]' must be a string.`);
+      }
+    }
+    const entries = rawEntries.map(
+      ([k, v]) => [String(k), v as string] as [string, string]
     );
 
     const seenRefKeys = new Set<string>();
