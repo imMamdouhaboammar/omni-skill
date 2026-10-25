@@ -402,4 +402,32 @@ Instructions here.
     expect(fullLog).toContain("Validation PASSED");
     expect(fullLog).toContain("1/1 skills valid (0 errors, 2 warnings)");
   });
+
+  it("fails with exit 1 when skill contains a secret leak", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "omni-test-secret-cmd-"));
+    writeFileSync(
+      join(tempDir, "SKILL.md"),
+      `---
+name: secret-leak-skill
+description: Tests secret leak.
+---
+# Why This Skill Is Needed
+Target State
+`
+    );
+    writeFileSync(join(tempDir, "keys.env"), "OPENAI_API_KEY=sk-abcdef1234567890abcdef");
+
+    try {
+      validateSkillCommand(tempDir);
+    } catch {
+      // expect exit(1)
+    } finally {
+      rmSync(tempDir, { recursive: true });
+    }
+
+    expect(exitCode).toBe(1);
+    const fullLog = logOutput.join("\n");
+    expect(fullLog).toContain("SECRET_LEAK");
+    expect(fullLog).toContain("0/1 skills valid (1 errors, 0 warnings)");
+  });
 });
