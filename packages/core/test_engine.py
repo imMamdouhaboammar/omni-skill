@@ -369,6 +369,13 @@ class TestOmniSkillEngine(unittest.TestCase):
             self.assertEqual(evals_json["evals"][0]["id"], "c1")
             self.assertTrue(evals_json["evals"][0]["assertions"][0]["required"])
 
+            # 5. Empty evals list creates no evals dir
+            spec_empty = dict(base_spec)
+            spec_empty["name"] = "sample-empty-evals"
+            spec_empty["evals"] = []
+            res_empty = compile_spec(spec_empty, out_dir)
+            self.assertFalse((res_empty / "evals").exists())
+
     def test_compile_spec_zero_filesystem_mutation_on_validation_failure(self):
         import hashlib
 
