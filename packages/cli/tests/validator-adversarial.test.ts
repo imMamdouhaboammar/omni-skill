@@ -317,4 +317,28 @@ The following table outlines the components.
       rmSync(dir, { recursive: true });
     }
   });
+
+  it("produces MISSING_WHY_SECTION and MISSING_TARGET_STATE warnings when required sections are absent", () => {
+    const dir = mkdtempSync(join(tmpdir(), "omni-test-missing-sections-"));
+    writeFileSync(
+      join(dir, "SKILL.md"),
+      `---
+name: missing-sections-skill
+description: Tests missing sections.
+---
+# Simple Instructions
+Run the command directly.
+`
+    );
+
+    try {
+      const result = validateSkillDirectory(dir);
+      expect(result.pass).toBe(true);
+      expect(result.errors).toBe(0);
+      expect(result.findings.some((f) => f.code === "MISSING_WHY_SECTION")).toBe(true);
+      expect(result.findings.some((f) => f.code === "MISSING_TARGET_STATE")).toBe(true);
+    } finally {
+      rmSync(dir, { recursive: true });
+    }
+  });
 });
