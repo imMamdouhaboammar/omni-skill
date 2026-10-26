@@ -56,6 +56,14 @@
       transition: transform 0.2s, border-color 0.2s;
     }
     .skill-card:hover { transform: translateY(-4px); border-color: var(--cyan); }
+    @media (prefers-reduced-motion: reduce) {
+      .skill-card {
+        transition: none;
+      }
+      .skill-card:hover {
+        transform: none;
+      }
+    }
     .skill-card h3 { font-size: 1.25rem; margin-bottom: 8px; color: var(--text); }
     .skill-card p { font-size: 0.925rem; color: var(--text-muted); margin-bottom: 16px; }
     .tags { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -82,26 +90,28 @@
       </div>
     </header>
 
-    <div class="install-box">
-      <div class="install-title">1-Click Skills.sh Install</div>
-      <pre><code>npx skills add imMamdouhaboammar/omni-skill</code></pre>
-    </div>
+    <main id="main-content">
+      <div class="install-box">
+        <div class="install-title">1-Click Skills.sh Install</div>
+        <pre><code>npx skills add imMamdouhaboammar/omni-skill</code></pre>
+      </div>
 
-    <div class="install-box">
-      <div class="install-title">Homebrew Install (macOS / Linux)</div>
-      <pre><code>brew tap imMamdouhaboammar/omni-skill https://github.com/imMamdouhaboammar/omni-skill
+      <div class="install-box">
+        <div class="install-title">Homebrew Install (macOS / Linux)</div>
+        <pre><code>brew tap imMamdouhaboammar/omni-skill https://github.com/imMamdouhaboammar/omni-skill
 brew install omni-skill</code></pre>
-    </div>
+      </div>
 
-    <div class="install-box">
-      <div class="install-title">Universal Curl Installer</div>
-      <pre><code>curl -fsSL https://raw.githubusercontent.com/imMamdouhaboammar/omni-skill/main/install.sh | bash</code></pre>
-    </div>
+      <div class="install-box">
+        <div class="install-title">Universal Curl Installer</div>
+        <pre><code>curl -fsSL https://raw.githubusercontent.com/imMamdouhaboammar/omni-skill/main/install.sh | bash</code></pre>
+      </div>
 
-    <h2 style="margin-top: 40px;">Certified Modular Skills</h2>
-    <div class="skills-grid" id="skillsGrid">
-      <!-- Injected dynamically -->
-    </div>
+      <h2 style="margin-top: 40px;">Certified Modular Skills</h2>
+      <div class="skills-grid" id="skillsGrid">
+        <!-- Injected dynamically -->
+      </div>
+    </main>
 
     <footer>
       <p>Built with precision by <a href="https://github.com/imMamdouhaboammar">Mamdouh Aboammar</a> • MIT License • <a href="https://github.com/imMamdouhaboammar/omni-skill">GitHub Repository</a></p>
