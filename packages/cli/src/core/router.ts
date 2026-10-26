@@ -1,3 +1,5 @@
+import { posix } from "node:path";
+
 export type SkillMode =
   | "CREATE"
   | "IMPROVE"
@@ -118,8 +120,9 @@ export function classifyIntent(prompt: string): { intent: SkillMode; confidence:
   }
 
   // An audit remains read-only even if GitHub is the source or future destination.
-  if ((/\b(audit|review|security|scan)\b/.test(p) || /فحص|تدقيق|أمان|امان/.test(p))
-      && !/poteto|principle|مبادئ|مبدأ/.test(p)) {
+  if (/\bsecurity\b|أمان|امان/.test(p) ||
+      ((/\b(audit|review|scan)\b/.test(p) || /فحص|تدقيق/.test(p))
+        && !/poteto|principle|مبادئ|مبدأ/.test(p))) {
     return { intent: "VALIDATE", confidence: 0.88, targetHosts, skillName };
   }
 
@@ -281,7 +284,7 @@ export function classifyIntent(prompt: string): { intent: SkillMode; confidence:
 /**
  * Generate a dynamic Directed Acyclic Graph (DAG) for the given intent and targets.
  */
-export function buildExecutionDag(
+function buildExecutionPlan(
   intent: SkillMode,
   skillName: string = "target-skill",
   targetHosts: AgentHost[] = ["universal"]
@@ -650,6 +653,22 @@ export function buildExecutionDag(
   }
 }
 
+/** Resolve shared documents from each skill's installed directory, without I/O. */
+export function buildExecutionDag(
+  intent: SkillMode,
+  skillName: string = "target-skill",
+  targetHosts: AgentHost[] = ["universal"]
+): RouteStep[] {
+  const sharedReferences = new Set([
+    "skill-architect", "skill-evaluator", "skill-portability-compiler", "host-workspace-operator"
+  ]);
+  return buildExecutionPlan(intent, skillName, targetHosts).map(step => ({
+    ...step,
+    requiredReferences: step.requiredReferences.map(ref =>
+      sharedReferences.has(step.skill) ? `../omni-skill/${ref}` : ref)
+  }));
+}
+
 /**
  * Main Smart Router Function
  */
@@ -678,7 +697,8 @@ export function routeRequest(prompt: string, explicitHost?: string, state: Route
 
   // Aggregate all unique required references
   const allRefs = new Set<string>();
-  dag.forEach(step => step.requiredReferences.forEach(ref => allRefs.add(ref)));
+  dag.forEach(step => step.requiredReferences.forEach(ref =>
+    allRefs.add(posix.normalize(`skills/${step.skill}/${ref}`))));
 
   return {
     intent,

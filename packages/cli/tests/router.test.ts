@@ -130,3 +130,21 @@ describe("State overrides before release", () => {
     expect(() => routeRequest("Package skill", "codex", { mutationGeneration: -1 })).toThrow();
   });
 });
+
+describe("Packaged route resources", () => {
+  it("resolves each step's deferred references from its owning skill", async () => {
+    const { existsSync } = await import("node:fs");
+    const { resolve } = await import("node:path");
+    const modes = ["CREATE", "IMPROVE", "VALIDATE", "EVAL", "OPTIMIZE", "PORT", "PACKAGE", "DISTRIBUTE", "MEASURE", "INTEGRATE", "PRINCIPLES", "AUTHOR"] as const;
+    for (const mode of modes) {
+      for (const step of buildExecutionDag(mode)) {
+        for (const ref of step.requiredReferences) {
+          expect(existsSync(resolve(import.meta.dir, "../../../skills", step.skill, ref))).toBe(true);
+        }
+      }
+    }
+  });
+  it("does not let the word principles hide an explicit security review", () => {
+    expect(classifyIntent("Review skill security principles before publishing").intent).toBe("VALIDATE");
+  });
+});

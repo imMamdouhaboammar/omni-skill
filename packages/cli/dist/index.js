@@ -12859,6 +12859,7 @@ function packageSkillCommand(skillPathArg, options) {
 var import_picocolors7 = __toESM(require_picocolors(), 1);
 
 // src/core/router.ts
+import { posix } from "node:path";
 function detectHost(explicitHost) {
   if (explicitHost) {
     const norm = explicitHost.toLowerCase().trim();
@@ -12926,7 +12927,7 @@ function classifyIntent(prompt) {
       skillName = genericMatch[1];
     }
   }
-  if ((/\b(audit|review|security|scan)\b/.test(p) || /فحص|تدقيق|أمان|امان/.test(p)) && !/poteto|principle|مبادئ|مبدأ/.test(p)) {
+  if (/\bsecurity\b|أمان|امان/.test(p) || (/\b(audit|review|scan)\b/.test(p) || /فحص|تدقيق/.test(p)) && !/poteto|principle|مبادئ|مبدأ/.test(p)) {
     return { intent: "VALIDATE", confidence: 0.88, targetHosts, skillName };
   }
   if (p.includes("distribute") || p.includes("publish") || /\b(craft|prepare|create)\s+(a\s+)?repo\b/.test(p) || p.includes("skills.sh") || p.includes("marketplace") || p.includes("انشر") || p.includes("مستودع") || p.includes("توزيع")) {
@@ -12964,7 +12965,7 @@ function classifyIntent(prompt) {
   }
   return { intent: "CREATE", confidence: 0.8, targetHosts, skillName };
 }
-function buildExecutionDag(intent, skillName = "target-skill", targetHosts = ["universal"]) {
+function buildExecutionPlan(intent, skillName = "target-skill", targetHosts = ["universal"]) {
   switch (intent) {
     case "MEASURE":
       return [
@@ -13317,6 +13318,18 @@ function buildExecutionDag(intent, skillName = "target-skill", targetHosts = ["u
       ];
   }
 }
+function buildExecutionDag(intent, skillName = "target-skill", targetHosts = ["universal"]) {
+  const sharedReferences = new Set([
+    "skill-architect",
+    "skill-evaluator",
+    "skill-portability-compiler",
+    "host-workspace-operator"
+  ]);
+  return buildExecutionPlan(intent, skillName, targetHosts).map((step) => ({
+    ...step,
+    requiredReferences: step.requiredReferences.map((ref) => sharedReferences.has(step.skill) ? `../omni-skill/${ref}` : ref)
+  }));
+}
 function routeRequest(prompt, explicitHost, state = {}) {
   for (const value of [state.failureStreak, state.mutationGeneration, state.verifiedGeneration]) {
     if (value !== undefined && (!Number.isSafeInteger(value) || value < 0)) {
@@ -13339,7 +13352,7 @@ function routeRequest(prompt, explicitHost, state = {}) {
   const actualSkillName = skillName || "skill-artifact";
   const dag = buildExecutionDag(intent, actualSkillName, targetHosts);
   const allRefs = new Set;
-  dag.forEach((step) => step.requiredReferences.forEach((ref) => allRefs.add(ref)));
+  dag.forEach((step) => step.requiredReferences.forEach((ref) => allRefs.add(posix.normalize(`skills/${step.skill}/${ref}`))));
   return {
     intent,
     confidence,

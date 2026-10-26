@@ -44,9 +44,7 @@ export declare function classifyIntent(prompt: string): {
     targetHosts: AgentHost[];
     skillName?: string;
 };
-/**
- * Generate a dynamic Directed Acyclic Graph (DAG) for the given intent and targets.
- */
+/** Resolve shared documents from each skill's installed directory, without I/O. */
 export declare function buildExecutionDag(intent: SkillMode, skillName?: string, targetHosts?: AgentHost[]): RouteStep[];
 /**
  * Main Smart Router Function
