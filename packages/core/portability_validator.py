@@ -26,11 +26,12 @@ def parse_frontmatter(text: str) -> tuple[str | None, str | None]:
     raw_frontmatter = text[4:end]
     try:
         import yaml
-        data = yaml.safe_load(raw_frontmatter)
-        if isinstance(data, dict):
-            name = str(data["name"]) if data.get("name") is not None else None
-            desc = str(data["description"]) if data.get("description") is not None else None
-            return name, desc
+        if yaml is not None:
+            data = yaml.safe_load(raw_frontmatter)
+            if isinstance(data, dict):
+                name = str(data["name"]) if data.get("name") is not None else None
+                desc = str(data["description"]) if data.get("description") is not None else None
+                return name, desc
     except Exception:
         pass
 
@@ -38,21 +39,33 @@ def parse_frontmatter(text: str) -> tuple[str | None, str | None]:
     name = None
     description_lines = []
     in_description = False
+    is_literal_block = False
     for line in block:
         if line.startswith("name:"):
-            name = line.split(":", 1)[1].strip().strip("'\"")
+            val = line.split(":", 1)[1].strip()
+            name = val.strip("'\"")
             in_description = False
         elif line.startswith("description:"):
             value = line.split(":", 1)[1].strip()
             in_description = value in {">", "|", ">-", "|-"} or not value
+            is_literal_block = value in {"|", "|-"}
             if value and not in_description:
-                description_lines.append(value.strip("'\""))
+                if value.startswith('"') and value.endswith('"'):
+                    try:
+                        description_lines.append(json.loads(value))
+                    except json.JSONDecodeError:
+                        description_lines.append(value.strip('"'))
+                elif value.startswith("'") and value.endswith("'"):
+                    description_lines.append(value[1:-1].replace("''", "'"))
+                else:
+                    description_lines.append(value)
         elif in_description:
             if line.startswith(" ") or line.startswith("\t"):
                 description_lines.append(line.strip())
             else:
                 in_description = False
-    return name, " ".join(description_lines).strip()
+    sep = "\n" if is_literal_block else " "
+    return name, sep.join(description_lines).strip()
 
 def validate_skill(skill_dir: Path, targets: List[str] = None) -> Dict[str, Any]:
     findings = []

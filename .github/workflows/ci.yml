@@ -22,9 +22,9 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install accessibility test browser
+      - name: Install accessibility test browser and core dependencies
         run: |
-          python3 -m pip install playwright==1.64.1
+          python3 -m pip install playwright==1.64.1 pyyaml
           python3 -m playwright install --with-deps chromium
 
       - name: Install dependencies
