@@ -30,8 +30,16 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Test public plugin archive
+        run: |
+          python3 -m unittest discover -s tests -p 'test_plugin_*.py'
+          python3 scripts/plugin_package.py . /tmp/omni-a.zip
+          python3 scripts/plugin_package.py . /tmp/omni-b.zip
+          cmp /tmp/omni-a.zip /tmp/omni-b.zip
+
       - name: Validate Plugin JSON Manifests
         run: |
+          python3 -m json.tool plugin.json >/dev/null
           python3 -m json.tool .codex-plugin/plugin.json >/dev/null
           python3 -m json.tool .agents/plugins/marketplace.json >/dev/null
           python3 -m json.tool .claude-plugin/plugin.json >/dev/null

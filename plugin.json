@@ -1,0 +1,60 @@
+{
+  "name": "omni-skill",
+  "version": "6.1.1",
+  "description": "Design, test, improve, and package reusable agent skills with evidence and host-aware routing.",
+  "author": {
+    "name": "Mamdouh Aboammar",
+    "url": "https://github.com/imMamdouhaboammar"
+  },
+  "license": "MIT",
+  "keywords": [
+    "omni-skill",
+    "agent-skills",
+    "skill-authoring",
+    "evals",
+    "chatgpt",
+    "codex",
+    "claude-code",
+    "antigravity",
+    "developer-tools"
+  ],
+  "homepage": "https://github.com/imMamdouhaboammar/omni-skill",
+  "repository": "https://github.com/imMamdouhaboammar/omni-skill",
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "OmniSkill",
+        "shortDescription": "Build and test agent skills",
+        "longDescription": "Turn a recurring workflow, prompt, or SOP into an agent skill with a clear job, activation boundaries, decision rules, and evaluation cases. OmniSkill routes each request to the next relevant specialist: architecture, authoring, evaluation, repair, host adaptation, or packaging. It checks available host capabilities before using files, shell, or Python, keeps static checks separate from behavioral evidence, and revisits the route when failures or stale verification block progress. Use it in ChatGPT or Codex to build a new skill, audit an existing one, or prepare a portable package. Bundled scripts run only when the host provides the required runtime; no hosted service or MCP connection is required. Cross-host behavior must be tested on each target host before being called verified.",
+        "developerName": "Mamdouh Aboammar",
+        "category": "Developer Tools",
+        "capabilities": [
+          "Workflow-to-skill design",
+          "State-aware skill routing",
+          "Activation and collision evaluation",
+          "Static security checks",
+          "ChatGPT and Codex adaptation",
+          "Evidence-based improvement",
+          "Portable skill packaging"
+        ],
+        "websiteURL": "https://github.com/imMamdouhaboammar/omni-skill",
+        "defaultPrompt": [
+          "Turn this recurring workflow into a skill with clear triggers, decision rules, and evaluation cases.",
+          "Audit this agent skill for activation collisions, unsafe instructions, and missing evidence.",
+          "Adapt this skill for ChatGPT and Codex, then validate and package the supported behavior."
+        ],
+        "brandColor": "#0F172A",
+        "composerIcon": "./assets/icon.png",
+        "logo": "./assets/logo.png",
+        "privacyPolicyURL": "https://github.com/imMamdouhaboammar/omni-skill/blob/main/PRIVACY.md",
+        "termsOfServiceURL": "https://github.com/imMamdouhaboammar/omni-skill/blob/main/TERMS.md",
+        "supportURL": "https://github.com/imMamdouhaboammar/omni-skill/blob/main/SUPPORT.md"
+      },
+      "onboardingSkill": "./skills/setup/SKILL.md",
+      "publication": {
+        "release_notes": "Adds portable ChatGPT/Codex packaging, guided setup, state-aware routing, focused skill metadata, and deterministic archive checks."
+      }
+    }
+  }
+}

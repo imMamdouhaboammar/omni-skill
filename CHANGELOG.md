@@ -1,5 +1,17 @@
 # Changelog
 
+## Plugin 6.1.1
+
+- Add portable OpenAI plugin metadata, guided setup, focused skill interfaces,
+  and an explicit skills-only public package boundary.
+- Route from security, failure, and verification state before release intent;
+  distinguish ChatGPT and Codex and fix substring routing collisions.
+- Defer detailed lifecycle recipes instead of eagerly loading them.
+- Build deterministic, security-gated upload ZIPs with archive regression tests.
+- Require one explicit new installer destination and preserve existing installs.
+- Document host smoke cases and remaining portal publication facts.
+
+
 All notable changes to the **OmniSkill** project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),

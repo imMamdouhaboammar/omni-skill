@@ -1,7 +1,7 @@
 {
   "name": "omni-skill",
-  "version": "6.0.0",
-  "description": "Universal Cross-Host Agent Skill Engineering Engine & Poteto Mode for ChatGPT, Codex, Claude Code, and Agent Skills hosts.",
+  "version": "6.1.1",
+  "description": "Design, test, improve, and package reusable agent skills with evidence and host-aware routing.",
   "author": {
     "name": "Mamdouh Aboammar",
     "url": "https://github.com/imMamdouhaboammar"
@@ -21,34 +21,37 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "OmniSkill",
-    "shortDescription": "Universal agent skill engine and compiler",
-    "longDescription": "Universal cross-host skill engineering platform. Converts workflows into high-reliability skills with architecture design, freedom level calibration, positive and negative trigger tuning, behavioral evaluation with BinEval, pressure testing, and multi-agent compilation for ChatGPT, Codex, Claude Code, and Antigravity.",
+    "shortDescription": "Build and test agent skills",
+    "longDescription": "Turn a recurring workflow, prompt, or SOP into an agent skill with a clear job, activation boundaries, decision rules, and evaluation cases. OmniSkill routes each request to the next relevant specialist: architecture, authoring, evaluation, repair, host adaptation, or packaging. It checks available host capabilities before using files, shell, or Python, keeps static checks separate from behavioral evidence, and revisits the route when failures or stale verification block progress. Use it in ChatGPT or Codex to build a new skill, audit an existing one, or prepare a portable package. Bundled scripts run only when the host provides the required runtime; no hosted service or MCP connection is required. Cross-host behavior must be tested on each target host before being called verified.",
     "developerName": "Mamdouh Aboammar",
     "category": "Developer Tools",
     "capabilities": [
-      "OmniSkillSpec Architecture Design",
-      "Universal Skill Contract Generation",
-      "Trigger and Collision Boundary Tuning",
-      "Workflow-to-Skill Compilation",
-      "Cross-Host Portability Compilation",
-      "AST & Structural Skill Validation",
-      "Behavioral & Pressure-Test Harness",
-      "Held-Out Regression Evaluation",
-      "Token Leak & Secret Prevention",
-      "Multi-Agent Skill Packaging"
+      "Workflow-to-skill design",
+      "State-aware skill routing",
+      "Activation and collision evaluation",
+      "Static security checks",
+      "ChatGPT and Codex adaptation",
+      "Evidence-based improvement",
+      "Portable skill packaging"
     ],
     "websiteURL": "https://github.com/imMamdouhaboammar/omni-skill",
     "defaultPrompt": [
-      "Design a production-grade OmniSkill for this workflow with full contract and evals.",
-      "Audit this Skill for trigger collisions, instructions quality, and cross-host portability.",
-      "Compile this prompt/SOP into portable Skill adapters for ChatGPT, Codex, Claude Code, and Antigravity."
+      "Turn this recurring workflow into a skill with clear triggers, decision rules, and evaluation cases.",
+      "Audit this agent skill for activation collisions, unsafe instructions, and missing evidence.",
+      "Adapt this skill for ChatGPT and Codex, then validate and package the supported behavior."
     ],
     "brandColor": "#0F172A",
-    "composerIcon": "./assets/mark.svg",
-    "logo": "./assets/logo-light.svg",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/logo.png",
     "privacyPolicyURL": "https://github.com/imMamdouhaboammar/omni-skill/blob/main/PRIVACY.md",
-    "termsOfServiceURL": "https://github.com/imMamdouhaboammar/omni-skill/blob/main/TERMS.md"
+    "termsOfServiceURL": "https://github.com/imMamdouhaboammar/omni-skill/blob/main/TERMS.md",
+    "supportURL": "https://github.com/imMamdouhaboammar/omni-skill/blob/main/SUPPORT.md"
   },
   "homepage": "https://github.com/imMamdouhaboammar/omni-skill",
-  "repository": "https://github.com/imMamdouhaboammar/omni-skill"
+  "repository": "https://github.com/imMamdouhaboammar/omni-skill",
+  "extensions": {
+    "com.openai": {
+      "onboardingSkill": "./skills/setup/SKILL.md"
+    }
+  }
 }
