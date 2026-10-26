@@ -15,6 +15,5 @@ It refuses replacement and destinations inside its own source. Review the source
 then invoke `bash install.sh <new-skill-directory>` only when installation is
 requested. It does not discover agent directories or erase previous installs.
 
-Use `../omni-skill/scripts/validate_portability.py` from the shared parent skills
-directory for static portability checks. Host-native tools do not become available
+Use `../omni-skill/scripts/validate_portability.py` relative to this skill directory for static portability checks. Host-native tools do not become available
 because a plugin declares them. Report unrun checks and unavailable runtimes.

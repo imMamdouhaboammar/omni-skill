@@ -18,12 +18,12 @@ Do not block these modes because `uv`, `claude`, an API key, shell, or Python is
 
 ## 2. Portable Python scripts
 
-The v4 portability utilities use Python 3 standard library and can run with host-native Python when available:
+The shared portability utilities use Python 3 standard library and can run with host-native Python when available. These paths assume the skill-conductor directory as the working directory:
 
 ```bash
-python3 scripts/compile_skill_spec.py --spec <spec.json> --out <dir>
-python3 scripts/validate_portability.py <skill-dir> --targets <hosts>
-python3 scripts/test_portability.py
+python3 ../omni-skill/scripts/compile_skill_spec.py --spec <spec.json> --out <dir>
+python3 ../omni-skill/scripts/validate_portability.py <skill-dir> --targets <hosts>
+python3 ../omni-skill/scripts/test_portability.py
 ```
 
 If the current host exposes a Python tool instead of a shell command, execute the equivalent script through that host capability and preserve the execution evidence.
