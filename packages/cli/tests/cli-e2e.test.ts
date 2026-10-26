@@ -284,21 +284,38 @@ describe("CLI End-to-End Test Suite", () => {
   });
 
   describe("omni-skill eval", () => {
-    it("should evaluate a skill with evals.json and report 100% pass rate", () => {
+    it("should evaluate a skill with evals.json using per-case responses and report 100% pass rate", () => {
       const skillDir = join(tempBase, "weather-reporter");
-      const res = runCli(["eval", skillDir]);
+      const respPath = join(tempBase, "weather-responses.json");
+      writeFileSync(
+        respPath,
+        JSON.stringify({
+          "trigger-positive-1": "Running weather-reporter to fetch weather conditions",
+          "negative-collision-1": "Why did the chicken cross the road? To get to the other side."
+        })
+      );
+      const res = runCli(["eval", skillDir, "--responses", respPath]);
       expect(res.status).toBe(0);
       expect(res.stdout).toContain("All 2 evaluation cases verified with 100% pass rate");
     });
 
-    it("should handle skills without evals.json with baseline structural check", () => {
+    it("should fail closed and exit with code 1 when no candidate response evidence is provided", () => {
+      const skillDir = join(tempBase, "weather-reporter");
+      const res = runCli(["eval", skillDir]);
+      expect(res.status).toBe(1);
+      expect(res.stdout).toContain("unverified");
+      expect(res.stdout).not.toContain("100%");
+    });
+
+    it("should fail closed when evaluating a skill without evals.json", () => {
       const noEvalDir = join(tempBase, "no-eval-skill");
       runCli(["init", "no-eval-skill", "-o", tempBase]);
       rmSync(join(noEvalDir, "evals"), { recursive: true, force: true });
 
       const res = runCli(["eval", noEvalDir]);
-      expect(res.status).toBe(0);
-      expect(res.stdout).toContain("No evals/evals.json found. Generating baseline trigger check");
+      expect(res.status).toBe(1);
+      expect(res.stdout).toContain("Cannot evaluate without an evaluation suite");
+      expect(res.stdout).not.toContain("Baseline structural test passed");
     });
 
     it("should exit with code 1 when evals.json contains malformed JSON", () => {

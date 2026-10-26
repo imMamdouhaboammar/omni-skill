@@ -184,8 +184,9 @@ omni-skill port examples/sql-optimizer --target cursor
 omni-skill port examples/sql-optimizer --target claude
 omni-skill port examples/sql-optimizer --target codex
 
-# 5. Run BinEval test harness
-omni-skill eval skills/omni-skill
+# 5. Run BinEval test harness (with candidate response or per-case evidence)
+omni-skill eval examples/sql-optimizer --candidate "EXPLAIN ANALYZE SELECT * FROM users;"
+omni-skill eval examples/sql-optimizer --responses evals/responses.json --json
 ```
 
 ---
