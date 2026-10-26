@@ -115,6 +115,12 @@ def validate(root: Path) -> dict:
         text = (root / 'skills' / slug / 'SKILL.md').read_text()
         if not text.startswith('---\n') or f'name: {slug}\n' not in text.split('\n---', 1)[0]:
             raise ValueError(f'Invalid skill identity: {slug}')
+        for ref in re.findall(r'`([^`\n]+\.md)`', text):
+            if '<' in ref or not ref.startswith(('references/', 'usecases/', '../')):
+                continue
+            target = (root / 'skills' / slug / ref).resolve()
+            if root not in target.parents or not target.is_file():
+                raise ValueError(f'Missing or escaped skill resource: {slug}/{ref}')
     inventory(root)
     return data
 

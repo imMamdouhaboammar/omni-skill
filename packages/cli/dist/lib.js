@@ -7053,7 +7053,10 @@ function classifyIntent(prompt) {
       skillName = genericMatch[1];
     }
   }
-  if (/\bsecurity\b|أمان|امان/.test(p) || (/\b(audit|review|scan)\b/.test(p) || /فحص|تدقيق/.test(p)) && !/poteto|principle|مبادئ|مبدأ/.test(p)) {
+  const editingSkill = /\b(create|build|design|author|port|adapt|improve|fix|repair)\b.*\bskill\b/.test(p);
+  const inspection = /\b(audit|review|scan|check|inspect)\b|فحص|تدقيق/.test(p);
+  const securityTopic = /\bsecurity\b|أمان|امان/.test(p);
+  if (!editingSkill && inspection && (securityTopic || !/poteto|principle|مبادئ|مبدأ/.test(p))) {
     return { intent: "VALIDATE", confidence: 0.88, targetHosts, skillName };
   }
   if (p.includes("distribute") || p.includes("publish") || /\b(craft|prepare|create)\s+(a\s+)?repo\b/.test(p) || p.includes("skills.sh") || p.includes("marketplace") || p.includes("انشر") || p.includes("مستودع") || p.includes("توزيع")) {
@@ -7083,7 +7086,7 @@ function classifyIntent(prompt) {
   if (p.includes("author skill") || p.includes("authoring") || p.includes("skill-authoring") || p.includes("تأليف مهارة") || p.includes("كتابة مهارة")) {
     return { intent: "AUTHOR", confidence: 0.92, targetHosts, skillName };
   }
-  if (p.includes("validate") || p.includes("audit") || p.includes("lint") || p.includes("check structure") || p.includes("frontmatter check") || p.includes("فحص") || p.includes("تحقق") || p.includes("تدقيق")) {
+  if (!editingSkill && (p.includes("validate") || p.includes("audit") || p.includes("lint") || p.includes("check structure") || p.includes("frontmatter check") || p.includes("فحص") || p.includes("تحقق") || p.includes("تدقيق"))) {
     return { intent: "VALIDATE", confidence: 0.88, targetHosts, skillName };
   }
   if (p.includes("improve") || p.includes("fix") || p.includes("repair") || p.includes("refactor") || p.includes("update skill") || p.includes("صلح") || p.includes("عدل") || p.includes("طور")) {

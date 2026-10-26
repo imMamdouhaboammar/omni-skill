@@ -119,10 +119,12 @@ export function classifyIntent(prompt: string): { intent: SkillMode; confidence:
     }
   }
 
-  // An audit remains read-only even if GitHub is the source or future destination.
-  if (/\bsecurity\b|أمان|امان/.test(p) ||
-      ((/\b(audit|review|scan)\b/.test(p) || /فحص|تدقيق/.test(p))
-        && !/poteto|principle|مبادئ|مبدأ/.test(p))) {
+  // The topic of a skill is not the action requested on that skill.
+  const editingSkill = /\b(create|build|design|author|port|adapt|improve|fix|repair)\b.*\bskill\b/.test(p);
+  const inspection = /\b(audit|review|scan|check|inspect)\b|فحص|تدقيق/.test(p);
+  const securityTopic = /\bsecurity\b|أمان|امان/.test(p);
+  if (!editingSkill && inspection &&
+      (securityTopic || !/poteto|principle|مبادئ|مبدأ/.test(p))) {
     return { intent: "VALIDATE", confidence: 0.88, targetHosts, skillName };
   }
 
@@ -250,7 +252,7 @@ export function classifyIntent(prompt: string): { intent: SkillMode; confidence:
   }
 
   // 10. Validation & Quality Check
-  if (
+  if (!editingSkill && (
     p.includes("validate") ||
     p.includes("audit") ||
     p.includes("lint") ||
@@ -259,7 +261,7 @@ export function classifyIntent(prompt: string): { intent: SkillMode; confidence:
     p.includes("فحص") ||
     p.includes("تحقق") ||
     p.includes("تدقيق")
-  ) {
+  )) {
     return { intent: "VALIDATE", confidence: 0.88, targetHosts, skillName };
   }
 

@@ -90,6 +90,11 @@ class PluginPackageTests(unittest.TestCase):
             package.build(self.root, archive)
         self.assertFalse(archive.exists())
 
+    def test_rejects_missing_shared_skill_resource(self):
+        (self.root / 'skills/omni-skill/references/host-adapters.md').unlink()
+        with self.assertRaises(ValueError):
+            package.validate(self.root)
+
     def test_rejects_output_inside_source(self):
         with self.assertRaises(ValueError):
             package.build(self.root, self.root / 'skills/omni-skill/out.zip')

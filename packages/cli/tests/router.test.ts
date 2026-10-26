@@ -148,3 +148,14 @@ describe("Packaged route resources", () => {
     expect(classifyIntent("Review skill security principles before publishing").intent).toBe("VALIDATE");
   });
 });
+
+describe("Skill topic versus requested action", () => {
+  it("preserves creation, improvement, and porting for security-themed skills", () => {
+    expect(classifyIntent("Create a security auditing skill for Codex").intent).toBe("CREATE");
+    expect(classifyIntent("Port my security review skill to ChatGPT").intent).toBe("PORT");
+    expect(classifyIntent("Improve this security auditing skill").intent).toBe("IMPROVE");
+    expect(classifyIntent("Review this security skill before publishing").intent).toBe("VALIDATE");
+    expect(classifyIntent("Check this skill for security before publishing").intent).toBe("VALIDATE");
+    expect(classifyIntent("Inspect this security skill").intent).toBe("VALIDATE");
+  });
+});

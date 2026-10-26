@@ -52,7 +52,7 @@ Move implementation-only coupling into an adapter
 
 ## Step 3: Build the capability matrix
 
-Read `../skill-conductor/references/host-adapters.md`
+Read `../omni-skill/references/host-adapters.md`
 
 For every target host record:
 
