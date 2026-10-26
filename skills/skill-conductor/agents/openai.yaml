@@ -1,0 +1,6 @@
+interface:
+  display_name: "Improve and Package Skills"
+  short_description: "Use improve and package skills for an OmniSkill workflow."
+  default_prompt: "Use $skill-conductor for the current skill-engineering task and report evidence and limits."
+policy:
+  allow_implicit_invocation: false

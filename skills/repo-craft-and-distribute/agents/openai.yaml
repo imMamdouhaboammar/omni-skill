@@ -1,0 +1,6 @@
+interface:
+  display_name: "Distribute Skills"
+  short_description: "Use distribute skills for an OmniSkill workflow."
+  default_prompt: "Use $repo-craft-and-distribute for the current skill-engineering task and report evidence and limits."
+policy:
+  allow_implicit_invocation: false

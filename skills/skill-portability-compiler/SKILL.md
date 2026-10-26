@@ -12,7 +12,7 @@ description: >
 
 **Why this skill is needed:** Skills frequently become tightly coupled to specific vendor runtime quirks (e.g. Claude Code tool names, Cursor rules syntax, Codex plugin schemas). When porting to another agent, authors often rewrite the entire skill by hand, introducing behavioral discrepancies and losing core evidence gates.
 
-**Target state:** The core behavioral logic, decision gates, and domain invariants remain vendor-neutral, while host-specific adapters automatically bridge runtime differences with zero semantic loss.
+**Target state:** The core behavioral logic, decision gates, and domain invariants remain vendor-neutral, while host-specific adapters automatically bridge runtime differences while documenting and testing behavioral differences.
 
 ## Step 1: Extract the portable core
 

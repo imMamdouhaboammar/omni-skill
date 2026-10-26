@@ -1,73 +1,35 @@
-# OmniSkill Dynamic Agentic Router Specification
+# Dynamic routing contract
 
-This document provides the definitive specification for how AI agents (Claude Code, Antigravity, ChatGPT/Codex, Cursor, Windsurf, OpenCode) must dynamically route user intents into optimal skill execution graphs.
+The installed `SKILL.md` is the policy router. The optional TypeScript CLI router
+is an intent heuristic which proposes a DAG, not a host tool or a permission grant.
+The CLI has no model call and its confidence values are heuristic labels.
 
----
+## Precedence
 
-## 1. Core Routing Architecture
+Inspect current source and authorization, then unresolved security, repeated
+failed hypotheses, stale verification, missing facts, and finally requested intent.
+Keep one owner for the next decision. Load later specialists only after their
+preconditions hold. File operations use the host workspace contract; deterministic
+checks use a real Python/shell capability when available.
 
-```mermaid
-flowchart TD
-    A["Raw User Intent (Any Language)"] --> B["OmniSkill Dynamic Agentic Router"]
-    B --> C["Host Capability Negotiation"]
-    B --> D["Intent Classifier & Skill Extractor"]
-    
-    C --> E["Dynamic DAG Generator"]
-    D --> E
-    
-    subgraph ExecutionDAG ["Targeted Skill Execution DAG"]
-        F["Phase 1: Intent & Architecture (skill-architect)"]
-        G["Phase 2: Scaffolding & Mutation (host-workspace-operator)"]
-        H["Phase 3: BinEval & Assertions (skill-evaluator)"]
-        I["Phase 4: Conductor Scoring (skill-conductor)"]
-        J["Phase 5: Cross-Host Adapters (skill-portability-compiler)"]
-        K["Phase 6: Universal Distribution (repo-craft-and-distribute)"]
-    end
-    
-    E --> ExecutionDAG
-    ExecutionDAG --> L["Release Ready Artifact / Validated Output"]
-    
-    H -.->|"Score < Threshold"| M["Self-Healing Feedback Loop (IMPROVE)"]
-    M -.-> F
-```
+Library callers may supply `failureStreak`, `mutationGeneration`,
+`verifiedGeneration`, and `unresolvedSecurity` to `routeRequest`. Missing or stale
+verification blocks package/distribution when mutation generation is known.
+The CLI's two-argument call does not infer or persist these facts; the agent must
+check them before execution. No route executes commands automatically.
 
----
+## Cases
 
-## 2. Intent to Sub-Skill Mapping Matrix
+| Request and state | Next owner | Gate |
+| --- | --- | --- |
+| Turn our incident SOP into a skill | skill-architect | Contract and realistic eval cases |
+| Audit a skill from a GitHub repository | skill-evaluator | Grounded findings; no publishing |
+| Package a skill changed since its last tests | skill-evaluator | Fresh evidence before packaging |
+| Same improvement attempt failed twice | skill-conductor | New hypothesis from captured errors |
+| Port a skill to ChatGPT and Codex | skill-portability-compiler | Separate capability and evidence records |
+| انشر المهارة بعد التحقق | skill-evaluator if proof is missing | Distribution only after verification |
+| Write a restaurant caption | None | Outside skill-engineering scope |
 
-| Classified Intent | Primary Sub-Skill | Supporting Sub-Skills | Minimal Context References |
-|---|---|---|---|
-| **`CREATE`** (New skill from prompt/script) | `skill-architect` | `host-workspace-operator`, `skill-evaluator`, `skill-conductor` | `references/skill-spec.md`, `references/sop-practices.md` |
-| **`IMPROVE`** (Fix bugs, undertriggering, failure) | `skill-conductor` | `host-workspace-operator`, `skill-evaluator` | `references/pressure-testing.md`, `references/patterns.md` |
-| **`VALIDATE` / `EVAL`** (Run checks & BinEval) | `skill-evaluator` | `skill-conductor`, `sandbox-python-executor` | `references/bineval-method.md`, `references/schemas.md`, `references/skill-security.md` |
-| **`SECURITY` / `REVIEW`** (Security audit, CVEs, SkillSpector scan) | `skill-evaluator` | `sandbox-python-executor`, `host-workspace-operator` | `references/skill-security.md`, `scripts/scan_skill_security.py` |
-| **`OPTIMIZE`** (Description tuning & train/test) | `skill-conductor` | `skill-evaluator` | `references/sop-practices.md`, `references/bineval-method.md` |
-| **`PORT`** (Cross-host adaptation) | `skill-portability-compiler` | `host-workspace-operator`, `skill-evaluator` | `references/host-profiles.md`, `references/cross-host-evaluation.md` |
-| **`PACKAGE`** (Bundle .skill / plugin) | `skill-conductor` | `sandbox-python-executor` | `references/runtime-setup.md`, `references/schemas.md` |
-| **`DISTRIBUTE`** (GitHub repo, manifests, Skills.sh) | `repo-craft-and-distribute` | `skill-conductor` | `references/multi-agent-manifests.md`, `references/readme-standards.md`, `references/github-workflow-and-metadata.md` |
-
----
-
-## 3. Host Capability Negotiation Rules
-
-When executing on a specific AI host, adapt the execution model:
-
-1. **Claude Code / Desktop**:
-   - Prefer subagent delegation when multi-step tasks are independent.
-   - Use `SKILL.md` directly; manifest via `.claude-plugin/plugin.json`.
-2. **Antigravity / Gemini CLI**:
-   - Enforce Compound Engineering loop (80% planning/review, 20% execution).
-   - Use `bun` first; verify with `eval_skill.py`.
-3. **OpenAI Codex / ChatGPT**:
-   - Adhere to single-file constraints where applicable; output `.codex-plugin/plugin.json`.
-4. **Cursor IDE / Windsurf**:
-   - Compile rules to `.cursorrules` / `.windsurfrules` with explicit file-scoping regexes.
-
----
-
-## 4. Self-Healing & Fallback Policies
-
-If any step in the DAG fails:
-1. **Never guess or repeat the identical command**.
-2. **Isolate Root Cause**: Check if failure is due to missing prerequisites (`runtime-setup.md`), syntax violation, or token bloat.
-3. **Trigger Remediator**: Route back to `IMPROVE` or `OPTIMIZE` with the exact error log as the failure baseline before re-running verification.
+Read only the next owner's resources. Resource paths belong to that skill's
+directory. Return control only when ownership or a gate changes. If execution
+is unavailable, provide the supported artifact and name the unrun check.

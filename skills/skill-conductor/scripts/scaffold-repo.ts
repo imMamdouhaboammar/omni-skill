@@ -22,6 +22,9 @@ Example:
 }
 
 async function scaffold(targetDir: string, skillName: string, author: string, desc: string): Promise<void> {
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(skillName)) {
+    throw new Error("Skill name must be lowercase kebab-case");
+  }
   const absTarget = path.resolve(targetDir);
   await mkdir(absTarget, { recursive: true });
   await mkdir(path.join(absTarget, '.github', 'workflows'), { recursive: true });
@@ -114,41 +117,24 @@ async function scaffold(targetDir: string, skillName: string, author: string, de
 
   // 4. install.sh
   const installSh = `#!/usr/bin/env bash
-set -e
-
-SCRIPT_DIR="$(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
-TARGET_NAME="${skillName}"
-
-echo "📦 Installing \${TARGET_NAME} across AI agent environments..."
-
-if [ -d "$HOME/.claude" ] || command -v claude >/dev/null 2>&1; then
-  mkdir -p "$HOME/.claude/skills"
-  rm -rf "$HOME/.claude/skills/\${TARGET_NAME}"
-  cp -r "$SCRIPT_DIR" "$HOME/.claude/skills/\${TARGET_NAME}"
-  echo "  ✅ Installed for Claude Code -> $HOME/.claude/skills/\${TARGET_NAME}"
+# Copy to one user-selected destination; never probe or replace agent settings.
+set -euo pipefail
+if [ "$#" -ne 1 ]; then
+  echo 'Usage: bash install.sh <new-skill-directory>' >&2
+  exit 2
 fi
-
-if [ -d "$HOME/.gemini" ]; then
-  mkdir -p "$HOME/.gemini/config/skills"
-  rm -rf "$HOME/.gemini/config/skills/\${TARGET_NAME}"
-  cp -r "$SCRIPT_DIR" "$HOME/.gemini/config/skills/\${TARGET_NAME}"
-  echo "  ✅ Installed for Antigravity / Gemini CLI -> $HOME/.gemini/config/skills/\${TARGET_NAME}"
+SOURCE_DIR="$(cd -- "$(dirname -- "\${BASH_SOURCE[0]}")" && pwd -P)"
+if [ -e "$1" ] || [ -L "$1" ]; then
+  echo 'Destination exists; refusing to replace it.' >&2
+  exit 1
 fi
-
-if [ -d "$HOME/.codex" ]; then
-  mkdir -p "$HOME/.codex/skills"
-  rm -rf "$HOME/.codex/skills/\${TARGET_NAME}"
-  cp -r "$SCRIPT_DIR" "$HOME/.codex/skills/\${TARGET_NAME}"
-  echo "  ✅ Installed for Codex / OpenCode -> $HOME/.codex/skills/\${TARGET_NAME}"
-fi
-
-mkdir -p "$HOME/.agents/skills"
-rm -rf "$HOME/.agents/skills/\${TARGET_NAME}"
-cp -r "$SCRIPT_DIR" "$HOME/.agents/skills/\${TARGET_NAME}"
-echo "  ✅ Installed for Universal Agent Kernel -> $HOME/.agents/skills/\${TARGET_NAME}"
-
-echo ""
-echo "🎉 Installation complete!"
+PARENT_DIR="$(cd -- "$(dirname -- "$1")" && pwd -P)"
+DESTINATION="$PARENT_DIR/$(basename -- "$1")"
+case "$DESTINATION/" in
+  "$SOURCE_DIR/"*) echo 'Destination must be outside the source.' >&2; exit 1 ;;
+esac
+cp -R -- "$SOURCE_DIR" "$DESTINATION"
+printf 'Installed at %s\\n' "$DESTINATION"
 `;
   const installPath = path.join(absTarget, 'install.sh');
   await writeFile(installPath, installSh);

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Deterministic Verification"
+  short_description: "Use deterministic verification for an OmniSkill workflow."
+  default_prompt: "Use $sandbox-python-executor for the current skill-engineering task and report evidence and limits."
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Write Clear Instructions"
+  short_description: "Use write clear instructions for an OmniSkill workflow."
+  default_prompt: "Use $writing for the current skill-engineering task and report evidence and limits."
+policy:
+  allow_implicit_invocation: false

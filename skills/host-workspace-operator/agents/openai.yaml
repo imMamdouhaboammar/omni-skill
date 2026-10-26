@@ -1,0 +1,6 @@
+interface:
+  display_name: "Workspace Operations"
+  short_description: "Use workspace operations for an OmniSkill workflow."
+  default_prompt: "Use $host-workspace-operator for the current skill-engineering task and report evidence and limits."
+policy:
+  allow_implicit_invocation: false

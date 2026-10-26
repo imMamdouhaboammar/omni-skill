@@ -1,0 +1,6 @@
+interface:
+  display_name: "OmniSkill Router"
+  short_description: "Use omniskill router for an OmniSkill workflow."
+  default_prompt: "Use $omni-skill for the current skill-engineering task and report evidence and limits."
+policy:
+  allow_implicit_invocation: true
