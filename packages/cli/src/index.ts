@@ -61,8 +61,11 @@ program
 program
   .command("eval <path>")
   .description("Run BinEval and held-out evaluation checks on a skill")
-  .action((path) => {
-    evalSkillCommand(path);
+  .option("-c, --candidate <path|text>", "Candidate response text or path to response file")
+  .option("-r, --responses <path>", "Path to JSON file mapping case IDs to observed responses")
+  .option("-j, --json", "Output structured JSON results")
+  .action((path, options) => {
+    evalSkillCommand(path, options);
   });
 
 program

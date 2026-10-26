@@ -149,6 +149,12 @@
       .toggle input:checked + .slider::before {
         transform: translateX(20px);
       }
+      @media (prefers-reduced-motion: reduce) {
+        .toggle .slider,
+        .toggle .slider::before {
+          transition: none;
+        }
+      }
       .btn-delete {
         background: #c44;
         color: white;
@@ -170,33 +176,35 @@
     </style>
   </head>
   <body>
-    <h1>
-      Eval Set Review: <span id="skill-name">__SKILL_NAME_PLACEHOLDER__</span>
-    </h1>
-    <p class="description">
-      Current description:
-      <span id="skill-desc">__SKILL_DESCRIPTION_PLACEHOLDER__</span>
-    </p>
+    <main>
+      <h1>
+        Eval Set Review: <span id="skill-name">__SKILL_NAME_PLACEHOLDER__</span>
+      </h1>
+      <p class="description">
+        Current description:
+        <span id="skill-desc">__SKILL_DESCRIPTION_PLACEHOLDER__</span>
+      </p>
 
-    <div class="controls">
-      <button class="btn btn-add" onclick="addRow()">+ Add Query</button>
-      <button class="btn btn-export" onclick="exportEvalSet()">
-        Export Eval Set
-      </button>
-    </div>
+      <div class="controls">
+        <button class="btn btn-add" onclick="addRow()">+ Add Query</button>
+        <button class="btn btn-export" onclick="exportEvalSet()">
+          Export Eval Set
+        </button>
+      </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th style="width: 65%">Query</th>
-          <th style="width: 18%">Should Trigger</th>
-          <th style="width: 10%">Actions</th>
-        </tr>
-      </thead>
-      <tbody id="eval-body"></tbody>
-    </table>
+      <table>
+        <thead>
+          <tr>
+            <th scope="col" style="width: 65%">Query</th>
+            <th scope="col" style="width: 18%">Should Trigger</th>
+            <th scope="col" style="width: 10%">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="eval-body"></tbody>
+      </table>
 
-    <p class="summary" id="summary"></p>
+      <p class="summary" id="summary"></p>
+    </main>
 
     <script>
       const EVAL_DATA = __EVAL_DATA_PLACEHOLDER__;

@@ -273,6 +273,30 @@ class TestViewerAccessibility(unittest.TestCase):
                     page.close()
             browser.close()
 
+    def test_eval_review_accessibility(self):
+        """Verify HTML_017, HTML_023, and HTML_027 fixes on eval_review.html."""
+        eval_reviews = [
+            REPO_ROOT / "skills" / "omni-skill" / "assets" / "eval_review.html",
+            REPO_ROOT / "skills" / "skill-conductor" / "assets" / "eval_review.html",
+        ]
+        for rev_path in eval_reviews:
+            with self.subTest(rev=rev_path.relative_to(REPO_ROOT)):
+                content = rev_path.read_text(encoding="utf-8")
+                self.assertIn("<main>", content, f"{rev_path} must contain <main> landmark")
+                self.assertIn("</main>", content, f"{rev_path} must contain </main> closing tag")
+                self.assertIn("@media (prefers-reduced-motion: reduce)", content, f"{rev_path} must contain reduced motion query")
+                self.assertIn('<th scope="col"', content, f"{rev_path} table headers must declare scope='col'")
+                th_without_scope = re.findall(r"<th\b(?![^>]*scope=)[^>]*>", content)
+                self.assertEqual(th_without_scope, [], f"{rev_path} has <th> elements missing scope: {th_without_scope}")
+
+    def test_public_index_accessibility(self):
+        """Verify HTML_017 and HTML_023 fixes on public/index.html."""
+        index_path = REPO_ROOT / "public" / "index.html"
+        content = index_path.read_text(encoding="utf-8")
+        self.assertRegex(content, r'<main[^>]*id="main-content">', "public/index.html must expose <main id='main-content'>")
+        self.assertIn("</main>", content, "public/index.html must contain </main>")
+        self.assertIn("@media (prefers-reduced-motion: reduce)", content, "public/index.html must contain reduced motion query")
+
 
 if __name__ == "__main__":
     unittest.main()

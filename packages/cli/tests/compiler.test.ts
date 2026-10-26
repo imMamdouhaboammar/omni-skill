@@ -1,5 +1,6 @@
 import { describe, expect, it, beforeEach, afterEach } from "bun:test";
 import { compileOmniSkillSpec } from "../src/core/compiler";
+import { parseSkillMarkdown } from "../src/core/parser";
 import {
   mkdtempSync,
   rmSync,
@@ -1140,4 +1141,76 @@ describe("compileOmniSkillSpec Golden Spec Parity", () => {
     expect(existsSync(join(targetDir, "references"))).toBe(false);
     expect(existsSync(join(targetDir, "evals"))).toBe(false);
   });
+});
+
+describe("compileOmniSkillSpec YAML Frontmatter Serialization Integrity (#9)", () => {
+  let rootDir: string;
+  let outDir: string;
+
+  beforeEach(() => {
+    rootDir = mkdtempSync(join(tmpdir(), "omni-compiler-yaml-test-"));
+    outDir = join(rootDir, "dist");
+    mkdirSync(outDir, { recursive: true });
+  });
+
+  afterEach(() => {
+    rmSync(rootDir, { recursive: true, force: true });
+  });
+
+  const roundTripCases = [
+    {
+      name: "simple-desc",
+      description: "A straightforward production skill description."
+    },
+    {
+      name: "colon-and-hash",
+      description: "Handles key: value parsing, host:port routing, and # channel topics safely."
+    },
+    {
+      name: "single-and-double-quotes",
+      description: "Handles 'single quoted tokens' and \"double quoted strings\" without syntax corruption."
+    },
+    {
+      name: "multiline-description",
+      description: "First line of workflow description.\nSecond line detailing invariants.\nThird line with further instructions."
+    },
+    {
+      name: "yaml-special-indicators",
+      description: "@trigger: *anchor? - item: [bracketed, items] {keyed: value} | block > fold"
+    },
+    {
+      name: "unicode-multilingual",
+      description: "Universal Agent Engine 🚀 · 多言語サポート · معالجة اللغة الطبيعية · é, è, ç, ñ"
+    }
+  ];
+
+  for (const tc of roundTripCases) {
+    it(`should faithfully round-trip frontmatter for ${tc.name}`, () => {
+      const spec = {
+        name: `test-${tc.name}`,
+        description: tc.description,
+        job: "Execute safe operations.",
+        instructions: ["Follow instructions carefully."]
+      };
+
+      const targetDir = compileOmniSkillSpec(spec as any, outDir);
+      const skillMdRaw = readFileSync(join(targetDir, "SKILL.md"), "utf-8");
+
+      // Verify strict frontmatter boundary
+      expect(skillMdRaw.startsWith("---\n")).toBe(true);
+      expect(skillMdRaw).toContain("\n---\n");
+
+      // Parse with parser and verify round-trip equivalence
+      const { frontmatter, body } = parseSkillMarkdown(skillMdRaw);
+      expect(frontmatter.name).toBe(spec.name);
+      expect(frontmatter.description).toBe(tc.description.trim());
+
+      // Ensure no injected keys
+      const frontmatterKeys = Object.keys(frontmatter);
+      expect(frontmatterKeys.sort()).toEqual(["description", "name"]);
+
+      // Verify body starts cleanly after frontmatter delimiter
+      expect(body.trim().startsWith("# Test ")).toBe(true);
+    });
+  }
 });

@@ -100,6 +100,23 @@ def build_description(spec: dict) -> str:
     return description
 
 
+def serialize_frontmatter(name: str, description: str) -> str:
+    desc = description.strip()
+    try:
+        import yaml
+        return yaml.safe_dump(
+            {"name": name, "description": desc},
+            sort_keys=False,
+            allow_unicode=True
+        ).strip()
+    except ImportError:
+        lines = desc.splitlines()
+        if len(lines) > 1:
+            indented = "\n".join(f"  {line}" for line in lines)
+            return f"name: {name}\ndescription: |-\n{indented}"
+        return f"name: {name}\ndescription: {json.dumps(desc, ensure_ascii=False)}"
+
+
 def yaml_fold(value: str, indent: int = 2) -> str:
     words = value.split()
     lines, current = [], ""
@@ -137,10 +154,9 @@ def build_skill_md(spec: dict) -> str:
     tools = spec.get("tools") or []
     tool_block = "\n".join(f"- {item}" for item in tools) or "- No host-specific capability required"
 
+    frontmatter = serialize_frontmatter(spec['name'], description)
     return f"""---
-name: {spec['name']}
-description: >
-{yaml_fold(description, 2)}
+{frontmatter}
 ---
 
 # {spec['name']}

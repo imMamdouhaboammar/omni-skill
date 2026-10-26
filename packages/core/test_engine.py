@@ -14,7 +14,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from compile_spec import compile_spec
-from portability_validator import validate_skill
+from portability_validator import validate_skill, parse_frontmatter
 from eval_engine import run_bineval, split_held_out
 
 CORE_DIR = Path(__file__).parent
@@ -794,7 +794,35 @@ class TestOmniSkillEngine(unittest.TestCase):
                 "suite": [],
                 "response": "any response",
                 "want_passed": 0,
+                "want_rate": 0.0
+            },
+            {
+                "name": "per_case_response_dict",
+                "suite": [
+                    {"id": "c1", "assertions": [{"pattern": "apple", "required": True}]},
+                    {"id": "c2", "assertions": [{"pattern": "banana", "required": True}]}
+                ],
+                "response": {"c1": "an apple a day", "c2": "fresh bananas"},
+                "want_passed": 2,
                 "want_rate": 1.0
+            },
+            {
+                "name": "unverified_missing_response",
+                "suite": [
+                    {"id": "c1", "assertions": [{"pattern": "apple", "required": True}]}
+                ],
+                "response": None,
+                "want_passed": 0,
+                "want_rate": 0.0
+            },
+            {
+                "name": "invalid_regex_error_handling",
+                "suite": [
+                    {"id": "c1", "assertions": [{"pattern": "[unclosed-bracket", "required": True}]}
+                ],
+                "response": "sample text",
+                "want_passed": 0,
+                "want_rate": 0.0
             }
         ]
 
@@ -928,6 +956,39 @@ class TestOmniSkillEngine(unittest.TestCase):
                             runpy.run_path(str(CORE_DIR / "eval_engine.py"), run_name="__main__")
             self.assertEqual(exit_result.exception.code, 0)
             self.assertEqual(json.loads(output.getvalue())["passed"], 1)
+
+    def test_compile_spec_frontmatter_safe_serialization(self):
+        """Verify YAML-safe frontmatter serialization with colons, quotes, multiline, and unicode (#9)."""
+        test_cases = [
+            ("simple-tool", "Simple single line description."),
+            ("colon-hash-tool", "Handles key: value mappings, endpoint:port paths, and # comments."),
+            ("quotes-tool", "Processes 'single quotes' and \"double quotes\" safely."),
+            ("multiline-tool", "Line one of description.\nLine two of description.\nLine three with invariants."),
+            ("unicode-tool", "Universal Engine 🌍 · 多言語 · معالجة اللغة الطبيعية"),
+        ]
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir)
+            for skill_name, desc in test_cases:
+                spec = {
+                    "name": skill_name,
+                    "description": desc,
+                    "job": "Execute test operations safely.",
+                    "instructions": ["Step 1: Check input."]
+                }
+                res = compile_spec(spec, out_dir)
+                skill_md = (res / "SKILL.md").read_text(encoding="utf-8")
+
+                self.assertTrue(skill_md.startswith("---\n"), f"{skill_name} must start with '---\\n'")
+                self.assertIn("\n---\n", skill_md, f"{skill_name} must contain closing '\\n---\\n'")
+
+                parsed_name, parsed_desc = parse_frontmatter(skill_md)
+                self.assertEqual(parsed_name, skill_name, f"Name mismatch for {skill_name}: got {parsed_name}")
+                self.assertEqual(parsed_desc, desc, f"Description mismatch for {skill_name}: got {parsed_desc}")
+
+                # Ensure frontmatter does not leak invalid syntax to portability validator
+                val_result = validate_skill(res)
+                self.assertTrue(val_result["pass"], f"Portability validation failed for {skill_name}: {val_result.get('findings')}")
 
 if __name__ == "__main__":
     unittest.main()
