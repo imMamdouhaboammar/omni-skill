@@ -1,6 +1,7 @@
 import { OmniSkillSpec } from "./types";
 import { existsSync, lstatSync, mkdirSync, writeFileSync } from "node:fs";
 import { isAbsolute, join, relative, resolve } from "node:path";
+import { stringify as stringifyYaml } from "yaml";
 
 const NAME_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const REF_NAME_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -222,11 +223,14 @@ export function compileOmniSkillSpec(spec: OmniSkillSpec, outputDir: string): st
 
   mkdirSync(targetDir, { recursive: true });
 
+  const frontmatterYaml = stringifyYaml({
+    name: spec.name,
+    description: spec.description.trim(),
+  }).trim();
+
   const skillMdLines = [
     "---",
-    `name: ${spec.name}`,
-    "description: >",
-    `  ${spec.description.trim()}`,
+    frontmatterYaml,
     "---",
     "",
     `# ${spec.name.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}`,

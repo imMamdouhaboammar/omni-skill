@@ -10,6 +10,30 @@ from typing import Any, Dict
 NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*\Z")
 REF_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*\Z")
 
+def _serialize_frontmatter(name: str, description: str) -> str:
+    desc = description.strip()
+    try:
+        import yaml
+        return yaml.safe_dump(
+            {"name": name, "description": desc},
+            sort_keys=False,
+            allow_unicode=True
+        ).strip()
+    except ImportError:
+        lines = desc.splitlines()
+        if len(lines) > 1:
+            indented = "\n".join(f"  {line}" for line in lines)
+            return f"name: {name}\ndescription: |-\n{indented}"
+        needs_quotes = (
+            any(c in desc for c in ":#%@&*[]{}|>-")
+            or desc.startswith(("-", "?", ":"))
+            or "'" in desc
+            or '"' in desc
+        )
+        if needs_quotes:
+            return f"name: {name}\ndescription: {json.dumps(desc, ensure_ascii=False)}"
+        return f"name: {name}\ndescription: {desc}"
+
 def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
     if not isinstance(spec_data, dict):
         raise TypeError("Specification data must be a dictionary.")
@@ -159,11 +183,10 @@ def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
     skill_path.mkdir(parents=True, exist_ok=True)
 
     # 1. Generate SKILL.md
+    frontmatter = _serialize_frontmatter(name, description)
     lines = [
         "---",
-        f"name: {name}",
-        "description: >",
-        f"  {description}",
+        frontmatter,
         "---",
         "",
         f"# {name.replace('-', ' ').title()}",
