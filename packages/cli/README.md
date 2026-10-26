@@ -79,6 +79,24 @@ omni-skill package ./skills/my-skill -o ./release
 # Creates ./release/my-skill.skill
 ```
 
+### `omni-skill port <skill-dir>`
+Adapts a universal skill specification to a specific agent host format (`claude`, `cursor`, `codex`, `chatgpt`, `windsurf`, `antigravity`).
+
+```bash
+omni-skill port ./skills/my-skill --target cursor
+```
+
+### `omni-skill eval <skill-dir>`
+Executes the BinEval test harness against real candidate responses or per-case JSON evidence files with strict assertions and fail-closed integrity.
+
+```bash
+# Evaluate against candidate string
+omni-skill eval ./skills/my-skill --candidate "EXPLAIN SELECT * FROM users;"
+
+# Evaluate against per-case response mappings with structured JSON output
+omni-skill eval ./skills/my-skill --responses ./evals/responses.json --json
+```
+
 ---
 
 ## Programmatic Usage

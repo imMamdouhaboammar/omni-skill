@@ -23,6 +23,7 @@ htmlcov/
 # Package outputs
 *.skill
 *.zip
+*.tgz
 
 # OS & Editor
 .DS_Store
