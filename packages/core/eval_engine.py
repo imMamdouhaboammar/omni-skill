@@ -31,6 +31,16 @@ def run_bineval(
     errors = 0
 
     for case in eval_suite:
+        if not isinstance(case, dict):
+            errors += 1
+            results.append({
+                "id": "unknown",
+                "passed": False,
+                "status": "ERROR",
+                "message": "Case must be an object"
+            })
+            continue
+
         cid = case.get("id", "unknown")
         assertions = case.get("assertions", [])
 
@@ -67,11 +77,16 @@ def run_bineval(
         failing_pattern = None
 
         for assertion in assertions:
-            pattern = assertion.get("pattern", "")
+            if not isinstance(assertion, dict) or not isinstance(assertion.get("pattern"), str):
+                case_passed = False
+                error_msg = "Malformed assertion structure (missing pattern string)"
+                break
+
+            pattern = assertion["pattern"]
             required = assertion.get("required", True)
             try:
                 found = bool(re.search(pattern, resp, re.IGNORECASE))
-            except re.error as exc:
+            except (re.error, TypeError) as exc:
                 case_passed = False
                 error_msg = f"Invalid regex pattern '/{pattern}/': {exc}"
                 break
@@ -165,10 +180,31 @@ if __name__ == "__main__":
         sys.exit(1)
 
     candidate_data: Union[str, Dict[str, str], None] = None
-    resp_source = args.responses or args.candidate
 
-    if resp_source is not None:
-        cand_path = Path(resp_source)
+    if args.responses is not None:
+        cand_path = Path(args.responses)
+        if not cand_path.is_file():
+            print(f"Error: responses file not found: {args.responses}", file=sys.stderr)
+            sys.exit(1)
+        content = cand_path.read_text(encoding="utf-8")
+        try:
+            parsed_json = json.loads(content)
+            if isinstance(parsed_json, dict):
+                candidate_data = {str(k): str(v) for k, v in parsed_json.items()}
+            elif isinstance(parsed_json, list):
+                candidate_data = {
+                    item["id"]: str(item.get("response", item.get("text", "")))
+                    for item in parsed_json
+                    if isinstance(item, dict) and "id" in item
+                }
+            else:
+                print(f"Error: responses file must contain a JSON object or array: {args.responses}", file=sys.stderr)
+                sys.exit(1)
+        except json.JSONDecodeError as exc:
+            print(f"Error: Failed to parse responses JSON: {exc}", file=sys.stderr)
+            sys.exit(1)
+    elif args.candidate is not None:
+        cand_path = Path(args.candidate)
         try:
             candidate_is_file = cand_path.is_file()
         except OSError:
@@ -180,18 +216,12 @@ if __name__ == "__main__":
                 parsed_json = json.loads(content)
                 if isinstance(parsed_json, dict):
                     candidate_data = {str(k): str(v) for k, v in parsed_json.items()}
-                elif isinstance(parsed_json, list):
-                    candidate_data = {
-                        item["id"]: str(item.get("response", item.get("text", "")))
-                        for item in parsed_json
-                        if isinstance(item, dict) and "id" in item
-                    }
                 else:
                     candidate_data = content
             except json.JSONDecodeError:
                 candidate_data = content
         else:
-            candidate_data = resp_source
+            candidate_data = args.candidate
 
     outcome = run_bineval(suite, candidate_data)
     print(json.dumps(outcome, indent=2))

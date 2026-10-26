@@ -167,7 +167,16 @@ export function evalSkillCommand(skillPathArg: string, options: EvalCommandOptio
 
   for (let idx = 0; idx < rawCases.length; idx++) {
     const c = rawCases[idx];
-    const cid = c?.id ?? `case-${idx + 1}`;
+    if (!c || typeof c !== "object") {
+      results.push({
+        id: `case-${idx + 1}`,
+        status: "ERROR",
+        passed: false,
+        message: "Case must be an object"
+      });
+      continue;
+    }
+    const cid = typeof c.id === "string" && c.id.trim() ? c.id.trim() : `case-${idx + 1}`;
 
     let observedText: string | undefined;
     if (perCaseResponses !== null) {

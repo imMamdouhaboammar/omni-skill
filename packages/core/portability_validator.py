@@ -23,7 +23,18 @@ def parse_frontmatter(text: str) -> tuple[str | None, str | None]:
     end = text.find("\n---", 4)
     if end == -1:
         return None, None
-    block = text[4:end].splitlines()
+    raw_frontmatter = text[4:end]
+    try:
+        import yaml
+        data = yaml.safe_load(raw_frontmatter)
+        if isinstance(data, dict):
+            name = str(data["name"]) if data.get("name") is not None else None
+            desc = str(data["description"]) if data.get("description") is not None else None
+            return name, desc
+    except Exception:
+        pass
+
+    block = raw_frontmatter.splitlines()
     name = None
     description_lines = []
     in_description = False

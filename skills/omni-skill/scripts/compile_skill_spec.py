@@ -114,15 +114,7 @@ def serialize_frontmatter(name: str, description: str) -> str:
         if len(lines) > 1:
             indented = "\n".join(f"  {line}" for line in lines)
             return f"name: {name}\ndescription: |-\n{indented}"
-        needs_quotes = (
-            any(c in desc for c in ":#%@&*[]{}|>-")
-            or desc.startswith(("-", "?", ":"))
-            or "'" in desc
-            or '"' in desc
-        )
-        if needs_quotes:
-            return f"name: {name}\ndescription: {json.dumps(desc, ensure_ascii=False)}"
-        return f"name: {name}\ndescription: {desc}"
+        return f"name: {name}\ndescription: {json.dumps(desc, ensure_ascii=False)}"
 
 
 def yaml_fold(value: str, indent: int = 2) -> str:

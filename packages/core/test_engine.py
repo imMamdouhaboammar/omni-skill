@@ -984,8 +984,7 @@ class TestOmniSkillEngine(unittest.TestCase):
 
                 parsed_name, parsed_desc = parse_frontmatter(skill_md)
                 self.assertEqual(parsed_name, skill_name, f"Name mismatch for {skill_name}: got {parsed_name}")
-                self.assertIsNotNone(parsed_desc, f"Parsed description was None for {skill_name}")
-                self.assertGreater(len(parsed_desc), 0, f"Parsed description was empty for {skill_name}")
+                self.assertEqual(parsed_desc, desc, f"Description mismatch for {skill_name}: got {parsed_desc}")
 
                 # Ensure frontmatter does not leak invalid syntax to portability validator
                 val_result = validate_skill(res)

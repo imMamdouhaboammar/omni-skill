@@ -1,0 +1,4 @@
+{
+  "slow-query-detection": "Use EXPLAIN to inspect the query plan and create an index on (status, created_at) to avoid a sequential scan.",
+  "negative-general-chat": "Databases hold tables clear and deep, where queries wake and indexes never sleep."
+}
