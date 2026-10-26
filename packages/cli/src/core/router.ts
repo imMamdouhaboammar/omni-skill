@@ -38,6 +38,13 @@ export interface RouteStep {
   recoveryStep?: string;
 }
 
+export interface RouteState {
+  failureStreak?: number;
+  mutationGeneration?: number;
+  verifiedGeneration?: number;
+  unresolvedSecurity?: boolean;
+}
+
 export interface RouteResult {
   intent: SkillMode;
   confidence: number;
@@ -89,9 +96,11 @@ export function classifyIntent(prompt: string): { intent: SkillMode; confidence:
   if (p.includes("claude")) targetHosts.push("claude-code");
   if (p.includes("antigravity") || p.includes("gemini")) targetHosts.push("antigravity");
   if (p.includes("cursor")) targetHosts.push("cursor");
-  if (p.includes("codex") || p.includes("chatgpt")) targetHosts.push("codex");
+  if (p.includes("codex")) targetHosts.push("codex");
+  if (p.includes("chatgpt")) targetHosts.push("chatgpt");
+  if (p.includes("opencode")) targetHosts.push("opencode");
   if (p.includes("windsurf")) targetHosts.push("windsurf");
-  if (p.includes("cline") || p.includes("roo")) targetHosts.push("cline");
+  if (p.includes("cline") || /\broo\b/.test(p)) targetHosts.push("cline");
   if (p.includes("copilot")) targetHosts.push("copilot");
   if (targetHosts.length === 0) targetHosts.push("universal");
 
@@ -108,12 +117,17 @@ export function classifyIntent(prompt: string): { intent: SkillMode; confidence:
     }
   }
 
+  // An audit remains read-only even if GitHub is the source or future destination.
+  if ((/\b(audit|review|security|scan)\b/.test(p) || /فحص|تدقيق|أمان|امان/.test(p))
+      && !/poteto|principle|مبادئ|مبدأ/.test(p)) {
+    return { intent: "VALIDATE", confidence: 0.88, targetHosts, skillName };
+  }
+
   // 1. Distribution & Repo Crafting
   if (
     p.includes("distribute") ||
     p.includes("publish") ||
-    p.includes("repo") ||
-    p.includes("github") ||
+    /\b(craft|prepare|create)\s+(a\s+)?repo\b/.test(p) ||
     p.includes("skills.sh") ||
     p.includes("marketplace") ||
     p.includes("انشر") ||
@@ -136,7 +150,7 @@ export function classifyIntent(prompt: string): { intent: SkillMode; confidence:
 
   // 3. Porting / Cross-Host Adapter
   if (
-    p.includes("port") ||
+    /\bport\b/.test(p) ||
     p.includes("adapt") ||
     p.includes("convert to") ||
     p.includes("convert to cursor") ||
@@ -639,9 +653,26 @@ export function buildExecutionDag(
 /**
  * Main Smart Router Function
  */
-export function routeRequest(prompt: string, explicitHost?: string): RouteResult {
+export function routeRequest(prompt: string, explicitHost?: string, state: RouteState = {}): RouteResult {
+  for (const value of [state.failureStreak, state.mutationGeneration, state.verifiedGeneration]) {
+    if (value !== undefined && (!Number.isSafeInteger(value) || value < 0)) {
+      throw new RangeError("Routing generations and failure streak must be non-negative safe integers");
+    }
+  }
   const host = detectHost(explicitHost);
-  const { intent, confidence, targetHosts, skillName } = classifyIntent(prompt);
+  let { intent, confidence, targetHosts, skillName } = classifyIntent(prompt);
+  let override = "";
+  if (state.unresolvedSecurity) {
+    intent = "VALIDATE";
+    override = "Unresolved security requires inspection before execution.";
+  } else if ((state.failureStreak ?? 0) >= 2) {
+    intent = "IMPROVE";
+    override = "Repeated failure requires a new hypothesis before retrying.";
+  } else if ((intent === "PACKAGE" || intent === "DISTRIBUTE") &&
+      state.mutationGeneration !== undefined && state.verifiedGeneration !== state.mutationGeneration) {
+    intent = "VALIDATE";
+    override = "Missing or stale verification blocks release after mutation.";
+  }
   const actualSkillName = skillName || "skill-artifact";
   const dag = buildExecutionDag(intent, actualSkillName, targetHosts);
 
@@ -660,6 +691,6 @@ export function routeRequest(prompt: string, explicitHost?: string): RouteResult
       maxTokens: 2500,
       recommendedFiles: Array.from(allRefs)
     },
-    explanation: `Classified as '${intent}' (${Math.round(confidence * 100)}% confidence). Generated a ${dag.length}-step execution DAG targeting [${targetHosts.join(", ")}] on host '${host}'.`
+    explanation: `Classified as '${intent}' (${Math.round(confidence * 100)}% confidence). Generated a ${dag.length}-step execution DAG targeting [${targetHosts.join(", ")}] on host '${host}'.${override ? " " + override : ""}`
   };
 }

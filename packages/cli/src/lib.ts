@@ -17,7 +17,7 @@ export {
   formatSecurityReportSarif,
 } from "./core/security";
 export { PatternCategory } from "./core/security-types";
-export type { AgentHost, SkillMode, RouteResult, RouteStep } from "./core/router";
+export type { AgentHost, SkillMode, RouteResult, RouteStep, RouteState } from "./core/router";
 export type { SkillManifest, SkillFrontmatter, ValidationResult, ValidationFinding, OmniSkillSpec } from "./core/types";
 export type {
   SecurityFinding,

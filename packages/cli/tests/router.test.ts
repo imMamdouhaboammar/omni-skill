@@ -1,7 +1,17 @@
-import { describe, expect, it } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { classifyIntent, detectHost, buildExecutionDag, routeRequest } from "../src/core/router";
 
 describe("OmniSkill Dynamic Agentic Router", () => {
+  const hostKeys = ["ANTIGRAVITY", "GEMINI_CLI", "CLAUDE_CODE", "CLAUDE_SHELL", "CODEX_THREAD_ID", "CODEX", "CURSOR_AGENT"];
+  let saved: Record<string, string | undefined>;
+  beforeEach(() => {
+    saved = Object.fromEntries(hostKeys.map(k => [k, process.env[k]]));
+    hostKeys.forEach(k => delete process.env[k]);
+  });
+  afterEach(() => hostKeys.forEach(k => {
+    if (saved[k] === undefined) delete process.env[k];
+    else process.env[k] = saved[k];
+  }));
   it("should detect host from explicit option or environment", () => {
     expect(detectHost("claude")).toBe("claude-code");
     expect(detectHost("antigravity")).toBe("antigravity");
@@ -81,5 +91,42 @@ describe("OmniSkill Dynamic Agentic Router", () => {
     expect(result.dag.length).toBeGreaterThan(0);
     expect(result.contextBudget.recommendedFiles.length).toBeGreaterThan(0);
     expect(result.explanation).toContain("confidence");
+  });
+});
+
+describe("Plugin routing regressions", () => {
+  it("preserves ChatGPT as a distinct target", () => {
+    expect(classifyIntent("Port skill to ChatGPT and Codex").targetHosts).toEqual(["codex", "chatgpt"]);
+  });
+  it("does not confuse a report with porting or a repo mention with publishing", () => {
+    expect(classifyIntent("Audit this skill and report findings").intent).toBe("VALIDATE");
+    expect(classifyIntent("Audit the skill in this GitHub repo").intent).toBe("VALIDATE");
+    expect(classifyIntent("Improve this skill and report the results").intent).toBe("IMPROVE");
+  });
+  it("routes security reviews before any distribution suggestion", () => {
+    expect(classifyIntent("Review this third-party skill for security before publishing").intent).toBe("VALIDATE");
+  });
+  it("detects OpenCode without treating ordinary words containing roo as Cline", () => {
+    expect(classifyIntent("Port skill to OpenCode").targetHosts).toEqual(["opencode"]);
+    expect(classifyIntent("Build a skill for classroom planning").targetHosts).toEqual(["universal"]);
+  });
+});
+
+describe("State overrides before release", () => {
+  it("requires verification after a relevant mutation", () => {
+    const result = routeRequest("Package this skill", "codex", { mutationGeneration: 2, verifiedGeneration: 1 });
+    expect(result.intent).toBe("VALIDATE");
+    expect(result.explanation).toContain("stale");
+  });
+  it("does not treat absent verification as release evidence", () => {
+    expect(routeRequest("Publish this skill", "chatgpt", { mutationGeneration: 0 }).intent).toBe("VALIDATE");
+  });
+  it("prioritizes unresolved security and changes repeated failed attempts", () => {
+    expect(routeRequest("Publish skill", "codex", { unresolvedSecurity: true }).intent).toBe("VALIDATE");
+    expect(routeRequest("Package skill", "codex", { failureStreak: 2 }).intent).toBe("IMPROVE");
+  });
+  it("permits a fresh verified package route and rejects invalid generations", () => {
+    expect(routeRequest("Package this skill", "codex", { mutationGeneration: 2, verifiedGeneration: 2 }).intent).toBe("PACKAGE");
+    expect(() => routeRequest("Package skill", "codex", { mutationGeneration: -1 })).toThrow();
   });
 });

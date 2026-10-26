@@ -12,6 +12,12 @@ export interface RouteStep {
     freedomLevel?: "low" | "medium" | "high";
     recoveryStep?: string;
 }
+export interface RouteState {
+    failureStreak?: number;
+    mutationGeneration?: number;
+    verifiedGeneration?: number;
+    unresolvedSecurity?: boolean;
+}
 export interface RouteResult {
     intent: SkillMode;
     confidence: number;
@@ -45,4 +51,4 @@ export declare function buildExecutionDag(intent: SkillMode, skillName?: string,
 /**
  * Main Smart Router Function
  */
-export declare function routeRequest(prompt: string, explicitHost?: string): RouteResult;
+export declare function routeRequest(prompt: string, explicitHost?: string, state?: RouteState): RouteResult;
