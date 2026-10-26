@@ -95,15 +95,16 @@ export function classifyIntent(prompt: string): { intent: SkillMode; confidence:
 
   // Extract potential target hosts
   const targetHosts: AgentHost[] = [];
-  if (p.includes("claude")) targetHosts.push("claude-code");
-  if (p.includes("antigravity") || p.includes("gemini")) targetHosts.push("antigravity");
-  if (p.includes("cursor")) targetHosts.push("cursor");
-  if (p.includes("codex")) targetHosts.push("codex");
-  if (p.includes("chatgpt")) targetHosts.push("chatgpt");
-  if (p.includes("opencode")) targetHosts.push("opencode");
-  if (p.includes("windsurf")) targetHosts.push("windsurf");
-  if (p.includes("cline") || /\broo\b/.test(p)) targetHosts.push("cline");
-  if (p.includes("copilot")) targetHosts.push("copilot");
+  const hostText = p.match(/(?:\bfrom\b|من).+?(?:\bto\b|إلى|الى)\s+(.+)/)?.[1] ?? p;
+  if (hostText.includes("claude")) targetHosts.push("claude-code");
+  if (hostText.includes("antigravity") || hostText.includes("gemini")) targetHosts.push("antigravity");
+  if (hostText.includes("cursor")) targetHosts.push("cursor");
+  if (hostText.includes("codex")) targetHosts.push("codex");
+  if (hostText.includes("chatgpt")) targetHosts.push("chatgpt");
+  if (hostText.includes("opencode")) targetHosts.push("opencode");
+  if (hostText.includes("windsurf")) targetHosts.push("windsurf");
+  if (hostText.includes("cline") || /\broo\b/.test(hostText)) targetHosts.push("cline");
+  if (hostText.includes("copilot")) targetHosts.push("copilot");
   if (targetHosts.length === 0) targetHosts.push("universal");
 
   // Extract skill name if named, skipping common prepositions/stopwords
@@ -132,7 +133,7 @@ export function classifyIntent(prompt: string): { intent: SkillMode; confidence:
   if (
     p.includes("distribute") ||
     p.includes("publish") ||
-    /\b(craft|prepare|create)\s+(a\s+)?repo\b/.test(p) ||
+    /\b(craft|prepare|create)\s+(a\s+)?(github\s+)?repo(sitory)?\b/.test(p) ||
     p.includes("skills.sh") ||
     p.includes("marketplace") ||
     p.includes("انشر") ||

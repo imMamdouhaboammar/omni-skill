@@ -328,7 +328,7 @@ Disposition each source behavior:
 
 ### 4. Recompile and re-evaluate
 
-Generate the target-host artifact, then run all four VALIDATE layers.
+Generate the target-host artifact, then run all five VALIDATE layers.
 
 Return a port report with:
 

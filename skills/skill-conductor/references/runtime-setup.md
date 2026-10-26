@@ -37,8 +37,11 @@ Some legacy/eval scripts use inline dependencies and still expect `uv run`.
 For those scripts only:
 
 ```bash
-command -v uv >/dev/null || command -v ~/.local/bin/uv >/dev/null
+command -v uv >/dev/null
 ```
+
+The preflight requires the same PATH-resolved `uv` used in legacy commands.
+If using a full executable path instead, use that exact path for every invocation.
 
 If `uv` is absent, report that the applicable legacy runner is unavailable. Do not turn that into a failure of CREATE, REVIEW, PORT, or static validation.
 

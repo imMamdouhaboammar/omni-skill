@@ -7022,23 +7022,24 @@ function detectHost(explicitHost) {
 function classifyIntent(prompt) {
   const p = prompt.toLowerCase();
   const targetHosts = [];
-  if (p.includes("claude"))
+  const hostText = p.match(/(?:\bfrom\b|من).+?(?:\bto\b|إلى|الى)\s+(.+)/)?.[1] ?? p;
+  if (hostText.includes("claude"))
     targetHosts.push("claude-code");
-  if (p.includes("antigravity") || p.includes("gemini"))
+  if (hostText.includes("antigravity") || hostText.includes("gemini"))
     targetHosts.push("antigravity");
-  if (p.includes("cursor"))
+  if (hostText.includes("cursor"))
     targetHosts.push("cursor");
-  if (p.includes("codex"))
+  if (hostText.includes("codex"))
     targetHosts.push("codex");
-  if (p.includes("chatgpt"))
+  if (hostText.includes("chatgpt"))
     targetHosts.push("chatgpt");
-  if (p.includes("opencode"))
+  if (hostText.includes("opencode"))
     targetHosts.push("opencode");
-  if (p.includes("windsurf"))
+  if (hostText.includes("windsurf"))
     targetHosts.push("windsurf");
-  if (p.includes("cline") || /\broo\b/.test(p))
+  if (hostText.includes("cline") || /\broo\b/.test(hostText))
     targetHosts.push("cline");
-  if (p.includes("copilot"))
+  if (hostText.includes("copilot"))
     targetHosts.push("copilot");
   if (targetHosts.length === 0)
     targetHosts.push("universal");
@@ -7059,7 +7060,7 @@ function classifyIntent(prompt) {
   if (!editingSkill && inspection && (securityTopic || !/poteto|principle|مبادئ|مبدأ/.test(p))) {
     return { intent: "VALIDATE", confidence: 0.88, targetHosts, skillName };
   }
-  if (p.includes("distribute") || p.includes("publish") || /\b(craft|prepare|create)\s+(a\s+)?repo\b/.test(p) || p.includes("skills.sh") || p.includes("marketplace") || p.includes("انشر") || p.includes("مستودع") || p.includes("توزيع")) {
+  if (p.includes("distribute") || p.includes("publish") || /\b(craft|prepare|create)\s+(a\s+)?(github\s+)?repo(sitory)?\b/.test(p) || p.includes("skills.sh") || p.includes("marketplace") || p.includes("انشر") || p.includes("مستودع") || p.includes("توزيع")) {
     return { intent: "DISTRIBUTE", confidence: 0.95, targetHosts, skillName };
   }
   if (p.includes("package") || p.includes(".skill") || p.includes("bundle") || p.includes("حزمة") || p.includes("تجميع")) {

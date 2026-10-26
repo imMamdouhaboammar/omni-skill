@@ -48,11 +48,13 @@ manifests. Publishing requires the user's authorization for that destination.
 
 ## 1. Automated Scaffolding (One Command)
 
-Resolve script paths from this skill directory. Inspect the script and its writes first.
+Resolve this installed skill directory to an absolute path and assign it to
+`OMNI_SKILL_DISTRIBUTION_DIR`. Inspect the script and its writes first. Keep the
+shell working directory at the user project so the output path resolves there.
 To scaffold the requested distribution manifests, CI workflows, and universal installers for any repository:
 
 ```bash
-bun scripts/scaffold-repo.ts ./my-project \
+bun "$OMNI_SKILL_DISTRIBUTION_DIR/scripts/scaffold-repo.ts" ./my-project \
   --name "my-project" \
   --author "Mamdouh Aboammar" \
   --desc "High performance agent automation toolchain"

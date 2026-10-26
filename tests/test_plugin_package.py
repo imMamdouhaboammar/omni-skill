@@ -95,6 +95,25 @@ class PluginPackageTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             package.validate(self.root)
 
+    def test_rejects_unreviewed_asset(self):
+        (self.root / 'assets/notes.txt').write_text('private content')
+        with self.assertRaises(ValueError):
+            package.build(self.root, Path(self.tmp.name) / 'bad.zip')
+
+    def test_rejects_secret_content_outside_skills(self):
+        path = self.root / 'README.md'
+        path.write_text(path.read_text() + '\n' + 'sk-' + 'A' * 40 + '\n')
+        with self.assertRaises(ValueError):
+            package.build(self.root, Path(self.tmp.name) / 'bad.zip')
+
+    def test_rejects_compatibility_onboarding_drift(self):
+        path = self.root / '.codex-plugin/plugin.json'
+        data = json.loads(path.read_text())
+        data['extensions']['com.openai']['onboardingSkill'] = './skills/omni-skill/SKILL.md'
+        path.write_text(json.dumps(data))
+        with self.assertRaises(ValueError):
+            package.validate(self.root)
+
     def test_rejects_output_inside_source(self):
         with self.assertRaises(ValueError):
             package.build(self.root, self.root / 'skills/omni-skill/out.zip')

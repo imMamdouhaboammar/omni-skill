@@ -159,3 +159,17 @@ describe("Skill topic versus requested action", () => {
     expect(classifyIntent("Inspect this security skill").intent).toBe("VALIDATE");
   });
 });
+
+
+describe("Review regression cases", () => {
+  it("selects destination hosts without retaining the source host", () => {
+    const result = routeRequest("Port this skill from Cursor to ChatGPT", "codex");
+    expect(result.targetHosts).toEqual(["chatgpt"]);
+    expect(result.dag.find(step => step.mode === "PORT")?.recommendedCommand).toContain("--target chatgpt");
+    expect(classifyIntent("Port from Claude to ChatGPT and Codex").targetHosts).toEqual(["codex", "chatgpt"]);
+  });
+  it("recognizes explicit GitHub repository creation without broad repo matching", () => {
+    expect(classifyIntent("Create a GitHub repo for this skill").intent).toBe("DISTRIBUTE");
+    expect(classifyIntent("Audit this skill in a GitHub repository").intent).toBe("VALIDATE");
+  });
+});
