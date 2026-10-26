@@ -1,0 +1,6 @@
+interface:
+  display_name: "Measure Claims"
+  short_description: "Use measure claims for an OmniSkill workflow."
+  default_prompt: "Use $measure-dont-guess for the current skill-engineering task and report evidence and limits."
+policy:
+  allow_implicit_invocation: false

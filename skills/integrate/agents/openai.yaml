@@ -1,0 +1,6 @@
+interface:
+  display_name: "Integrate Existing Code"
+  short_description: "Use integrate existing code for an OmniSkill workflow."
+  default_prompt: "Use $integrate for the current skill-engineering task and report evidence and limits."
+policy:
+  allow_implicit_invocation: false

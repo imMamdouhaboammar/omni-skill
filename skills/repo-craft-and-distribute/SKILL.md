@@ -24,12 +24,13 @@ description: >
 
 Before running repo configuration or scaffolding commands, verify tooling → **`references/runtime-setup.md`**.
 
-**Essential Checklist:**
-- [ ] Git and GitHub CLI (`gh`) installed and authenticated (`gh auth status`)
-- [ ] Bun runtime installed (`bun --version`)
-- [ ] Python 3 installed (for skill validation and packaging)
-
-**If any dependency is missing, stop and notify the user immediately.**
+Check only dependencies needed by the selected distribution channel. Use an
+available GitHub connector or authenticated CLI for repository operations; use
+the project's existing package manager for builds. Python is needed only for
+Python helpers. If a dependency is missing, continue independent work and mark
+the affected action unavailable. Do not install tools or require all runtimes
+merely to draft metadata. Verify current official package formats before writing
+manifests. Publishing requires the user's authorization for that destination.
 
 ---
 
@@ -47,10 +48,13 @@ Before running repo configuration or scaffolding commands, verify tooling → **
 
 ## 1. Automated Scaffolding (One Command)
 
-To instantly scaffold all distribution manifests, CI workflows, and universal installers for any repository:
+Resolve this installed skill directory to an absolute path and assign it to
+`OMNI_SKILL_DISTRIBUTION_DIR`. Inspect the script and its writes first. Keep the
+shell working directory at the user project so the output path resolves there.
+To scaffold the requested distribution manifests, CI workflows, and universal installers for any repository:
 
 ```bash
-bun ~/.gemini/config/skills/repo-craft-and-distribute/scripts/scaffold-repo.ts ./my-project \
+bun "$OMNI_SKILL_DISTRIBUTION_DIR/scripts/scaffold-repo.ts" ./my-project \
   --name "my-project" \
   --author "Mamdouh Aboammar" \
   --desc "High performance agent automation toolchain"

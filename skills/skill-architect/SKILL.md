@@ -46,7 +46,7 @@ If the base agent already does the job reliably and no durable behavior is added
 
 ## Step 2: Create the Universal Skill Contract
 
-Use `../skill-conductor/references/skill-contract.md`
+Use `../omni-skill/references/skill-contract.md`
 
 Freeze:
 

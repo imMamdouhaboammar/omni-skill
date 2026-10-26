@@ -24,7 +24,7 @@ bun scripts/scaffold-repo.ts <skill-path> \
 | `package.json` | npm / Bun / npx zero-install CLI runner | `"bin": { "<name>": "./bin/cli.js" }`, `"type": "module"` |
 | `marketplace.json` | Claude Code & Claude Desktop Marketplace | `$schema` for Claude Plugin, capabilities, compatibility |
 | `.skills.json` | Skills.sh (Vercel Agent Registry) | `$schema`, repository, skill entrypoint, tags |
-| `install.sh` | Universal multi-agent installer | Links skill to `~/.claude/skills`, `~/.gemini/config/skills`, `~/.codex/skills`, `~/.agents/skills` |
+| `install.sh` | Universal multi-agent installer | Copies into one explicitly selected new directory; refuses existing destinations |
 
 ---
 

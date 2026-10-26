@@ -1,0 +1,6 @@
+interface:
+  display_name: "Set Up OmniSkill"
+  short_description: "Use set up omniskill for an OmniSkill workflow."
+  default_prompt: "Use $setup for the current skill-engineering task and report evidence and limits."
+policy:
+  allow_implicit_invocation: false

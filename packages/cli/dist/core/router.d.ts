@@ -12,6 +12,12 @@ export interface RouteStep {
     freedomLevel?: "low" | "medium" | "high";
     recoveryStep?: string;
 }
+export interface RouteState {
+    failureStreak?: number;
+    mutationGeneration?: number;
+    verifiedGeneration?: number;
+    unresolvedSecurity?: boolean;
+}
 export interface RouteResult {
     intent: SkillMode;
     confidence: number;
@@ -38,11 +44,9 @@ export declare function classifyIntent(prompt: string): {
     targetHosts: AgentHost[];
     skillName?: string;
 };
-/**
- * Generate a dynamic Directed Acyclic Graph (DAG) for the given intent and targets.
- */
+/** Resolve shared documents from each skill's installed directory, without I/O. */
 export declare function buildExecutionDag(intent: SkillMode, skillName?: string, targetHosts?: AgentHost[]): RouteStep[];
 /**
  * Main Smart Router Function
  */
-export declare function routeRequest(prompt: string, explicitHost?: string): RouteResult;
+export declare function routeRequest(prompt: string, explicitHost?: string, state?: RouteState): RouteResult;

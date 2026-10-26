@@ -1,0 +1,6 @@
+interface:
+  display_name: "Reuse Existing Tools"
+  short_description: "Use reuse existing tools for an OmniSkill workflow."
+  default_prompt: "Use $dont-it-yourself for the current skill-engineering task and report evidence and limits."
+policy:
+  allow_implicit_invocation: false

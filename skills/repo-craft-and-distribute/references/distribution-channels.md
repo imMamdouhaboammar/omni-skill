@@ -42,5 +42,5 @@ Comprehensive guide for registering and distributing agent skills across modern 
 ---
 
 ## 5. Antigravity & Gemini CLI
-- **Location**: `~/.gemini/config/skills/<skill-name>` or `.agents/skills/<skill-name>`
+- **Location**: a directory explicitly selected for the host after checking its current documentation
 - **Validation**: Evaluated directly via `eval_skill.py`.

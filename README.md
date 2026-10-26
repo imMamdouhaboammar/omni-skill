@@ -5,7 +5,7 @@
 <h1 align="center">OmniSkill</h1>
 
 <p align="center">
-  <strong>Universal Agent Skill Engineering System & Poteto Mode: Create once, engineer deeply, ship to every agent.</strong>
+  <strong>Design, test, improve, and package reusable agent skills.</strong>
 </p>
 
 <p align="center">
@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-6.0.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-6.1.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/homebrew-supported-gold.svg" alt="Homebrew">
   <img src="https://img.shields.io/badge/skills.sh-vercel%20registry-purple.svg" alt="Skills.sh">
   <img src="https://img.shields.io/badge/claude--code-marketplace-orange.svg" alt="Claude Code Plugin">
@@ -39,20 +39,42 @@ $$\text{Intent (Any Lang)} \longrightarrow \text{Dynamic DAG} \longrightarrow \t
 
 ---
 
-## ⚡ Why OmniSkill vs Official `/skill-creator`?
+## What you can do
 
-| Capability | Anthropic Official [`skill-creator`](https://github.com/anthropics/skills/tree/main/skills/skill-creator) | ⚡ **OmniSkill 6.0 Engine** |
-|---|:---:|:---:|
-| **Target AI Hosts** | Claude Code only (Vendor Lock-in) | **Every AI Agent** (Claude Code, ChatGPT, Codex, Cursor, Windsurf, Cline, Antigravity) |
-| **Workflow & Routing** | Static single prompt | **Dynamic Agentic Router** (Intelligent DAG generation & intent classifier) |
-| **Engineering Discipline** | None | **Poteto Mode** (24 codified principles: boundary discipline, laziness, subtract first) |
-| **Empirical Gates** | Guesswork | **`measure-dont-guess`** (Hypothesis-first benchmarking & bounds analysis) |
-| **Behavioral Testing** | Manual inspection | **BinEval Assertion Harness** (70/30 train/held-out evals & pressure gates) |
-| **Validation Gate** | Basic checks | **7-Pass Static Analysis Gate** (Links, schema, line budget, anti-slop, secrets) |
-| **Cross-Host Compilation** | None (manual conversion) | **Automated Portability Compiler** (`.cursorrules`, `.claude-plugin`, `.codex-plugin`) |
-| **Universal Distribution** | Manual file copying | **Dual Marketplace** (Claude Code Plugin Marketplace + Vercel Skills CLI) |
+- Turn a repeated workflow or SOP into a skill with explicit decision rules.
+- Evaluate activation boundaries, instruction quality, and pressure cases.
+- Inspect skill code and resources with static security checks.
+- Adapt the portable core to target hosts while recording capability gaps.
+- Package reviewed skills and prepare distribution metadata.
+
+Each result needs evidence appropriate to its claim. Static validation is not
+behavioral proof, and a test on one agent host does not verify another host.
 
 ---
+
+## ChatGPT and Codex plugin
+
+The skills-only plugin provides guided setup and routes skill design, repair,
+evaluation, host adaptation, and packaging to focused workflows. It needs no
+MCP server or API key. File access and execution depend on the current host.
+
+Build the upload archive from a checkout:
+
+```bash
+python3 scripts/plugin_package.py . /tmp/omni-skill-plugin.zip
+python3 -m unittest discover -s tests -p 'test_plugin_*.py'
+```
+
+Upload the resulting ZIP at [OpenAI Platform Plugins](https://platform.openai.com/plugins).
+Run **Set Up OmniSkill** after a test install. Start with “Turn this recurring
+workflow into a skill with clear triggers, decision rules, and evaluation cases.”
+The package includes portable `plugin.json`, a Codex compatibility manifest,
+16 skills, and branding. Source development tests and CLI binaries stay outside
+this archive. Plugin package version **6.1.1** is separate from CLI version **6.1.0**.
+
+See [submission preparation](docs/plugin-submission.md) for host smoke cases,
+listing fields, and the publisher details still requiring portal confirmation.
+Local validation does not mean OpenAI approval or a tested installation.
 
 ## Installation
 

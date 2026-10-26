@@ -1,3 +1,5 @@
+import { posix } from "node:path";
+
 export type SkillMode =
   | "CREATE"
   | "IMPROVE"
@@ -36,6 +38,13 @@ export interface RouteStep {
   recommendedCommand?: string;
   freedomLevel?: "low" | "medium" | "high";
   recoveryStep?: string;
+}
+
+export interface RouteState {
+  failureStreak?: number;
+  mutationGeneration?: number;
+  verifiedGeneration?: number;
+  unresolvedSecurity?: boolean;
 }
 
 export interface RouteResult {
@@ -86,13 +95,16 @@ export function classifyIntent(prompt: string): { intent: SkillMode; confidence:
 
   // Extract potential target hosts
   const targetHosts: AgentHost[] = [];
-  if (p.includes("claude")) targetHosts.push("claude-code");
-  if (p.includes("antigravity") || p.includes("gemini")) targetHosts.push("antigravity");
-  if (p.includes("cursor")) targetHosts.push("cursor");
-  if (p.includes("codex") || p.includes("chatgpt")) targetHosts.push("codex");
-  if (p.includes("windsurf")) targetHosts.push("windsurf");
-  if (p.includes("cline") || p.includes("roo")) targetHosts.push("cline");
-  if (p.includes("copilot")) targetHosts.push("copilot");
+  const hostText = p.match(/(?:\bfrom\b|من).+?(?:\bto\b|إلى|الى)\s+(.+)/)?.[1] ?? p;
+  if (hostText.includes("claude")) targetHosts.push("claude-code");
+  if (hostText.includes("antigravity") || hostText.includes("gemini")) targetHosts.push("antigravity");
+  if (hostText.includes("cursor")) targetHosts.push("cursor");
+  if (hostText.includes("codex")) targetHosts.push("codex");
+  if (hostText.includes("chatgpt")) targetHosts.push("chatgpt");
+  if (hostText.includes("opencode")) targetHosts.push("opencode");
+  if (hostText.includes("windsurf")) targetHosts.push("windsurf");
+  if (hostText.includes("cline") || /\broo\b/.test(hostText)) targetHosts.push("cline");
+  if (hostText.includes("copilot")) targetHosts.push("copilot");
   if (targetHosts.length === 0) targetHosts.push("universal");
 
   // Extract skill name if named, skipping common prepositions/stopwords
@@ -108,12 +120,20 @@ export function classifyIntent(prompt: string): { intent: SkillMode; confidence:
     }
   }
 
+  // The topic of a skill is not the action requested on that skill.
+  const editingSkill = /\b(create|build|design|author|port|adapt|improve|fix|repair)\b.*\bskill\b/.test(p);
+  const inspection = /\b(audit|review|scan|check|inspect)\b|فحص|تدقيق/.test(p);
+  const securityTopic = /\bsecurity\b|أمان|امان/.test(p);
+  if (!editingSkill && inspection &&
+      (securityTopic || !/poteto|principle|مبادئ|مبدأ/.test(p))) {
+    return { intent: "VALIDATE", confidence: 0.88, targetHosts, skillName };
+  }
+
   // 1. Distribution & Repo Crafting
   if (
     p.includes("distribute") ||
     p.includes("publish") ||
-    p.includes("repo") ||
-    p.includes("github") ||
+    /\b(craft|prepare|create)\s+(a\s+)?(github\s+)?repo(sitory)?\b/.test(p) ||
     p.includes("skills.sh") ||
     p.includes("marketplace") ||
     p.includes("انشر") ||
@@ -136,7 +156,7 @@ export function classifyIntent(prompt: string): { intent: SkillMode; confidence:
 
   // 3. Porting / Cross-Host Adapter
   if (
-    p.includes("port") ||
+    /\bport\b/.test(p) ||
     p.includes("adapt") ||
     p.includes("convert to") ||
     p.includes("convert to cursor") ||
@@ -233,7 +253,7 @@ export function classifyIntent(prompt: string): { intent: SkillMode; confidence:
   }
 
   // 10. Validation & Quality Check
-  if (
+  if (!editingSkill && (
     p.includes("validate") ||
     p.includes("audit") ||
     p.includes("lint") ||
@@ -242,7 +262,7 @@ export function classifyIntent(prompt: string): { intent: SkillMode; confidence:
     p.includes("فحص") ||
     p.includes("تحقق") ||
     p.includes("تدقيق")
-  ) {
+  )) {
     return { intent: "VALIDATE", confidence: 0.88, targetHosts, skillName };
   }
 
@@ -267,7 +287,7 @@ export function classifyIntent(prompt: string): { intent: SkillMode; confidence:
 /**
  * Generate a dynamic Directed Acyclic Graph (DAG) for the given intent and targets.
  */
-export function buildExecutionDag(
+function buildExecutionPlan(
   intent: SkillMode,
   skillName: string = "target-skill",
   targetHosts: AgentHost[] = ["universal"]
@@ -636,18 +656,52 @@ export function buildExecutionDag(
   }
 }
 
+/** Resolve shared documents from each skill's installed directory, without I/O. */
+export function buildExecutionDag(
+  intent: SkillMode,
+  skillName: string = "target-skill",
+  targetHosts: AgentHost[] = ["universal"]
+): RouteStep[] {
+  const sharedReferences = new Set([
+    "skill-architect", "skill-evaluator", "skill-portability-compiler", "host-workspace-operator"
+  ]);
+  return buildExecutionPlan(intent, skillName, targetHosts).map(step => ({
+    ...step,
+    requiredReferences: step.requiredReferences.map(ref =>
+      sharedReferences.has(step.skill) ? `../omni-skill/${ref}` : ref)
+  }));
+}
+
 /**
  * Main Smart Router Function
  */
-export function routeRequest(prompt: string, explicitHost?: string): RouteResult {
+export function routeRequest(prompt: string, explicitHost?: string, state: RouteState = {}): RouteResult {
+  for (const value of [state.failureStreak, state.mutationGeneration, state.verifiedGeneration]) {
+    if (value !== undefined && (!Number.isSafeInteger(value) || value < 0)) {
+      throw new RangeError("Routing generations and failure streak must be non-negative safe integers");
+    }
+  }
   const host = detectHost(explicitHost);
-  const { intent, confidence, targetHosts, skillName } = classifyIntent(prompt);
+  let { intent, confidence, targetHosts, skillName } = classifyIntent(prompt);
+  let override = "";
+  if (state.unresolvedSecurity) {
+    intent = "VALIDATE";
+    override = "Unresolved security requires inspection before execution.";
+  } else if ((state.failureStreak ?? 0) >= 2) {
+    intent = "IMPROVE";
+    override = "Repeated failure requires a new hypothesis before retrying.";
+  } else if ((intent === "PACKAGE" || intent === "DISTRIBUTE") &&
+      state.mutationGeneration !== undefined && state.verifiedGeneration !== state.mutationGeneration) {
+    intent = "VALIDATE";
+    override = "Missing or stale verification blocks release after mutation.";
+  }
   const actualSkillName = skillName || "skill-artifact";
   const dag = buildExecutionDag(intent, actualSkillName, targetHosts);
 
   // Aggregate all unique required references
   const allRefs = new Set<string>();
-  dag.forEach(step => step.requiredReferences.forEach(ref => allRefs.add(ref)));
+  dag.forEach(step => step.requiredReferences.forEach(ref =>
+    allRefs.add(posix.normalize(`skills/${step.skill}/${ref}`))));
 
   return {
     intent,
@@ -660,6 +714,6 @@ export function routeRequest(prompt: string, explicitHost?: string): RouteResult
       maxTokens: 2500,
       recommendedFiles: Array.from(allRefs)
     },
-    explanation: `Classified as '${intent}' (${Math.round(confidence * 100)}% confidence). Generated a ${dag.length}-step execution DAG targeting [${targetHosts.join(", ")}] on host '${host}'.`
+    explanation: `Classified as '${intent}' (${Math.round(confidence * 100)}% confidence). Generated a ${dag.length}-step execution DAG targeting [${targetHosts.join(", ")}] on host '${host}'.${override ? " " + override : ""}`
   };
 }

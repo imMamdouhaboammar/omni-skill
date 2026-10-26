@@ -1,0 +1,6 @@
+interface:
+  display_name: "Engineering Principles"
+  short_description: "Use engineering principles for an OmniSkill workflow."
+  default_prompt: "Use $poteto-principles for the current skill-engineering task and report evidence and limits."
+policy:
+  allow_implicit_invocation: false
