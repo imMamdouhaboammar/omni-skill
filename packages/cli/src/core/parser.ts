@@ -43,6 +43,16 @@ export function validateFrontmatterTypes(data: unknown): asserts data is SkillFr
     const receivedType = record.author === null ? "null" : typeof record.author;
     throw new FrontmatterTypeError(`Frontmatter field 'author' must be a string, received ${receivedType}`);
   }
+
+  if ("repository" in record && typeof record.repository !== "string") {
+    const receivedType = record.repository === null ? "null" : typeof record.repository;
+    throw new FrontmatterTypeError(`Frontmatter field 'repository' must be a string, received ${receivedType}`);
+  }
+
+  if ("metadata" in record && (typeof record.metadata !== "object" || record.metadata === null || Array.isArray(record.metadata))) {
+    const receivedType = record.metadata === null ? "null" : (Array.isArray(record.metadata) ? "array" : typeof record.metadata);
+    throw new FrontmatterTypeError(`Frontmatter field 'metadata' must be an object, received ${receivedType}`);
+  }
 }
 
 export function parseSkillMarkdown(content: string): { frontmatter: SkillFrontmatter; body: string } {

@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-6.1.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-6.2.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/homebrew-supported-gold.svg" alt="Homebrew">
   <img src="https://img.shields.io/badge/skills.sh-vercel%20registry-purple.svg" alt="Skills.sh">
   <img src="https://img.shields.io/badge/claude--code-marketplace-orange.svg" alt="Claude Code Plugin">

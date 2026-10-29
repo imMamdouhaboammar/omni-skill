@@ -1,6 +1,6 @@
 {
   "name": "@mamdouh-aboammar/omni-skill",
-  "version": "6.1.0",
+  "version": "6.2.0",
   "description": "Universal Cross-Host Agent Skill Engine & Compiler. Build once, validate across 7 strict gates, and distribute to every agent.",
   "bin": {
     "omni-skill": "./dist/index.js"
@@ -8,6 +8,9 @@
   "main": "./dist/lib.js",
   "module": "./dist/lib.js",
   "types": "./dist/lib.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": {
       "types": "./dist/lib.d.ts",

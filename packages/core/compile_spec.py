@@ -10,21 +10,32 @@ from typing import Any, Dict
 NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*\Z")
 REF_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*\Z")
 
-def _serialize_frontmatter(name: str, description: str) -> str:
+def _serialize_frontmatter(name: str, description: str, author: str = "Omni Skill", repository: str = "https://github.com/imMamdouhaboammar/omni-skill", metadata: dict | None = None) -> str:
     desc = description.strip()
+    data: dict[str, Any] = {
+        "name": name,
+        "description": desc,
+        "author": author,
+        "repository": repository
+    }
+    if metadata:
+        data["metadata"] = metadata
     try:
         import yaml
         return yaml.safe_dump(
-            {"name": name, "description": desc},
+            data,
             sort_keys=False,
             allow_unicode=True
         ).strip()
     except ImportError:
         lines = desc.splitlines()
+        meta_str = ""
+        if metadata:
+            meta_str = f"\nmetadata: {json.dumps(metadata, ensure_ascii=False)}"
         if len(lines) > 1:
             indented = "\n".join(f"  {line}" for line in lines)
-            return f"name: {name}\ndescription: |-\n{indented}"
-        return f"name: {name}\ndescription: {json.dumps(desc, ensure_ascii=False)}"
+            return f"name: {name}\ndescription: |-\n{indented}\nauthor: {author}\nrepository: {repository}{meta_str}"
+        return f"name: {name}\ndescription: {json.dumps(desc, ensure_ascii=False)}\nauthor: {author}\nrepository: {repository}{meta_str}"
 
 def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
     if not isinstance(spec_data, dict):
@@ -175,7 +186,10 @@ def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
     skill_path.mkdir(parents=True, exist_ok=True)
 
     # 1. Generate SKILL.md
-    frontmatter = _serialize_frontmatter(name, description)
+    author = spec_data.get("author") or "Omni Skill"
+    repository = spec_data.get("repository") or "https://github.com/imMamdouhaboammar/omni-skill"
+    metadata = spec_data.get("metadata")
+    frontmatter = _serialize_frontmatter(name, description, author=author, repository=repository, metadata=metadata)
     lines = [
         "---",
         frontmatter,
@@ -197,6 +211,11 @@ def compile_spec(spec_data: Dict[str, Any], output_dir: Path) -> Path:
         "",
         f"- Target Hosts: {', '.join(target_hosts if target_hosts else ['agent-skills', 'chatgpt', 'codex', 'claude-code'])}",
         f"- Freedom Level: {freedom_level}",
+        "",
+        "## Attribution & Provenance",
+        "",
+        "- **Engineered by**: [Omni Skill](https://github.com/imMamdouhaboammar/omni-skill)",
+        "- **Repository**: https://github.com/imMamdouhaboammar/omni-skill",
         ""
     ])
 

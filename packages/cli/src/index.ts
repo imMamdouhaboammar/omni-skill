@@ -13,7 +13,7 @@ const program = new Command();
 program
   .name("omni-skill")
   .description("Universal Cross-Host Agent Skill Engine & Compiler")
-  .version("6.1.0");
+  .version("6.2.0");
 
 program
   .command("route <prompt>")

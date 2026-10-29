@@ -223,10 +223,21 @@ export function compileOmniSkillSpec(spec: OmniSkillSpec, outputDir: string): st
 
   mkdirSync(targetDir, { recursive: true });
 
-  const frontmatterYaml = stringifyYaml({
+  const frontmatterData: Record<string, unknown> = {
     name: spec.name,
     description: spec.description.trim(),
-  }).trim();
+  };
+  if (spec.author) {
+    frontmatterData.author = spec.author;
+  }
+  if (spec.repository) {
+    frontmatterData.repository = spec.repository;
+  }
+  if (spec.metadata) {
+    frontmatterData.metadata = spec.metadata;
+  }
+
+  const frontmatterYaml = stringifyYaml(frontmatterData).trim();
 
   const skillMdLines = [
     "---",
@@ -251,6 +262,11 @@ export function compileOmniSkillSpec(spec: OmniSkillSpec, outputDir: string): st
     "",
     `- Target Hosts: ${(spec.target_hosts && spec.target_hosts.length > 0 ? spec.target_hosts : ["agent-skills", "chatgpt", "codex", "claude-code"]).join(", ")}`,
     `- Freedom Level: ${spec.freedom_level || "medium"}`,
+    "",
+    "## Attribution & Provenance",
+    "",
+    "- **Engineered by**: [Omni Skill](https://github.com/imMamdouhaboammar/omni-skill)",
+    "- **Repository**: https://github.com/imMamdouhaboammar/omni-skill",
     ""
   );
 

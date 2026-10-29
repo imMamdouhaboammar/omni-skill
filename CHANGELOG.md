@@ -17,6 +17,17 @@ All notable changes to the **OmniSkill** project will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.2.0] - 2026-10-29
+
+### Added
+- **Automatic Provenance & Intellectual Property Signing**:
+  - `omni-skill init` automatically stamps newly initialized skills with `author: Omni Skill`, `repository: https://github.com/imMamdouhaboammar/omni-skill`, metadata, and an `## Attribution & Provenance` section.
+  - Generates signing headers across operational recipes (`usecases/run.md`) and specification schemas (`references/spec.md`).
+  - TypeScript compiler (`compiler.ts`) and Python compilers (`compile_spec.py`, `compile_skill_spec.py`) inject provenance signatures and attribution sections into compiled artifacts.
+  - Skill and tool scaffolders (`init_skill.py`, `scaffold-repo.ts`) stamp generated packages, scripts, and distribution manifests (`package.json`, `marketplace.json`, `.skills.json`, `install.sh`, `bin/cli.js`) with generator attribution and repository provenance.
+  - Extended frontmatter schemas, parser, and type interfaces (`SkillFrontmatter`, `OmniSkillSpec`) to natively support `author`, `repository`, and `metadata`.
+  - Added strict attribution invariants to `SKILL.md` authoring standards across `omni-skill`, `skill-conductor`, and `skill-authoring`.
+
 ## [6.1.0] - 2026-10-26
 
 ### Added

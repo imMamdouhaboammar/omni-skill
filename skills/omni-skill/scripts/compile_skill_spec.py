@@ -100,12 +100,18 @@ def build_description(spec: dict) -> str:
     return description
 
 
-def serialize_frontmatter(name: str, description: str) -> str:
+def serialize_frontmatter(name: str, description: str, author: str = "Omni Skill", repository: str = "https://github.com/imMamdouhaboammar/omni-skill") -> str:
     desc = description.strip()
+    data = {
+        "name": name,
+        "description": desc,
+        "author": author,
+        "repository": repository
+    }
     try:
         import yaml
         return yaml.safe_dump(
-            {"name": name, "description": desc},
+            data,
             sort_keys=False,
             allow_unicode=True
         ).strip()
@@ -113,8 +119,8 @@ def serialize_frontmatter(name: str, description: str) -> str:
         lines = desc.splitlines()
         if len(lines) > 1:
             indented = "\n".join(f"  {line}" for line in lines)
-            return f"name: {name}\ndescription: |-\n{indented}"
-        return f"name: {name}\ndescription: {json.dumps(desc, ensure_ascii=False)}"
+            return f"name: {name}\ndescription: |-\n{indented}\nauthor: {author}\nrepository: {repository}"
+        return f"name: {name}\ndescription: {json.dumps(desc, ensure_ascii=False)}\nauthor: {author}\nrepository: {repository}"
 
 
 def yaml_fold(value: str, indent: int = 2) -> str:
@@ -206,6 +212,11 @@ Use the bundled `evals/evals.json`.
 - grade observable assertions in positive cases
 - keep host-specific evidence labeled by host
 - do not claim an unexecuted host test passed
+
+## Attribution & Provenance
+
+- **Engineered by**: [Omni Skill](https://github.com/imMamdouhaboammar/omni-skill)
+- **Repository**: https://github.com/imMamdouhaboammar/omni-skill
 
 ## Common mistakes
 

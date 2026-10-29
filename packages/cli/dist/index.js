@@ -44,7 +44,7 @@ var __exportCjs = (target, getters, setters) => {
 };
 var __require = /* @__PURE__ */ createRequire(import.meta.url);
 
-// ../../node_modules/.bun/commander@12.1.0/node_modules/commander/lib/error.js
+// ../../../../../.bun/install/cache/links/commander@12.1.0-0dbc1cbfa6139f1b/node_modules/commander/lib/error.js
 var require_error = __commonJS(function(exports) {
   class CommanderError extends Error {
     constructor(exitCode, code, message) {
@@ -68,7 +68,7 @@ var require_error = __commonJS(function(exports) {
   exports.InvalidArgumentError = InvalidArgumentError;
 });
 
-// ../../node_modules/.bun/commander@12.1.0/node_modules/commander/lib/argument.js
+// ../../../../../.bun/install/cache/links/commander@12.1.0-0dbc1cbfa6139f1b/node_modules/commander/lib/argument.js
 var require_argument = __commonJS(function(exports) {
   var { InvalidArgumentError } = require_error();
 
@@ -147,7 +147,7 @@ var require_argument = __commonJS(function(exports) {
   exports.humanReadableArgName = humanReadableArgName;
 });
 
-// ../../node_modules/.bun/commander@12.1.0/node_modules/commander/lib/help.js
+// ../../../../../.bun/install/cache/links/commander@12.1.0-0dbc1cbfa6139f1b/node_modules/commander/lib/help.js
 var require_help = __commonJS(function(exports) {
   var { humanReadableArgName } = require_argument();
 
@@ -396,7 +396,7 @@ var require_help = __commonJS(function(exports) {
   exports.Help = Help;
 });
 
-// ../../node_modules/.bun/commander@12.1.0/node_modules/commander/lib/option.js
+// ../../../../../.bun/install/cache/links/commander@12.1.0-0dbc1cbfa6139f1b/node_modules/commander/lib/option.js
 var require_option = __commonJS(function(exports) {
   var { InvalidArgumentError } = require_error();
 
@@ -547,7 +547,7 @@ var require_option = __commonJS(function(exports) {
   exports.DualOptions = DualOptions;
 });
 
-// ../../node_modules/.bun/commander@12.1.0/node_modules/commander/lib/suggestSimilar.js
+// ../../../../../.bun/install/cache/links/commander@12.1.0-0dbc1cbfa6139f1b/node_modules/commander/lib/suggestSimilar.js
 var require_suggestSimilar = __commonJS(function(exports) {
   var maxDistance = 3;
   function editDistance(a, b) {
@@ -620,7 +620,7 @@ var require_suggestSimilar = __commonJS(function(exports) {
   exports.suggestSimilar = suggestSimilar;
 });
 
-// ../../node_modules/.bun/commander@12.1.0/node_modules/commander/lib/command.js
+// ../../../../../.bun/install/cache/links/commander@12.1.0-0dbc1cbfa6139f1b/node_modules/commander/lib/command.js
 var require_command = __commonJS(function(exports) {
   var EventEmitter = __require("node:events").EventEmitter;
   var childProcess = __require("node:child_process");
@@ -1863,7 +1863,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
   exports.Command = Command;
 });
 
-// ../../node_modules/.bun/picocolors@1.1.1/node_modules/picocolors/picocolors.js
+// ../../../../../.bun/install/cache/links/picocolors@1.1.1-7a85ff629f303704/node_modules/picocolors/picocolors.js
 var require_picocolors = __commonJS(function(exports, module) {
   var p = process || {};
   var argv = p.argv || [];
@@ -1933,7 +1933,7 @@ var require_picocolors = __commonJS(function(exports, module) {
   module.exports.createColors = createColors;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/nodes/identity.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/nodes/identity.js
 var require_identity = __commonJS(function(exports) {
   var ALIAS = Symbol.for("yaml.alias");
   var DOC = Symbol.for("yaml.document");
@@ -1987,7 +1987,7 @@ var require_identity = __commonJS(function(exports) {
   exports.isSeq = isSeq;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/visit.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/visit.js
 var require_visit = __commonJS(function(exports) {
   var identity = require_identity();
   var BREAK = Symbol("break visit");
@@ -2142,7 +2142,7 @@ var require_visit = __commonJS(function(exports) {
   exports.visitAsync = visitAsync;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/doc/directives.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/doc/directives.js
 var require_directives = __commonJS(function(exports) {
   var identity = require_identity();
   var visit = require_visit();
@@ -2294,7 +2294,7 @@ var require_directives = __commonJS(function(exports) {
   exports.Directives = Directives;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/doc/anchors.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/doc/anchors.js
 var require_anchors = __commonJS(function(exports) {
   var identity = require_identity();
   var visit = require_visit();
@@ -2356,7 +2356,7 @@ var require_anchors = __commonJS(function(exports) {
   exports.findNewAnchor = findNewAnchor;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/doc/applyReviver.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/doc/applyReviver.js
 var require_applyReviver = __commonJS(function(exports) {
   function applyReviver(reviver, obj, key, val) {
     if (val && typeof val === "object") {
@@ -2403,7 +2403,7 @@ var require_applyReviver = __commonJS(function(exports) {
   exports.applyReviver = applyReviver;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/nodes/toJS.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/nodes/toJS.js
 var require_toJS = __commonJS(function(exports) {
   var identity = require_identity();
   function toJS(value, arg, ctx) {
@@ -2430,7 +2430,7 @@ var require_toJS = __commonJS(function(exports) {
   exports.toJS = toJS;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/nodes/Node.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/nodes/Node.js
 var require_Node = __commonJS(function(exports) {
   var applyReviver = require_applyReviver();
   var identity = require_identity();
@@ -2467,7 +2467,7 @@ var require_Node = __commonJS(function(exports) {
   exports.NodeBase = NodeBase;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/nodes/Alias.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/nodes/Alias.js
 var require_Alias = __commonJS(function(exports) {
   var anchors = require_anchors();
   var visit = require_visit();
@@ -2577,7 +2577,7 @@ var require_Alias = __commonJS(function(exports) {
   exports.Alias = Alias;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/nodes/Scalar.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/nodes/Scalar.js
 var require_Scalar = __commonJS(function(exports) {
   var identity = require_identity();
   var Node = require_Node();
@@ -2605,7 +2605,7 @@ var require_Scalar = __commonJS(function(exports) {
   exports.isScalarValue = isScalarValue;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/doc/createNode.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/doc/createNode.js
 var require_createNode = __commonJS(function(exports) {
   var Alias = require_Alias();
   var identity = require_identity();
@@ -2677,7 +2677,7 @@ var require_createNode = __commonJS(function(exports) {
   exports.createNode = createNode;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/nodes/Collection.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/nodes/Collection.js
 var require_Collection = __commonJS(function(exports) {
   var createNode = require_createNode();
   var identity = require_identity();
@@ -2792,7 +2792,7 @@ var require_Collection = __commonJS(function(exports) {
   exports.isEmptyPath = isEmptyPath;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyComment.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/stringify/stringifyComment.js
 var require_stringifyComment = __commonJS(function(exports) {
   var stringifyComment = (str) => str.replace(/^(?!$)(?: $)?/gm, "#");
   function indentComment(comment, indent) {
@@ -2809,7 +2809,7 @@ var require_stringifyComment = __commonJS(function(exports) {
   exports.stringifyComment = stringifyComment;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/stringify/foldFlowLines.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/stringify/foldFlowLines.js
 var require_foldFlowLines = __commonJS(function(exports) {
   var FOLD_FLOW = "flow";
   var FOLD_BLOCK = "block";
@@ -2946,7 +2946,7 @@ ${indent}${text.slice(fold + 1, end)}`;
   exports.foldFlowLines = foldFlowLines;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyString.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/stringify/stringifyString.js
 var require_stringifyString = __commonJS(function(exports) {
   var Scalar = require_Scalar();
   var foldFlowLines = require_foldFlowLines();
@@ -3244,7 +3244,7 @@ ${indent}`);
   exports.stringifyString = stringifyString;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/stringify/stringify.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/stringify/stringify.js
 var require_stringify = __commonJS(function(exports) {
   var anchors = require_anchors();
   var identity = require_identity();
@@ -3365,7 +3365,7 @@ ${ctx.indent}${str}`;
   exports.stringify = stringify;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyPair.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/stringify/stringifyPair.js
 var require_stringifyPair = __commonJS(function(exports) {
   var identity = require_identity();
   var Scalar = require_Scalar();
@@ -3501,7 +3501,7 @@ ${ctx.indent}`;
   exports.stringifyPair = stringifyPair;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/log.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/log.js
 var require_log = __commonJS(function(exports) {
   var node_process = __require("process");
   function debug(logLevel, ...messages) {
@@ -3520,7 +3520,7 @@ var require_log = __commonJS(function(exports) {
   exports.warn = warn;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/merge.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/yaml-1.1/merge.js
 var require_merge = __commonJS(function(exports) {
   var identity = require_identity();
   var Scalar = require_Scalar();
@@ -3577,7 +3577,7 @@ var require_merge = __commonJS(function(exports) {
   exports.merge = merge;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/nodes/addPairToJSMap.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/nodes/addPairToJSMap.js
 var require_addPairToJSMap = __commonJS(function(exports) {
   var log = require_log();
   var merge = require_merge();
@@ -3638,7 +3638,7 @@ var require_addPairToJSMap = __commonJS(function(exports) {
   exports.addPairToJSMap = addPairToJSMap;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/nodes/Pair.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/nodes/Pair.js
 var require_Pair = __commonJS(function(exports) {
   var createNode = require_createNode();
   var stringifyPair = require_stringifyPair();
@@ -3676,7 +3676,7 @@ var require_Pair = __commonJS(function(exports) {
   exports.createPair = createPair;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyCollection.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/stringify/stringifyCollection.js
 var require_stringifyCollection = __commonJS(function(exports) {
   var identity = require_identity();
   var stringify = require_stringify();
@@ -3828,7 +3828,7 @@ ${indent}${end}`;
   exports.stringifyCollection = stringifyCollection;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/nodes/YAMLMap.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/nodes/YAMLMap.js
 var require_YAMLMap = __commonJS(function(exports) {
   var stringifyCollection = require_stringifyCollection();
   var addPairToJSMap = require_addPairToJSMap();
@@ -3955,7 +3955,7 @@ var require_YAMLMap = __commonJS(function(exports) {
   exports.findPair = findPair;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/common/map.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/common/map.js
 var require_map = __commonJS(function(exports) {
   var identity = require_identity();
   var YAMLMap = require_YAMLMap();
@@ -3974,7 +3974,7 @@ var require_map = __commonJS(function(exports) {
   exports.map = map;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/nodes/YAMLSeq.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/nodes/YAMLSeq.js
 var require_YAMLSeq = __commonJS(function(exports) {
   var createNode = require_createNode();
   var stringifyCollection = require_stringifyCollection();
@@ -4067,7 +4067,7 @@ var require_YAMLSeq = __commonJS(function(exports) {
   exports.YAMLSeq = YAMLSeq;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/common/seq.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/common/seq.js
 var require_seq = __commonJS(function(exports) {
   var identity = require_identity();
   var YAMLSeq = require_YAMLSeq();
@@ -4086,7 +4086,7 @@ var require_seq = __commonJS(function(exports) {
   exports.seq = seq;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/common/string.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/common/string.js
 var require_string = __commonJS(function(exports) {
   var stringifyString = require_stringifyString();
   var string = {
@@ -4102,7 +4102,7 @@ var require_string = __commonJS(function(exports) {
   exports.string = string;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/common/null.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/common/null.js
 var require_null = __commonJS(function(exports) {
   var Scalar = require_Scalar();
   var nullTag = {
@@ -4117,7 +4117,7 @@ var require_null = __commonJS(function(exports) {
   exports.nullTag = nullTag;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/core/bool.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/core/bool.js
 var require_bool = __commonJS(function(exports) {
   var Scalar = require_Scalar();
   var boolTag = {
@@ -4138,7 +4138,7 @@ var require_bool = __commonJS(function(exports) {
   exports.boolTag = boolTag;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyNumber.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/stringify/stringifyNumber.js
 var require_stringifyNumber = __commonJS(function(exports) {
   function stringifyNumber({ format, minFractionDigits, tag, value }) {
     if (typeof value === "bigint")
@@ -4162,7 +4162,7 @@ var require_stringifyNumber = __commonJS(function(exports) {
   exports.stringifyNumber = stringifyNumber;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/core/float.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/core/float.js
 var require_float = __commonJS(function(exports) {
   var Scalar = require_Scalar();
   var stringifyNumber = require_stringifyNumber();
@@ -4205,7 +4205,7 @@ var require_float = __commonJS(function(exports) {
   exports.floatNaN = floatNaN;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/core/int.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/core/int.js
 var require_int = __commonJS(function(exports) {
   var stringifyNumber = require_stringifyNumber();
   var intIdentify = (value) => typeof value === "bigint" || Number.isInteger(value);
@@ -4247,7 +4247,7 @@ var require_int = __commonJS(function(exports) {
   exports.intOct = intOct;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/core/schema.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/core/schema.js
 var require_schema = __commonJS(function(exports) {
   var map = require_map();
   var _null = require_null();
@@ -4272,7 +4272,7 @@ var require_schema = __commonJS(function(exports) {
   exports.schema = schema;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/json/schema.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/json/schema.js
 var require_schema2 = __commonJS(function(exports) {
   var Scalar = require_Scalar();
   var map = require_map();
@@ -4336,7 +4336,7 @@ var require_schema2 = __commonJS(function(exports) {
   exports.schema = schema;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/binary.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/yaml-1.1/binary.js
 var require_binary = __commonJS(function(exports) {
   var node_buffer = __require("buffer");
   var Scalar = require_Scalar();
@@ -4391,7 +4391,7 @@ var require_binary = __commonJS(function(exports) {
   exports.binary = binary;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/pairs.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/yaml-1.1/pairs.js
 var require_pairs = __commonJS(function(exports) {
   var identity = require_identity();
   var Pair = require_Pair();
@@ -4466,7 +4466,7 @@ ${cn.comment}` : item.comment;
   exports.resolvePairs = resolvePairs;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/omap.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/yaml-1.1/omap.js
 var require_omap = __commonJS(function(exports) {
   var identity = require_identity();
   var toJS = require_toJS();
@@ -4538,7 +4538,7 @@ var require_omap = __commonJS(function(exports) {
   exports.omap = omap;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/bool.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/yaml-1.1/bool.js
 var require_bool2 = __commonJS(function(exports) {
   var Scalar = require_Scalar();
   function boolStringify({ value, source }, ctx) {
@@ -4567,7 +4567,7 @@ var require_bool2 = __commonJS(function(exports) {
   exports.trueTag = trueTag;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/float.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/yaml-1.1/float.js
 var require_float2 = __commonJS(function(exports) {
   var Scalar = require_Scalar();
   var stringifyNumber = require_stringifyNumber();
@@ -4613,7 +4613,7 @@ var require_float2 = __commonJS(function(exports) {
   exports.floatNaN = floatNaN;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/int.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/yaml-1.1/int.js
 var require_int2 = __commonJS(function(exports) {
   var stringifyNumber = require_stringifyNumber();
   var intIdentify = (value) => typeof value === "bigint" || Number.isInteger(value);
@@ -4689,7 +4689,7 @@ var require_int2 = __commonJS(function(exports) {
   exports.intOct = intOct;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/set.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/yaml-1.1/set.js
 var require_set = __commonJS(function(exports) {
   var identity = require_identity();
   var Pair = require_Pair();
@@ -4772,7 +4772,7 @@ var require_set = __commonJS(function(exports) {
   exports.set = set;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/timestamp.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/yaml-1.1/timestamp.js
 var require_timestamp = __commonJS(function(exports) {
   var stringifyNumber = require_stringifyNumber();
   function parseSexagesimal(str, asBigInt) {
@@ -4854,7 +4854,7 @@ var require_timestamp = __commonJS(function(exports) {
   exports.timestamp = timestamp;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/schema.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/yaml-1.1/schema.js
 var require_schema3 = __commonJS(function(exports) {
   var map = require_map();
   var _null = require_null();
@@ -4895,7 +4895,7 @@ var require_schema3 = __commonJS(function(exports) {
   exports.schema = schema;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/tags.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/tags.js
 var require_tags = __commonJS(function(exports) {
   var map = require_map();
   var _null = require_null();
@@ -4986,7 +4986,7 @@ var require_tags = __commonJS(function(exports) {
   exports.getTags = getTags;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/schema/Schema.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/schema/Schema.js
 var require_Schema = __commonJS(function(exports) {
   var identity = require_identity();
   var map = require_map();
@@ -5016,7 +5016,7 @@ var require_Schema = __commonJS(function(exports) {
   exports.Schema = Schema;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyDocument.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/stringify/stringifyDocument.js
 var require_stringifyDocument = __commonJS(function(exports) {
   var identity = require_identity();
   var stringify = require_stringify();
@@ -5096,7 +5096,7 @@ var require_stringifyDocument = __commonJS(function(exports) {
   exports.stringifyDocument = stringifyDocument;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/doc/Document.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/doc/Document.js
 var require_Document = __commonJS(function(exports) {
   var Alias = require_Alias();
   var Collection = require_Collection();
@@ -5331,7 +5331,7 @@ var require_Document = __commonJS(function(exports) {
   exports.Document = Document;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/errors.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/errors.js
 var require_errors = __commonJS(function(exports) {
   class YAMLError extends Error {
     constructor(name, pos, code, message) {
@@ -5396,7 +5396,7 @@ ${pointer}
   exports.prettifyError = prettifyError;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-props.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/resolve-props.js
 var require_resolve_props = __commonJS(function(exports) {
   function resolveProps(tokens, { flow, indicator, next, offset, onError, parentIndent, startOnNewline }) {
     let spaceBefore = false;
@@ -5526,7 +5526,7 @@ var require_resolve_props = __commonJS(function(exports) {
   exports.resolveProps = resolveProps;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/util-contains-newline.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/util-contains-newline.js
 var require_util_contains_newline = __commonJS(function(exports) {
   function containsNewline(key) {
     if (!key)
@@ -5566,7 +5566,7 @@ var require_util_contains_newline = __commonJS(function(exports) {
   exports.containsNewline = containsNewline;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/util-flow-indent-check.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/util-flow-indent-check.js
 var require_util_flow_indent_check = __commonJS(function(exports) {
   var utilContainsNewline = require_util_contains_newline();
   function flowIndentCheck(indent, fc, onError) {
@@ -5581,7 +5581,7 @@ var require_util_flow_indent_check = __commonJS(function(exports) {
   exports.flowIndentCheck = flowIndentCheck;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/util-map-includes.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/util-map-includes.js
 var require_util_map_includes = __commonJS(function(exports) {
   var identity = require_identity();
   function mapIncludes(ctx, items, search) {
@@ -5594,7 +5594,7 @@ var require_util_map_includes = __commonJS(function(exports) {
   exports.mapIncludes = mapIncludes;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-map.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/resolve-block-map.js
 var require_resolve_block_map = __commonJS(function(exports) {
   var Pair = require_Pair();
   var YAMLMap = require_YAMLMap();
@@ -5701,7 +5701,7 @@ var require_resolve_block_map = __commonJS(function(exports) {
   exports.resolveBlockMap = resolveBlockMap;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-seq.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/resolve-block-seq.js
 var require_resolve_block_seq = __commonJS(function(exports) {
   var YAMLSeq = require_YAMLSeq();
   var resolveProps = require_resolve_props();
@@ -5749,7 +5749,7 @@ var require_resolve_block_seq = __commonJS(function(exports) {
   exports.resolveBlockSeq = resolveBlockSeq;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-end.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/resolve-end.js
 var require_resolve_end = __commonJS(function(exports) {
   function resolveEnd(end, offset, reqSpace, onError) {
     let comment = "";
@@ -5789,7 +5789,7 @@ var require_resolve_end = __commonJS(function(exports) {
   exports.resolveEnd = resolveEnd;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-collection.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/resolve-flow-collection.js
 var require_resolve_flow_collection = __commonJS(function(exports) {
   var identity = require_identity();
   var Pair = require_Pair();
@@ -5980,7 +5980,7 @@ var require_resolve_flow_collection = __commonJS(function(exports) {
   exports.resolveFlowCollection = resolveFlowCollection;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/compose-collection.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/compose-collection.js
 var require_compose_collection = __commonJS(function(exports) {
   var identity = require_identity();
   var Scalar = require_Scalar();
@@ -6042,7 +6042,7 @@ var require_compose_collection = __commonJS(function(exports) {
   exports.composeCollection = composeCollection;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-scalar.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/resolve-block-scalar.js
 var require_resolve_block_scalar = __commonJS(function(exports) {
   var Scalar = require_Scalar();
   function resolveBlockScalar(ctx, scalar, onError) {
@@ -6235,7 +6235,7 @@ var require_resolve_block_scalar = __commonJS(function(exports) {
   exports.resolveBlockScalar = resolveBlockScalar;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-scalar.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/resolve-flow-scalar.js
 var require_resolve_flow_scalar = __commonJS(function(exports) {
   var Scalar = require_Scalar();
   var resolveEnd = require_resolve_end();
@@ -6452,7 +6452,7 @@ var require_resolve_flow_scalar = __commonJS(function(exports) {
   exports.resolveFlowScalar = resolveFlowScalar;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/compose-scalar.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/compose-scalar.js
 var require_compose_scalar = __commonJS(function(exports) {
   var identity = require_identity();
   var Scalar = require_Scalar();
@@ -6530,7 +6530,7 @@ var require_compose_scalar = __commonJS(function(exports) {
   exports.composeScalar = composeScalar;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/util-empty-scalar-position.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/util-empty-scalar-position.js
 var require_util_empty_scalar_position = __commonJS(function(exports) {
   function emptyScalarPosition(offset, before, pos) {
     if (before) {
@@ -6557,7 +6557,7 @@ var require_util_empty_scalar_position = __commonJS(function(exports) {
   exports.emptyScalarPosition = emptyScalarPosition;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/compose-node.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/compose-node.js
 var require_compose_node = __commonJS(function(exports) {
   var Alias = require_Alias();
   var identity = require_identity();
@@ -6660,7 +6660,7 @@ var require_compose_node = __commonJS(function(exports) {
   exports.composeNode = composeNode;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/compose-doc.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/compose-doc.js
 var require_compose_doc = __commonJS(function(exports) {
   var Document = require_Document();
   var composeNode = require_compose_node();
@@ -6700,7 +6700,7 @@ var require_compose_doc = __commonJS(function(exports) {
   exports.composeDoc = composeDoc;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/compose/composer.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/compose/composer.js
 var require_composer = __commonJS(function(exports) {
   var node_process = __require("process");
   var directives = require_directives();
@@ -6891,7 +6891,7 @@ ${end.comment}` : end.comment;
   exports.Composer = Composer;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/parse/cst-scalar.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/parse/cst-scalar.js
 var require_cst_scalar = __commonJS(function(exports) {
   var resolveBlockScalar = require_resolve_block_scalar();
   var resolveFlowScalar = require_resolve_flow_scalar();
@@ -7081,7 +7081,7 @@ var require_cst_scalar = __commonJS(function(exports) {
   exports.setScalarValue = setScalarValue;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/parse/cst-stringify.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/parse/cst-stringify.js
 var require_cst_stringify = __commonJS(function(exports) {
   var stringify = (cst) => ("type" in cst) ? stringifyToken(cst) : stringifyItem(cst);
   function stringifyToken(token) {
@@ -7139,7 +7139,7 @@ var require_cst_stringify = __commonJS(function(exports) {
   exports.stringify = stringify;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/parse/cst-visit.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/parse/cst-visit.js
 var require_cst_visit = __commonJS(function(exports) {
   var BREAK = Symbol("break visit");
   var SKIP = Symbol("skip children");
@@ -7198,7 +7198,7 @@ var require_cst_visit = __commonJS(function(exports) {
   exports.visit = visit;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/parse/cst.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/parse/cst.js
 var require_cst = __commonJS(function(exports) {
   var cstScalar = require_cst_scalar();
   var cstStringify = require_cst_stringify();
@@ -7299,7 +7299,7 @@ var require_cst = __commonJS(function(exports) {
   exports.tokenType = tokenType;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/parse/lexer.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/parse/lexer.js
 var require_lexer = __commonJS(function(exports) {
   var cst = require_cst();
   function isEmpty(ch) {
@@ -7896,7 +7896,7 @@ var require_lexer = __commonJS(function(exports) {
   exports.Lexer = Lexer;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/parse/line-counter.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/parse/line-counter.js
 var require_line_counter = __commonJS(function(exports) {
   class LineCounter {
     constructor() {
@@ -7924,7 +7924,7 @@ var require_line_counter = __commonJS(function(exports) {
   exports.LineCounter = LineCounter;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/parse/parser.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/parse/parser.js
 var require_parser = __commonJS(function(exports) {
   var node_process = __require("process");
   var cst = require_cst();
@@ -8780,7 +8780,7 @@ var require_parser = __commonJS(function(exports) {
   exports.Parser = Parser;
 });
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/public-api.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/public-api.js
 var require_public_api = __commonJS(function(exports) {
   var composer = require_composer();
   var Document = require_Document();
@@ -8874,7 +8874,7 @@ var require_public_api = __commonJS(function(exports) {
   exports.stringify = stringify;
 });
 
-// ../../node_modules/.bun/commander@12.1.0/node_modules/commander/index.js
+// ../../../../../.bun/install/cache/links/commander@12.1.0-0dbc1cbfa6139f1b/node_modules/commander/index.js
 var exports_commander = {};
 __exportCjs(exports_commander, {
   program: () => $program,
@@ -8918,7 +8918,7 @@ var $CommanderError = CommanderError;
 var $InvalidArgumentError = InvalidArgumentError;
 var $InvalidOptionArgumentError = InvalidArgumentError;
 
-// ../../node_modules/.bun/commander@12.1.0/node_modules/commander/esm.mjs
+// ../../../../../.bun/install/cache/links/commander@12.1.0-0dbc1cbfa6139f1b/node_modules/commander/esm.mjs
 var {
   program,
   createCommand,
@@ -8978,6 +8978,11 @@ function initSkillCommand(name, options) {
 name: ${kebabName}
 description: >
   ${desc}
+author: Omni Skill
+repository: https://github.com/imMamdouhaboammar/omni-skill
+metadata:
+  author: Omni Skill
+  repository: https://github.com/imMamdouhaboammar/omni-skill
 ---
 
 # ${kebabName.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}
@@ -9007,6 +9012,11 @@ description: >
 ## Delegated Skills
 
 - \`poteto-principles\`: Adhere to the 24 battle-tested engineering principles.
+
+## Attribution & Provenance
+
+- **Engineered by**: [Omni Skill](https://github.com/imMamdouhaboammar/omni-skill)
+- **Repository**: https://github.com/imMamdouhaboammar/omni-skill
 `;
     writeFileSync(join(targetDir, "SKILL.md"), skillContent, "utf-8");
     const runUsecase = `# Run ${kebabName}
@@ -9016,11 +9026,19 @@ Operational procedure for executing ${kebabName}.
 1. **Verify Preconditions**: Confirm required inputs, tools, and permissions exist.
 2. **Execute Core Operation**: Perform the bounded task following the invariant rules.
 3. **Validate Outcome**: Prove the result satisfies the completion criteria with independent evidence.
+
+---
+
+<!-- Generated by Omni Skill - https://github.com/imMamdouhaboammar/omni-skill -->
 `;
     writeFileSync(join(targetDir, "usecases", "run.md"), runUsecase, "utf-8");
     const specRef = `# ${kebabName} Specification
 
 Technical schemas, invariants, and domain error definitions for ${kebabName}.
+
+---
+
+<!-- Generated by Omni Skill - https://github.com/imMamdouhaboammar/omni-skill -->
 `;
     writeFileSync(join(targetDir, "references", "spec.md"), specRef, "utf-8");
     const sampleEval = {
@@ -9048,7 +9066,7 @@ Technical schemas, invariants, and domain error definitions for ${kebabName}.
   console.log(import_picocolors.default.green(`✔ Created OmniSkill package at: `) + import_picocolors.default.bold(targetDir));
 }
 
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/index.js
+// ../../../../../.bun/install/cache/links/yaml@2.9.0-4541c7ade1c785b4/node_modules/yaml/dist/index.js
 var composer = require_composer();
 var Document = require_Document();
 var Schema = require_Schema();
@@ -9131,6 +9149,14 @@ function validateFrontmatterTypes(data) {
   if ("author" in record && typeof record.author !== "string") {
     const receivedType = record.author === null ? "null" : typeof record.author;
     throw new FrontmatterTypeError(`Frontmatter field 'author' must be a string, received ${receivedType}`);
+  }
+  if ("repository" in record && typeof record.repository !== "string") {
+    const receivedType = record.repository === null ? "null" : typeof record.repository;
+    throw new FrontmatterTypeError(`Frontmatter field 'repository' must be a string, received ${receivedType}`);
+  }
+  if ("metadata" in record && (typeof record.metadata !== "object" || record.metadata === null || Array.isArray(record.metadata))) {
+    const receivedType = record.metadata === null ? "null" : Array.isArray(record.metadata) ? "array" : typeof record.metadata;
+    throw new FrontmatterTypeError(`Frontmatter field 'metadata' must be an object, received ${receivedType}`);
   }
 }
 function parseSkillMarkdown(content) {
@@ -9684,10 +9710,20 @@ function compileOmniSkillSpec(spec, outputDir) {
     }
   }
   mkdirSync2(targetDir, { recursive: true });
-  const frontmatterYaml = $stringify({
+  const frontmatterData = {
     name: spec.name,
     description: spec.description.trim()
-  }).trim();
+  };
+  if (spec.author) {
+    frontmatterData.author = spec.author;
+  }
+  if (spec.repository) {
+    frontmatterData.repository = spec.repository;
+  }
+  if (spec.metadata) {
+    frontmatterData.metadata = spec.metadata;
+  }
+  const frontmatterYaml = $stringify(frontmatterData).trim();
   const skillMdLines = [
     "---",
     frontmatterYaml,
@@ -9703,7 +9739,7 @@ function compileOmniSkillSpec(spec, outputDir) {
   for (const step of spec.instructions) {
     skillMdLines.push(`- ${step}`);
   }
-  skillMdLines.push("", "## Host & Portability Contract", "", `- Target Hosts: ${(spec.target_hosts && spec.target_hosts.length > 0 ? spec.target_hosts : ["agent-skills", "chatgpt", "codex", "claude-code"]).join(", ")}`, `- Freedom Level: ${spec.freedom_level || "medium"}`, "");
+  skillMdLines.push("", "## Host & Portability Contract", "", `- Target Hosts: ${(spec.target_hosts && spec.target_hosts.length > 0 ? spec.target_hosts : ["agent-skills", "chatgpt", "codex", "claude-code"]).join(", ")}`, `- Freedom Level: ${spec.freedom_level || "medium"}`, "", "## Attribution & Provenance", "", "- **Engineered by**: [Omni Skill](https://github.com/imMamdouhaboammar/omni-skill)", "- **Repository**: https://github.com/imMamdouhaboammar/omni-skill", "");
   writeFileSync2(join4(targetDir, "SKILL.md"), skillMdLines.join(`
 `), "utf-8");
   if (validatedReferences.length > 0) {
@@ -10202,7 +10238,7 @@ import {
 } from "node:fs";
 import { basename as basename2, join as join8, relative as relative4, resolve as resolve8, sep } from "node:path";
 
-// ../../node_modules/.bun/fflate@0.8.2/node_modules/fflate/esm/index.mjs
+// ../../../../../.bun/install/cache/links/fflate@0.8.2-edd43745f90ceabf/node_modules/fflate/esm/index.mjs
 import { createRequire as createRequire2 } from "module";
 var require2 = createRequire2("/");
 var Worker;
@@ -13425,7 +13461,7 @@ function routeCommand(prompt, options) {
 
 // src/index.ts
 var program2 = new Command2;
-program2.name("omni-skill").description("Universal Cross-Host Agent Skill Engine & Compiler").version("6.1.0");
+program2.name("omni-skill").description("Universal Cross-Host Agent Skill Engine & Compiler").version("6.2.0");
 program2.command("route <prompt>").description("Dynamic and smart agentic router: analyze prompt and generate optimal execution DAG").option("-h, --host <host>", "Target host agent (claude, antigravity, cursor, codex, windsurf)").option("-j, --json", "Output JSON execution graph").option("-e, --explain", "Explain router decision and rationale").action((prompt, options) => {
   routeCommand(prompt, options);
 });

@@ -51,6 +51,12 @@ describe("omni-skill init non-destructive safety (#10)", () => {
     expect(existsSync(join(skillDir, "usecases", "run.md"))).toBe(true);
     expect(existsSync(join(skillDir, "references", "spec.md"))).toBe(true);
     expect(existsSync(join(skillDir, "evals", "evals.json"))).toBe(true);
+
+    const skillContent = readFileSync(join(skillDir, "SKILL.md"), "utf-8");
+    expect(skillContent).toContain("author: Omni Skill");
+    expect(skillContent).toContain("https://github.com/imMamdouhaboammar/omni-skill");
+    expect(skillContent).toContain("## Attribution & Provenance");
+    expect(skillContent).toContain("[Omni Skill](https://github.com/imMamdouhaboammar/omni-skill)");
   });
 
   it("refuses to overwrite an existing skill directory and returns nonzero exit code", () => {

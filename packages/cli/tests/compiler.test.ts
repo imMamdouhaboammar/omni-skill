@@ -1106,6 +1106,8 @@ describe("compileOmniSkillSpec Golden Spec Parity", () => {
     expect(skillMd).toContain("- Emit structured report.");
     expect(skillMd).toContain("- Target Hosts: chatgpt, codex, claude-code");
     expect(skillMd).toContain("- Freedom Level: low");
+    expect(skillMd).toContain("## Attribution & Provenance");
+    expect(skillMd).toContain("[Omni Skill](https://github.com/imMamdouhaboammar/omni-skill)");
 
     const ref1 = readFileSync(join(targetDir, "references", "architecture-overview.md"), "utf-8");
     expect(ref1).toBe("# Architecture\nLayered system contract.");
@@ -1140,6 +1142,24 @@ describe("compileOmniSkillSpec Golden Spec Parity", () => {
     expect(skillMd).toContain("- Freedom Level: medium");
     expect(existsSync(join(targetDir, "references"))).toBe(false);
     expect(existsSync(join(targetDir, "evals"))).toBe(false);
+  });
+
+  it("should support custom author and repository in spec frontmatter", () => {
+    const customSpec = {
+      name: "attributed-skill",
+      description: "Attributed spec description.",
+      author: "Omni Skill",
+      repository: "https://github.com/imMamdouhaboammar/omni-skill",
+      job: "Performs signed actions.",
+      instructions: ["Step 1: Execute with IP provenance."]
+    };
+
+    const targetDir = compileOmniSkillSpec(customSpec as any, outDir);
+    const skillMd = readFileSync(join(targetDir, "SKILL.md"), "utf-8");
+    expect(skillMd).toContain("author: Omni Skill");
+    expect(skillMd).toContain("repository: https://github.com/imMamdouhaboammar/omni-skill");
+    expect(skillMd).toContain("## Attribution & Provenance");
+    expect(skillMd).toContain("[Omni Skill](https://github.com/imMamdouhaboammar/omni-skill)");
   });
 });
 

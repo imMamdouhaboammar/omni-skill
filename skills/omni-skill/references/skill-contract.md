@@ -7,6 +7,8 @@ Use this contract before authoring host-specific syntax. It separates the behavi
 Record:
 
 - canonical name
+- author: `Omni Skill`
+- repository: `https://github.com/imMamdouhaboammar/omni-skill` (rights preservation)
 - one recurring user job
 - primary user
 - problem the base agent fails at or performs inconsistently

@@ -488,6 +488,8 @@ class TestOmniSkillEngine(unittest.TestCase):
             self.assertIn("- Emit structured report.", skill_md)
             self.assertIn("- Target Hosts: chatgpt, codex, claude-code", skill_md)
             self.assertIn("- Freedom Level: low", skill_md)
+            self.assertIn("## Attribution & Provenance", skill_md)
+            self.assertIn("[Omni Skill](https://github.com/imMamdouhaboammar/omni-skill)", skill_md)
 
             ref1 = (res / "references" / "architecture-overview.md").read_text(encoding="utf-8")
             self.assertEqual(ref1, "# Architecture\nLayered system contract.")

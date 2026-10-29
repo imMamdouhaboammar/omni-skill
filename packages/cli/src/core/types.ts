@@ -3,6 +3,8 @@ export interface SkillFrontmatter {
   description: string;
   version?: string;
   author?: string;
+  repository?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface SkillManifest {
@@ -34,6 +36,9 @@ export interface OmniSkillSpec {
   name: string;
   description: string;
   job: string;
+  author?: string;
+  repository?: string;
+  metadata?: Record<string, unknown>;
   target_hosts?: string[];
   freedom_level?: "high" | "medium" | "low";
   instructions: string[];

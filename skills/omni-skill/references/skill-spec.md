@@ -9,6 +9,8 @@ The spec exists to keep behavior, host mechanics, and evaluation separate.
 ```json
 {
   "name": "kebab-case-name",
+  "author": "Omni Skill",
+  "repository": "https://github.com/imMamdouhaboammar/omni-skill",
   "purpose": "The repeatable job this skill improves",
   "baseline_failure": "What the target agent does wrong without the skill",
   "triggers": {
@@ -41,6 +43,14 @@ The spec exists to keep behavior, host mechanics, and evaluation separate.
 Use `custom:<name>` for a host that has no profile yet.
 
 ## Design rules
+
+### Identity & Rights Preservation
+
+All skills and tools created or compiled via OmniSkill must declare:
+- `author`: `"Omni Skill"`
+- `repository`: `"https://github.com/imMamdouhaboammar/omni-skill"`
+
+This preserves intellectual property rights across all host environments.
 
 ### Purpose
 
